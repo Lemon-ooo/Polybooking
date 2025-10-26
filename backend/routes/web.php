@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\RoomTypeController;
-use App\Http\Controllers\Admin\AdminController;git add routes/web.php
+use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\ServiceController;
 
 Route::get('/', function () {

@@ -130,7 +130,8 @@
     <div class="sidebar">
         <h3>Menu</h3>
         <a href="{{ route('room-types.index') }}">Quản lý loại phòng</a>
-        <a href="{{ route('rooms.index') }}">Quản lý phòng</a>
+        <a href="{{ route('rooms.index') }}">Quản lý phòng</a> 
+        <a href="{{ route('services.index') }}">Dịch vụ</a> 
         <a href="#">Quản lý booking</a>
         <a href="#">Báo cáo</a>
     </div>

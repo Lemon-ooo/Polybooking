@@ -10,12 +10,12 @@ class ServiceController extends Controller
     public function index()
     {
         $services = Service::all();
-        return view('admin.services.index', compact('services'));
+        return view('services.index', compact('services'));
     }
 
     public function create()
     {
-        return view('admin.services.create');
+        return view('services.create');
     }
 
     public function store(Request $request)
@@ -24,24 +24,24 @@ class ServiceController extends Controller
             'name' => 'required|string|max:255',
             'price' => 'required|numeric',
             'description' => 'nullable|string',
-            'image' => 'nullable|string', // Có thể thay bằng file upload nếu cần
+            'image' => 'nullable|string',
         ]);
 
         $service = Service::create($request->all());
 
-        return redirect()->route('admin.services.index')->with('success', 'Dịch vụ đã được thêm thành công.');
+        return redirect()->route('services.index')->with('success', 'Dịch vụ đã được thêm thành công.');
     }
 
     public function show($id)
     {
         $service = Service::findOrFail($id);
-        return view('admin.services.show', compact('service'));
+        return view('services.show', compact('service'));
     }
 
     public function edit($id)
     {
         $service = Service::findOrFail($id);
-        return view('admin.services.edit', compact('service'));
+        return view('services.edit', compact('service'));
     }
 
     public function update(Request $request, $id)
@@ -56,7 +56,7 @@ class ServiceController extends Controller
         $service = Service::findOrFail($id);
         $service->update($request->all());
 
-        return redirect()->route('admin.services.index')->with('success', 'Dịch vụ đã được cập nhật thành công.');
+        return redirect()->route('services.index')->with('success', 'Dịch vụ đã được cập nhật thành công.');
     }
 
     public function destroy($id)
@@ -64,6 +64,6 @@ class ServiceController extends Controller
         $service = Service::findOrFail($id);
         $service->delete();
 
-        return redirect()->route('admin.services.index')->with('success', 'Dịch vụ đã được xóa thành công.');
+        return redirect()->route('services.index')->with('success', 'Dịch vụ đã được xóa thành công.');
     }
 }
