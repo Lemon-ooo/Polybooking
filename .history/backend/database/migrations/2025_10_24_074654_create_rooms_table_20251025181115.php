@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('rooms', function (Blueprint $table) {
             $table->id('room_id');
+
         $table->string('room_number'); // VD: 101, 102, 201...
         $table->unsignedBigInteger('room_type_id'); // khóa ngoại
         $table->text('description')->nullable();

@@ -14,7 +14,7 @@ class RoomController extends Controller
     public function index()
     {
         
-        $rooms = Room::with(['roomType', 'amenities'])->get();
+        $rooms = Room::with('roomType')->get();
         return view('rooms.index', compact('rooms'));
     }
 
@@ -41,7 +41,7 @@ class RoomController extends Controller
         'price' => 'nullable|numeric|min:0',
         'status' => 'required|string',
         'amenities' => 'array', // ✅ thêm
-        'amenities.*' => 'exists:amenities,amenity_id',
+        'amenities.*' => 'exists:amenities,id',
     ]);
 
     $room = Room::create($validated);
@@ -88,7 +88,7 @@ class RoomController extends Controller
         'price' => 'nullable|numeric|min:0',
         'status' => 'required|string',
         'amenities' => 'array',
-        'amenities.*' => 'exists:amenities,amenity_id',
+        'amenities.*' => 'exists:amenities,id',
     ]);
 
     $room->update($validated);

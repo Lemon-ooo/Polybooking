@@ -77,7 +77,7 @@
                 <div class="amenity-container">
                     @foreach($amenities as $amenity)
                         <label class="amenity-item">
-                            <input type="checkbox" name="amenities[]" value="{{ $amenity->amenity_id }}"
+                            <input type="checkbox" name="amenities[]" value="{{ $amenity->id }}"
                                 {{ in_array($amenity->id, old('amenities', [])) ? 'checked' : '' }}>
                             <span class="checkmark"></span>
                             {{ $amenity->name }}

@@ -14,7 +14,7 @@ class RoomController extends Controller
     public function index()
     {
         
-        $rooms = Room::with(['roomType', 'amenities'])->get();
+        $rooms = Room::with('roomType')->get();
         return view('rooms.index', compact('rooms'));
     }
 
@@ -41,7 +41,7 @@ class RoomController extends Controller
         'price' => 'nullable|numeric|min:0',
         'status' => 'required|string',
         'amenities' => 'array', // ✅ thêm
-        'amenities.*' => 'exists:amenities,amenity_id',
+        'amenities.*' => 'exists:amenities,id',
     ]);
 
     $room = Room::create($validated);
@@ -79,25 +79,20 @@ class RoomController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Room $room)
-{
-    $validated = $request->validate([
-        'room_number' => 'required|string|max:50',
-        'room_type_id' => 'required|exists:room_types,id',
-        'description' => 'nullable|string',
-        'price' => 'nullable|numeric|min:0',
-        'status' => 'required|string',
-        'amenities' => 'array',
-        'amenities.*' => 'exists:amenities,amenity_id',
-    ]);
+    public function update(Request $request,Room $room )
+    {
+         $validated = $request->validate([
+            'room_number' => 'required|string|max:50',
+            'room_type_id' => 'required|exists:room_types,id',
+            'description' => 'nullable|string',
+            'price' => 'nullable|numeric|min:0',
+            'status' => 'required|string',
+        ]);
 
-    $room->update($validated);
+        $room->update($validated);
 
-    $room->amenities()->sync($request->amenities ?? []); // ✅ cập nhật tiện ích
-
-    return redirect()->route('rooms.index')->with('success', 'Cập nhật phòng thành công!');
-}
-
+        return redirect()->route('rooms.index')->with('success', 'Cập nhật phòng thành công!');
+    }
 
     /**
      * Remove the specified resource from storage.

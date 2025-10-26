@@ -7,9 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Room extends Model
 {
     use HasFactory;
-        protected $table = 'rooms';
-    protected $primaryKey = 'room_id'; // ✅ rất quan trọng!
-    public $timestamps = true; // nếu bảng có created_at, updated_at
+
      protected $fillable = [
         'room_number',
         'room_type_id',
