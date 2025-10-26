@@ -1,92 +1,120 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\Room;
 use App\Models\RoomType;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class RoomController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * GET /admin/rooms
+     * Liệt kê phòng (kèm loại phòng), phân trang.
      */
     public function index()
     {
-        
-        $rooms = Room::with('roomType')->get();
+        $rooms = Room::query()
+            ->with(['roomType:id,name'])
+            ->select(['id','room_number','room_type_id','description','price','status','created_at'])
+            ->latest('id')
+            ->paginate(10)
+            ->withQueryString();
+
+        // View KHÔNG có tiền tố admin (theo cấu trúc thư mục của bro)
         return view('rooms.index', compact('rooms'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * GET /admin/rooms/create
+     * Form tạo mới phòng.
      */
     public function create()
     {
-         $roomTypes = RoomType::all();
+        $roomTypes = RoomType::query()->orderBy('name')->get(['id','name']);
+
         return view('rooms.create', compact('roomTypes'));
     }
 
     /**
-     * Store a newly created resource in storage.
+     * POST /admin/rooms
+     * Lưu phòng mới.
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'room_number' => 'required|string|max:50',
-            'room_type_id' => 'required|exists:room_types,id',
-            'description' => 'nullable|string',
-            'price' => 'nullable|numeric|min:0',
-            'status' => 'required|string',
+        $data = $request->validate([
+            'room_number'   => ['required','string','max:255','unique:rooms,room_number'],
+            'room_type_id'  => ['required','integer','exists:room_types,id'],
+            'description'   => ['nullable','string'],
+            'price'         => ['nullable','numeric','between:0,9999999999.99'],
+            // Cho phép 3 trạng thái phổ biến; tùy DB của bro có thể mở rộng thêm
+            // 'status'        => ['required', Rule::in(['available','occupied','maintenance'])],
         ]);
 
-         Room::create($validated);
+        Room::create($data);
 
-        return redirect()->route('rooms.index')->with('success', 'Thêm phòng thành công!');
+        return redirect()
+            ->route('admin.rooms.index')
+            ->with('success', 'Tạo phòng thành công.');
     }
 
     /**
-     * Display the specified resource.
+     * GET /admin/rooms/{room}
+     * Trang chi tiết phòng.
      */
     public function show(Room $room)
     {
-          // Gọi luôn loại phòng liên quan để hiển thị đầy đủ thông tin
-    $room->load('roomType');
-    return view('rooms.show', compact('room'));
+        $room->load(['roomType:id,name']);
+
+        return view('rooms.show', compact('room'));
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * GET /admin/rooms/{room}/edit
+     * Form chỉnh sửa phòng.
      */
     public function edit(Room $room)
     {
-        $roomTypes = RoomType::all();
-        return view('rooms.edit', compact('room', 'roomTypes'));
+        $roomTypes = RoomType::query()->orderBy('name')->get(['id','name']);
+
+        return view('rooms.edit', compact('room','roomTypes'));
     }
 
     /**
-     * Update the specified resource in storage.
+     * PUT/PATCH /admin/rooms/{room}
+     * Cập nhật phòng.
      */
-    public function update(Request $request,Room $room )
+    public function update(Request $request, Room $room)
     {
-         $validated = $request->validate([
-            'room_number' => 'required|string|max:50',
-            'room_type_id' => 'required|exists:room_types,id',
-            'description' => 'nullable|string',
-            'price' => 'nullable|numeric|min:0',
-            'status' => 'required|string',
+        $data = $request->validate([
+            'room_number'   => [
+                'required','string','max:255',
+                Rule::unique('rooms','room_number')->ignore($room->id),
+            ],
+            'room_type_id'  => ['required','integer','exists:room_types,id'],
+            'description'   => ['nullable','string'],
+            'price'         => ['nullable','numeric','between:0,9999999999.99'],
+            //'status'        => ['required', Rule::in(['available','occupied','maintenance'])],
         ]);
 
-        $room->update($validated);
+        $room->update($data);
 
-        return redirect()->route('rooms.index')->with('success', 'Cập nhật phòng thành công!');
+        return redirect()
+            ->route('admin.rooms.index')
+            ->with('success', 'Cập nhật phòng thành công.');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * DELETE /admin/rooms/{room}
+     * Xóa phòng.
      */
     public function destroy(Room $room)
     {
         $room->delete();
-        return redirect()->route('rooms.index')->with('success', 'Xóa phòng thành công!');
+
+        return redirect()
+            ->route('admin.rooms.index')
+            ->with('success', 'Đã xóa phòng.');
     }
 }

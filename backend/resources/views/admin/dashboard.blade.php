@@ -8,10 +8,9 @@
 
     <div class="card">
         <p>Chào mừng bạn đến với <strong>trang Admin</strong>! 👋</p>
-        <ul>
-            <li><a href="{{ route('room-types.index') }}">Quản lý loại phòng</a></li>
-            <li><a href="{{ route('rooms.index') }}">Quản lý phòng</a></li>
-        </ul>
+        <li><a href="{{ route('admin.room-types.index') }}">Quản lý loại phòng</a></li>
+        <li><a href="{{ route('admin.rooms.index') }}">Quản lý phòng</a></li>
+
     </div>
 </div>
 

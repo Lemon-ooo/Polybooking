@@ -3,7 +3,7 @@
 @section('content')
 <div class="container">
     <h1>Danh sách phòng</h1>
-    <a href="{{ route('rooms.create') }}" class="btn btn-primary mb-3">+ Thêm phòng mới</a>
+    <a href="{{ route('admin.rooms.create') }}" class="btn btn-primary mb-3">+ Thêm phòng mới</a>
 
     <table class="table table-bordered">
         <thead>
@@ -29,9 +29,9 @@
                     <td>{{ number_format($room->price, 0) }} VNĐ</td>
                     <td>{{ $room->status }}</td>
                     <td>
-                        <a href="{{ route('rooms.show', $room->id) }}" class="btn btn-info btn-sm">👁️ Xem</a>
-                        <a href="{{ route('rooms.edit', $room) }}" class="btn btn-sm btn-warning">Sửa</a>
-                        <form action="{{ route('rooms.destroy', $room) }}" method="POST" style="display:inline;">
+                        <a href="{{ route('admin.rooms.show', $room->id) }}" class="btn btn-info btn-sm">👁️ Xem</a>
+                        <a href="{{ route('admin.rooms.edit', $room) }}" class="btn btn-sm btn-warning">Sửa</a>
+                        <form action="{{ route('admin.rooms.destroy', $room) }}" method="POST" style="display:inline;">
                             @csrf @method('DELETE')
                             <button class="btn btn-sm btn-danger" onclick="return confirm('Xóa phòng này?')">Xóa</button>
                         </form>

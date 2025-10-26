@@ -129,10 +129,17 @@
 
     <div class="sidebar">
         <h3>Menu</h3>
-        <a href="{{ route('room-types.index') }}">Quản lý loại phòng</a>
-        <a href="{{ route('rooms.index') }}">Quản lý phòng</a>
+        <a href="{{ route('admin.room-types.index') }}">Quản lý loại phòng</a>
+        <a href="{{ route('admin.rooms.index') }}">Quản lý phòng</a>
         <a href="#">Quản lý booking</a>
         <a href="#">Báo cáo</a>
+         {{-- Nút đăng xuất --}}
+    <form method="POST" action="{{ route('logout') }}" style="margin-top:15px;">
+        @csrf
+        <button type="submit" style="background:#dc2626;color:#fff;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;">
+            Đăng xuất
+        </button>
+    </form>
     </div>
 
     <div class="content">

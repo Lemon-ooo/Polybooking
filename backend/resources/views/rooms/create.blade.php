@@ -4,7 +4,7 @@
 <div class="page-container">
     <div class="header-row">
         <h2 class="page-title">➕ Thêm phòng mới</h2>
-        <a href="{{ route('rooms.index') }}" class="btn btn-secondary">↩ Quay lại danh sách</a>
+        <a href="{{ route('admin.rooms.index') }}" class="btn btn-secondary">↩ Quay lại danh sách</a>
     </div>
 
     @if($errors->any())
@@ -18,7 +18,7 @@
     @endif
 
     <div class="card">
-        <form action="{{ route('rooms.store') }}" method="POST" enctype="multipart/form-data" class="form-grid">
+        <form action="{{ route('admin.rooms.store') }}" method="POST" enctype="multipart/form-data" class="form-grid">
             @csrf
 
             <div class="form-group">
@@ -67,7 +67,7 @@
 
             <div class="button-group">
                 <button type="submit" class="btn btn-primary">💾 Lưu phòng</button>
-                <a href="{{ route('rooms.index') }}" class="btn btn-secondary">Hủy</a>
+                <a href="{{ route('admin.rooms.index') }}" class="btn btn-secondary">Hủy</a>
             </div>
         </form>
     </div>
