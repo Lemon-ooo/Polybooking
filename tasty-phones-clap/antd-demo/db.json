@@ -1,0 +1,61 @@
+{
+  "roomTypes": ["Single Room", "Double Room", "Suite", "Family Room"],
+  "rooms": [
+    {
+      "id": 1,
+      "roomType": "Double Room",
+      "roomPrice": 280,
+      "roomPhotoUrl": "/assets/images/hero-1.jpg",
+      "roomDescription": "Phòng đôi hướng biển tuyệt đẹp, có ban công riêng.",
+      "isAvailable": true
+    },
+    {
+      "id": 2,
+      "roomType": "Suite",
+      "roomPrice": 550,
+      "roomPhotoUrl": "/assets/images/hero-2.jpg",
+      "roomDescription": "Phòng Suite sang trọng với dịch vụ 5 sao.",
+      "isAvailable": true
+    },
+    {
+      "id": 3,
+      "roomType": "Single Room",
+      "roomPrice": 150,
+      "roomPhotoUrl": "/assets/images/hero-3.jpg",
+      "roomDescription": "Phòng đơn hướng thành phố, ấm cúng và tiện nghi.",
+      "isAvailable": false
+    }
+  ],
+  "users": [
+    {
+      "id": 1,
+      "firstName": "Admin",
+      "lastName": "Poly",
+      "email": "admin@polyhomestay.com",
+      "role": "ROLE_ADMIN"
+    },
+    {
+      "id": 2,
+      "firstName": "User",
+      "lastName": "Test",
+      "email": "user@polyhomestay.com",
+      "role": "ROLE_USER"
+    },
+    {
+      "id": "8efc",
+      "name": "Admin",
+      "email": "admin@polyhomestay.com",
+      "password": "12345678",
+      "phoneNumber": "Poly"
+    }
+  ],
+  "bookings": [
+    {
+      "id": 101,
+      "guestName": "Nguyễn Văn A",
+      "checkInDate": "2025-11-01",
+      "checkOutDate": "2025-11-05",
+      "roomId": 2
+    }
+  ]
+}
