@@ -5,7 +5,6 @@ use App\Http\Controllers\RoomController;
 use App\Http\Controllers\RoomTypeController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\AmenityController;
-use App\Http\Controllers\GalleryController;
 
 Route::get('/', function () {
     return view('welcome');
