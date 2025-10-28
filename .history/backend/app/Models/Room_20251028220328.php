@@ -22,6 +22,11 @@ class Room extends Model
     {
         return $this->belongsTo(RoomType::class);
     }
+    public function images()
+{
+    return $this->hasMany(RoomImage::class);
+}
+
     public function amenities()
 {
     return $this->belongsToMany(
@@ -30,12 +35,6 @@ class Room extends Model
         'room_id',            // khóa ngoại của Room
         'amenity_id'          // khóa ngoại của Amenity
     );
-}
-
-
-    public function images()
-{
-    return $this->hasMany(RoomImage::class, 'room_id', 'room_id');
 }
 
 }

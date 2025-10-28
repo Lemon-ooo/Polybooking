@@ -34,25 +34,24 @@
 
                     {{-- 🖼️ Hiển thị ảnh phòng --}}
                     <td>
-    @php
-        $imagePath = $room->images->first()->image_path ?? null;
-    @endphp
+                        @php
+                            $imagePath = $room->images->first()->image_path ?? null;
+                        @endphp
 
-    @if ($imagePath)
-        <img src="{{ asset('storage/' . $imagePath) }}"
-             alt="Ảnh phòng {{ $room->room_number }}"
-             width="100" height="80"
-             style="object-fit: cover; cursor: pointer; border-radius: 5px;"
-             onclick="window.location.href='{{ route('room.images.index', $room->room_id) }}';" />
-    @else
-        <img src="{{ asset('images/no-image.png') }}"
-             alt="Không có ảnh"
-             width="100" height="80"
-             style="object-fit: cover; opacity: 0.7; cursor: pointer;"
-             onclick="window.location.href='{{ route('room.images.index', $room->room_id) }}';" />
-    @endif
-</td>
-
+                        @if ($imagePath)
+                            <img src="{{ asset('storage/' . $imagePath) }}"
+                                 alt="Ảnh phòng {{ $room->room_number }}"
+                                 width="100" height="80"
+                                 style="object-fit: cover; cursor: pointer; border-radius: 5px;"
+                                 onclick="window.location='{{ route('room.images.index', $room->room_id) }}'">
+                        @else
+                            <img src="{{ asset('images/no-image.png') }}"
+                                 alt="Không có ảnh"
+                                 width="100" height="80"
+                                 style="object-fit: cover; opacity: 0.7; cursor: pointer;"
+                                 onclick="window.location='{{ route('room.images.index', $room->room_id) }}'">
+                        @endif
+                    </td>
 
                     {{-- 🌿 Hiển thị tiện ích --}}
                     <td>
@@ -72,7 +71,7 @@
                         <a href="{{ route('rooms.show', $room->room_id) }}" class="btn btn-info btn-sm">👁️ Xem</a>
                         <a href="{{ route('rooms.edit', $room->room_id) }}" class="btn btn-warning btn-sm">✏️ Sửa</a>
                         <a href="{{ route('room.images.index', $room->room_id) }}" class="btn btn-secondary btn-sm">🖼️ Ảnh</a>
-                        <form action="{{ route('room.images.store', $room->room_id) }}" method="POST" enctype="multipart/form-data">
+                        <form action="{{ route('rooms.destroy', $room->room_id) }}" method="POST" style="display:inline-block;">
                             @csrf @method('DELETE')
                             <button class="btn btn-danger btn-sm" onclick="return confirm('Xóa phòng này?')">🗑️ Xóa</button>
                         </form>

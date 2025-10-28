@@ -30,7 +30,7 @@ class RoomImageController extends Controller
             $path = $image->store('uploads/rooms', 'public');
 
             RoomImage::create([
-                'room_id' => $room->room_id,
+                'room_id' => $room->id,
                 'image_path' => $path
             ]);
         }

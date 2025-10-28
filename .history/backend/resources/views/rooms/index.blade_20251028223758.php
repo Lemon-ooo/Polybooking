@@ -72,7 +72,7 @@
                         <a href="{{ route('rooms.show', $room->room_id) }}" class="btn btn-info btn-sm">👁️ Xem</a>
                         <a href="{{ route('rooms.edit', $room->room_id) }}" class="btn btn-warning btn-sm">✏️ Sửa</a>
                         <a href="{{ route('room.images.index', $room->room_id) }}" class="btn btn-secondary btn-sm">🖼️ Ảnh</a>
-                        <form action="{{ route('room.images.store', $room->room_id) }}" method="POST" enctype="multipart/form-data">
+                        <form action="{{ route('rooms.destroy', $room->room_id) }}" method="POST" style="display:inline-block;">
                             @csrf @method('DELETE')
                             <button class="btn btn-danger btn-sm" onclick="return confirm('Xóa phòng này?')">🗑️ Xóa</button>
                         </form>
