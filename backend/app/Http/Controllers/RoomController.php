@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 use App\Models\Room;
 use App\Models\RoomType;
 use Illuminate\Http\Request;
+<<<<<<< HEAD
 use App\Models\Amenity;
+=======
+>>>>>>> origin/lamtangthanh
 
 class RoomController extends Controller
 {
@@ -14,7 +17,11 @@ class RoomController extends Controller
     public function index()
     {
         
+<<<<<<< HEAD
         $rooms = Room::with(['roomType', 'amenities'])->get();
+=======
+        $rooms = Room::with('roomType')->get();
+>>>>>>> origin/lamtangthanh
         return view('rooms.index', compact('rooms'));
     }
 
@@ -22,17 +29,25 @@ class RoomController extends Controller
      * Show the form for creating a new resource.
      */
     public function create()
+<<<<<<< HEAD
 {
     $roomTypes = RoomType::all();
     $amenities = Amenity::all(); // ✅ Lấy danh sách tiện ích
     return view('rooms.create', compact('roomTypes', 'amenities'));
 }
 
+=======
+    {
+         $roomTypes = RoomType::all();
+        return view('rooms.create', compact('roomTypes'));
+    }
+>>>>>>> origin/lamtangthanh
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
+<<<<<<< HEAD
 {
     $validated = $request->validate([
         'room_number' => 'required|string|max:50',
@@ -54,6 +69,22 @@ class RoomController extends Controller
 }
 
 
+=======
+    {
+        $validated = $request->validate([
+            'room_number' => 'required|string|max:50',
+            'room_type_id' => 'required|exists:room_types,id',
+            'description' => 'nullable|string',
+            'price' => 'nullable|numeric|min:0',
+            'status' => 'required|string',
+        ]);
+
+         Room::create($validated);
+
+        return redirect()->route('rooms.index')->with('success', 'Thêm phòng thành công!');
+    }
+
+>>>>>>> origin/lamtangthanh
     /**
      * Display the specified resource.
      */
@@ -68,6 +99,7 @@ class RoomController extends Controller
      * Show the form for editing the specified resource.
      */
     public function edit(Room $room)
+<<<<<<< HEAD
 {
     $roomTypes = RoomType::all();
     $amenities = Amenity::all();
@@ -75,10 +107,17 @@ class RoomController extends Controller
     return view('rooms.edit', compact('room', 'roomTypes', 'amenities'));
 }
 
+=======
+    {
+        $roomTypes = RoomType::all();
+        return view('rooms.edit', compact('room', 'roomTypes'));
+    }
+>>>>>>> origin/lamtangthanh
 
     /**
      * Update the specified resource in storage.
      */
+<<<<<<< HEAD
     public function update(Request $request, Room $room)
 {
     $validated = $request->validate([
@@ -98,6 +137,22 @@ class RoomController extends Controller
     return redirect()->route('rooms.index')->with('success', 'Cập nhật phòng thành công!');
 }
 
+=======
+    public function update(Request $request,Room $room )
+    {
+         $validated = $request->validate([
+            'room_number' => 'required|string|max:50',
+            'room_type_id' => 'required|exists:room_types,id',
+            'description' => 'nullable|string',
+            'price' => 'nullable|numeric|min:0',
+            'status' => 'required|string',
+        ]);
+
+        $room->update($validated);
+
+        return redirect()->route('rooms.index')->with('success', 'Cập nhật phòng thành công!');
+    }
+>>>>>>> origin/lamtangthanh
 
     /**
      * Remove the specified resource from storage.

@@ -28,6 +28,10 @@ const Navbar = () => {
   const navLinks = [
     { name: "Home", path: "/" },
     { name: "Rooms", path: "/rooms" },
+<<<<<<< HEAD
+=======
+    { name: "Services", path: "/services" },
+>>>>>>> origin/lamtangthanh
     { name: "Experience", path: "/" },
     { name: "About", path: "/" },
   ];

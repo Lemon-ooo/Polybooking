@@ -12,6 +12,10 @@
     "@refinedev/kbar": "^2.0.0",
     "@refinedev/react-router": "^2.0.0",
     "@refinedev/simple-rest": "^6.0.0",
+<<<<<<< HEAD
+=======
+    "@tailwindcss/vite": "^4.1.15",
+>>>>>>> origin/lamtangthanh
     "@uiw/react-md-editor": "^4.0.8",
     "antd": "^5.23.0",
     "react": "^19.1.0",
@@ -21,7 +25,10 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
+<<<<<<< HEAD
     "@tailwindcss/vite": "^4.1.16",
+=======
+>>>>>>> origin/lamtangthanh
     "@types/node": "^20",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",

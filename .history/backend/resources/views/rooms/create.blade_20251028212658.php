@@ -3,7 +3,7 @@
 @section('content')
 <div class="page-container">
     <div class="header-row">
-        <h2 class="page-title">✏️ Chỉnh sửa phòng</h2>
+        <h2 class="page-title">➕ Thêm phòng mới</h2>
         <a href="{{ route('rooms.index') }}" class="btn btn-secondary">↩ Quay lại danh sách</a>
     </div>
 
@@ -18,92 +18,67 @@
     @endif
 
     <div class="card">
-        <form action="{{ route('rooms.update', $room) }}" method="POST" enctype="multipart/form-data" class="form-grid">
+        <form action="{{ route('rooms.store') }}" method="POST" enctype="multipart/form-data" class="form-grid">
             @csrf
-            @method('PUT')
 
-<<<<<<< HEAD
             {{-- 🔹 Số phòng --}}
-=======
->>>>>>> origin/lamtangthanh
             <div class="form-group">
                 <label for="room_number">Số phòng <span class="text-danger">*</span></label>
                 <input type="text" name="room_number" id="room_number" class="input-field"
-                       value="{{ old('room_number', $room->room_number) }}" required>
+                       placeholder="VD: 101" value="{{ old('room_number') }}" required>
             </div>
 
-<<<<<<< HEAD
             {{-- 🔹 Loại phòng --}}
-=======
->>>>>>> origin/lamtangthanh
             <div class="form-group">
                 <label for="room_type_id">Loại phòng <span class="text-danger">*</span></label>
                 <select name="room_type_id" id="room_type_id" class="input-field" required>
                     <option value="">-- Chọn loại phòng --</option>
                     @foreach($roomTypes as $type)
-                        <option value="{{ $type->id }}" {{ $room->room_type_id == $type->id ? 'selected' : '' }}>
+                        <option value="{{ $type->id }}" {{ old('room_type_id') == $type->id ? 'selected' : '' }}>
                             {{ $type->name }}
                         </option>
                     @endforeach
                 </select>
             </div>
 
-<<<<<<< HEAD
             {{-- 🔹 Mô tả --}}
-=======
->>>>>>> origin/lamtangthanh
             <div class="form-group">
                 <label for="description">Mô tả</label>
                 <textarea name="description" id="description" class="input-field" rows="3"
-                          placeholder="Nhập mô tả...">{{ old('description', $room->description) }}</textarea>
+                          placeholder="Nhập mô tả (nếu có)...">{{ old('description') }}</textarea>
             </div>
 
-<<<<<<< HEAD
-            {{-- 🔹 Giá phòng --}}
-=======
->>>>>>> origin/lamtangthanh
+            {{-- 🔹 Giá --}}
             <div class="form-group">
-                <label for="price">Giá (VNĐ)</label>
+                <label for="price">Giá phòng (VNĐ)</label>
                 <input type="number" name="price" id="price" class="input-field"
-                       value="{{ old('price', $room->price) }}" min="0" step="0.01">
+                       placeholder="Nhập giá..." value="{{ old('price') }}" min="0" step="0.01">
             </div>
 
-<<<<<<< HEAD
             {{-- 🔹 Trạng thái --}}
-=======
->>>>>>> origin/lamtangthanh
             <div class="form-group">
                 <label for="status">Trạng thái <span class="text-danger">*</span></label>
-                <select name="status" id="status" class="input-field" required>
-                    <option value="trống" {{ $room->status == 'trống' ? 'selected' : '' }}>Trống</option>
-                    <option value="đang sử dụng" {{ $room->status == 'đang sử dụng' ? 'selected' : '' }}>Đang sử dụng</option>
-                    <option value="bảo trì" {{ $room->status == 'bảo trì' ? 'selected' : '' }}>Bảo trì</option>
+                <select name="status" id="status" class="input-field">
+                    <option value="trống" {{ old('status') == 'trống' ? 'selected' : '' }}>Trống</option>
+                    <option value="đang sử dụng" {{ old('status') == 'đang sử dụng' ? 'selected' : '' }}>Đang sử dụng</option>
+                    <option value="bảo trì" {{ old('status') == 'bảo trì' ? 'selected' : '' }}>Bảo trì</option>
                 </select>
             </div>
 
-<<<<<<< HEAD
             {{-- 🔹 Ảnh phòng --}}
-=======
->>>>>>> origin/lamtangthanh
             <div class="form-group">
                 <label for="image">Ảnh phòng</label>
                 <input type="file" name="image" id="image" class="input-field">
-                @if($room->image)
-                    <div class="mt-2">
-                        <img src="{{ asset('storage/' . $room->image) }}" alt="Ảnh phòng" class="img-preview">
-                    </div>
-                @endif
             </div>
 
-<<<<<<< HEAD
-            {{-- ✅ 🔹 Tiện ích trong phòng --}}
+            {{-- ✅ 🔹 Tiện ích phòng --}}
             <div class="form-group">
-                <label>Tiện ích trong phòng</label>
+                <label>Tiện ích phòng</label>
                 <div class="amenity-container">
                     @foreach($amenities as $amenity)
                         <label class="amenity-item">
                             <input type="checkbox" name="amenities[]" value="{{ $amenity->amenity_id }}"
-                                {{ in_array($amenity->amenity_id, $room->amenities->pluck('amenity_id')->toArray()) ? 'checked' : '' }}>
+                                {{ in_array($amenity->id, old('amenities', [])) ? 'checked' : '' }}>
                             <span class="checkmark"></span>
                             {{ $amenity->name }}
                         </label>
@@ -112,10 +87,8 @@
             </div>
 
             {{-- 🔹 Nút lưu --}}
-=======
->>>>>>> origin/lamtangthanh
             <div class="button-group">
-                <button type="submit" class="btn btn-primary">💾 Cập nhật</button>
+                <button type="submit" class="btn btn-primary">💾 Lưu phòng</button>
                 <a href="{{ route('rooms.index') }}" class="btn btn-secondary">Hủy</a>
             </div>
         </form>
@@ -128,20 +101,12 @@
     padding: 25px 35px;
     border-radius: 8px;
 }
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/lamtangthanh
 .header-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
 }
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/lamtangthanh
 .page-title {
     font-size: 22px;
     font-weight: 600;
@@ -149,38 +114,22 @@
     border-left: 5px solid #2196F3;
     padding-left: 10px;
 }
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/lamtangthanh
 .card {
     background: #fff;
     border-radius: 12px;
     padding: 25px 30px;
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
 }
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/lamtangthanh
 .form-grid {
     display: flex;
     flex-direction: column;
     gap: 16px;
 }
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/lamtangthanh
 .form-group label {
     font-weight: 600;
     color: #444;
     margin-bottom: 6px;
 }
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/lamtangthanh
 .input-field {
     width: 100%;
     padding: 10px 12px;
@@ -189,25 +138,11 @@
     font-size: 15px;
     transition: 0.2s;
 }
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/lamtangthanh
 .input-field:focus {
     border-color: #2196F3;
     box-shadow: 0 0 5px rgba(33,150,243,0.3);
     outline: none;
 }
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/lamtangthanh
-.img-preview {
-    max-height: 150px;
-    border-radius: 6px;
-    margin-top: 8px;
-}
-<<<<<<< HEAD
 .amenity-container {
     display: flex;
     flex-wrap: wrap;
@@ -232,18 +167,11 @@
 .amenity-item input {
     accent-color: #2196F3;
 }
-=======
-
->>>>>>> origin/lamtangthanh
 .button-group {
     display: flex;
     gap: 10px;
     margin-top: 10px;
 }
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/lamtangthanh
 .btn {
     padding: 10px 16px;
     border: none;
@@ -254,40 +182,20 @@
     text-decoration: none;
     transition: all 0.2s ease;
 }
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/lamtangthanh
 .btn-primary {
     background-color: #2196F3;
     color: #fff;
 }
-<<<<<<< HEAD
 .btn-primary:hover {
     background-color: #1976D2;
 }
-=======
-
-.btn-primary:hover {
-    background-color: #1976D2;
-}
-
->>>>>>> origin/lamtangthanh
 .btn-secondary {
     background-color: #9e9e9e;
     color: #fff;
 }
-<<<<<<< HEAD
 .btn-secondary:hover {
     background-color: #757575;
 }
-=======
-
-.btn-secondary:hover {
-    background-color: #757575;
-}
-
->>>>>>> origin/lamtangthanh
 .alert-danger {
     background-color: #fdecea;
     border-left: 5px solid #f44336;
