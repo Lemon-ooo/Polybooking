@@ -22,6 +22,7 @@ class Room extends Model
     {
         return $this->belongsTo(RoomType::class);
     }
+<<<<<<< HEAD
     public function amenities()
 {
     return $this->belongsToMany(
@@ -35,4 +36,11 @@ class Room extends Model
 
 
 
+=======
+    public function images()
+{
+    return $this->hasMany(RoomImage::class);
+}
+
+>>>>>>> origin/toanndph49547
 }

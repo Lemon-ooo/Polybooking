@@ -14,7 +14,11 @@
                 <th>Mô tả</th>
                 <th>Giá</th>
                 <th>Trạng thái</th>
+<<<<<<< HEAD
                 <th>Tiện ích</th> {{-- 👈 thêm cột tiện ích --}}
+=======
+                <th>Ảnh phòng</th>
+>>>>>>> origin/toanndph49547
                 <th>Hành động</th>
             </tr>
         </thead>
@@ -32,6 +36,7 @@
                     
                     {{-- ✅ Hiển thị tiện ích --}}
                     <td>
+<<<<<<< HEAD
                         @if($room->amenities && $room->amenities->count() > 0)
                             <div class="d-flex flex-wrap" style="gap: 4px;">
                                 @foreach($room->amenities as $amenity)
@@ -48,6 +53,32 @@
                         <a href="{{ route('rooms.show', $room->room_id) }}" class="btn btn-info btn-sm">👁️ Xem</a>
                         <a href="{{ route('rooms.edit', $room->room_id) }}" class="btn btn-warning btn-sm">✏️ Sửa</a>
                         <form action="{{ route('rooms.destroy', $room->room_id) }}" method="POST" style="display:inline-block;">
+=======
+                        @php
+                            $imagePath = $room->images->first()->image_path ?? null;
+                        @endphp
+
+                        @if ($imagePath)
+                            <img src="{{ asset('storage/' . $imagePath) }}"
+                                 alt="Ảnh phòng {{ $room->room_number }}"
+                                 width="100" height="80"
+                                 style="object-fit: cover; cursor: pointer; border-radius: 5px;"
+                                 onclick="window.location='{{ route('room.images.index', $room->id) }}'">
+                        @else
+                            <img src="{{ asset('images/no-image.png') }}"
+                                 alt="Không có ảnh"
+                                 width="100" height="80"
+                                 style="object-fit: cover; opacity: 0.7; cursor: pointer;"
+                                 onclick="window.location='{{ route('room.images.index', $room->id) }}'">
+                        @endif
+                    </td>
+
+                    <td>
+                        <a href="{{ route('rooms.show', $room->id) }}" class="btn btn-info btn-sm">👁️ Xem</a>
+                        <a href="{{ route('rooms.edit', $room) }}" class="btn btn-sm btn-warning">Sửa</a>
+                        <a href="{{ route('room.images.index', $room->id) }}" class="btn btn-sm btn-secondary">🖼️ Album ảnh</a>
+                        <form action="{{ route('rooms.destroy', $room) }}" method="POST" style="display:inline;">
+>>>>>>> origin/toanndph49547
                             @csrf @method('DELETE')
                             <button class="btn btn-danger btn-sm" onclick="return confirm('Xóa phòng này?')">🗑️ Xóa</button>
                         </form>
