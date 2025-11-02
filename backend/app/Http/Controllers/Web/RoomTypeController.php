@@ -1,7 +1,7 @@
 <?php
 
-namespace App\Http\Controllers;
-
+namespace App\Http\Controllers\Web;
+use App\Http\Controllers\Controller;
 use App\Models\RoomType;
 use Illuminate\Http\Request;
 
