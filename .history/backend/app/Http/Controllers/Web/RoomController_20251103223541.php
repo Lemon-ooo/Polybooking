@@ -74,9 +74,9 @@ class RoomController extends Controller
             'room_type_id' => 'required|exists:room_types,id',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
-            'status' => 'required|string|in:trống',
+            'status' => 'required|string|in:available,occupied,maintenance',
             'amenities' => 'nullable|array',
-            'amenities.*' => 'exists:amenities,amenities_id',
+            'amenities.*' => 'exists:amenities,id',
         ]);
 
         $room->update($validated);
