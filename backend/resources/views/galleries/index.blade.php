@@ -13,7 +13,7 @@
                 <div class="gallery-item">
                     <div class="card shadow-sm border-0">
                         <div class="image-container">
-                            <img src="{{ asset('storage/' . $gallery->image_path) }}" 
+                            <img src="{{ asset('storage/app/' . $gallery->image_path) }}" 
                                  alt="Gallery Image" 
                                  class="card-img-top rounded">
                         </div>
