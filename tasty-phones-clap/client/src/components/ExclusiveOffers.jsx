@@ -1,6 +1,7 @@
 import React from "react";
 import Title from "./Title";
 import { assets, exclusiveOffers } from "../assets/assets";
+import { Row, Col, Card, Typography, Button, Badge } from "antd";
 
 const ExclusiveOffers = () => {
   return (
@@ -11,43 +12,33 @@ const ExclusiveOffers = () => {
           title="Exclusive Offers"
           subTitle="Take advantage of our limited-time offers and special packages to enhance your stay and create unforgettable memories."
         />
-        <button className="group flex items-center gap-2 font-medium cursor-pointer max-md:mt-12">
+        <Button type="link" className="max-md:mt-12">
           View All Offers
-          <img
-            src={assets.arrowIcon}
-            alt="arrow-icon"
-            className="group-hover:translate-x-1 transition-all"
-          />
-        </button>
+        </Button>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
+      <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
         {exclusiveOffers.map((item) => (
-          <div
-            key={item._id}
-            className="group relative flex flex-col items-start justify-between gap-1 pt-12 md:pt-18 px-4 rounded-xl text-white"
-            style={{ backgroundImage: `url(${item.image})` }}
-          >
-            <p className="px-3 py-1 absolute top-4 left-4 text-xs bg-white text-gray-800 font-medium rounded-full">
-              {item.priceOff}% OFF
-            </p>
-            <div>
-              <p className="text-2xl font-medium font-playfair">{item.title}</p>
-              <p>{item.description}</p>
-              <p className="text-xs text-white/70 mt-3">
-                Expires {item.expiryDate}
-              </p>
-            </div>
-            <button className="flex items-center gap-2 font-medium cursor-pointer mt-4 mb-5">
-              View Offers
-              <img
-                className="invert group-hover:translate-x-1 transition-all"
-                src={assets.arrowIcon}
-                alt="arrow-icon"
-              />
-            </button>
-          </div>
+          <Col key={item._id} xs={24} md={12} lg={8}>
+            <Badge.Ribbon text={`${item.priceOff}% OFF`} color="red">
+              <Card
+                hoverable
+                cover={<img src={item.image} alt={item.title} style={{ height: 220, objectFit: "cover" }} />}
+              >
+                <Typography.Title level={4} className="font-playfair" style={{ marginBottom: 0 }}>
+                  {item.title}
+                </Typography.Title>
+                <Typography.Paragraph type="secondary" style={{ marginTop: 6 }}>
+                  {item.description}
+                </Typography.Paragraph>
+                <Typography.Text type="secondary">Expires {item.expiryDate}</Typography.Text>
+                <div style={{ marginTop: 12 }}>
+                  <Button type="primary">View Offers</Button>
+                </div>
+              </Card>
+            </Badge.Ribbon>
+          </Col>
         ))}
-      </div>
+      </Row>
     </div>
   );
 };

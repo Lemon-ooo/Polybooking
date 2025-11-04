@@ -1,4 +1,5 @@
 import React from "react";
+import { Typography } from "antd";
 
 const Title = ({ title, subTitle, align, font }) => {
   return (
@@ -7,12 +8,12 @@ const Title = ({ title, subTitle, align, font }) => {
         align === "left" && "md:items-start md:text-left"
       }`}
     >
-      <h1 className={`text-4xl md:text-[40px] ${font || "font-playfair"}`}>
+      <Typography.Title level={2} style={{ marginBottom: 8 }} className={font || "font-playfair"}>
         {title}
-      </h1>
-      <p className="text-sm md:text-base text-gray-500/90 mt-2 max-w-174">
+      </Typography.Title>
+      <Typography.Paragraph type="secondary" style={{ marginTop: 0, maxWidth: 696 }}>
         {subTitle}
-      </p>
+      </Typography.Paragraph>
     </div>
   );
 };

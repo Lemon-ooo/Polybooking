@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Title from "../components/Title";
 import { assets, userBookingsDummyData } from "../assets/assets";
+import { Table, Tag, Button, Space, Image, Typography } from "antd";
 
 const MyBookings = () => {
   const [bookings, setBookings] = useState(userBookingsDummyData);
@@ -14,86 +15,67 @@ const MyBookings = () => {
       />
 
       <div className="max-w-6xl mt-8 w-full text-gray-800">
-        {/* Header */}
-        <div className="hidden md:grid md:grid-cols-[3fr_2fr_1fr] w-full border-b border-gray-300 font-medium text-base py-3">
-          <div>Homestays</div>
-          <div>Date & Timings</div>
-          <div>Payment</div>
-        </div>
-
-        {/* Bookings List */}
-        {bookings.map((booking) => (
-          <div
-            key={booking._id}
-            className="grid grid-cols-1 md:grid-cols-[3fr_2fr_1fr] w-full border-b border-gray-300 py-6 first:border-t"
-          >
-            {/* Homestay detail */}
-            <div className="flex flex-col md:flex-row">
-              <img
-                src={booking.room.images[0]}
-                alt="homestay-img"
-                className="min-md:w-44 rounded shadow object-cover"
-              />
-              <div className="flex flex-col gap-1.5 max-md:mt-3 min-md:ml-4">
-                <p className="font-playfair text-2xl">
-                  {booking.hotel.name}
-                  <span className="font-inter text-sm">
-                    {" "}
-                    ({booking.room.roomType})
-                  </span>
-                </p>
-                <div className="flex items-center gap-1 text-sm text-gray-500">
-                  <img src={assets.locationIcon} alt="location-icon" />
-                  <span>{booking.hotel.address}</span>
-                </div>
-                <div className="flex items-center gap-1 text-sm text-gray-500">
-                  <img src={assets.guestsIcon} alt="guests-icon" />
-                  <span>Customers: {booking.guests}</span>
-                </div>
-                <p className="text-base">Total: ${booking.totalPrice}</p>
-              </div>
-            </div>
-
-            {/* Date & Timings */}
-            <div className="flex flex-row md:items-center md:gap-12 mt-3 gap-8">
-              <div>
-                <p>Check-In:</p>
-                <p className="text-gray-500 text-sm">
-                  {new Date(booking.checkInDate).toLocaleString()}
-                </p>
-              </div>
-              <div>
-                <p>Check-Out:</p>
-                <p className="text-gray-500 text-sm">
-                  {new Date(booking.checkOutDate).toLocaleString()}
-                </p>
-              </div>
-            </div>
-
-            {/* Payment Status */}
-            <div className="flex flex-col items-start justify-center pt-3">
-              <div className="flex items-center gap-2">
-                <div
-                  className={`h-3 w-3 rounded-full ${
-                    booking.isPaid ? "bg-green-500" : "bg-red-500"
-                  }`}
-                ></div>
-                <p
-                  className={`text-sm ${
-                    booking.isPaid ? "text-green-500" : "text-red-500"
-                  }`}
-                >
-                  {booking.isPaid ? "Paid" : "UnPaid"}
-                </p>
-              </div>
-              {!booking.isPaid && (
-                <button className="px-4 py-1.5 mt-4 text-xs border border-gray-400 rounded-full hover:bg-gray-50 transition-all cursor-pointer">
-                  Pay Now
-                </button>
-              )}
-            </div>
-          </div>
-        ))}
+        <Table
+          rowKey={(r) => r._id}
+          dataSource={bookings}
+          pagination={false}
+          columns={[
+            {
+              title: "Homestays",
+              render: (_, booking) => (
+                <Space>
+                  <Image src={booking.room.images[0]} width={88} height={64} style={{ objectFit: "cover", borderRadius: 8 }} />
+                  <div>
+                    <Typography.Text className="font-playfair" style={{ fontSize: 18 }}>
+                      {booking.hotel.name}
+                    </Typography.Text>
+                    <Typography.Text type="secondary" style={{ marginLeft: 6 }}>
+                      ({booking.room.roomType})
+                    </Typography.Text>
+                    <div style={{ color: "#6b7280" }}>
+                      <img src={assets.locationIcon} alt="location-icon" style={{ height: 14, marginRight: 6 }} />
+                      <span>{booking.hotel.address}</span>
+                    </div>
+                    <div style={{ color: "#6b7280" }}>
+                      <img src={assets.guestsIcon} alt="guests-icon" style={{ height: 14, marginRight: 6 }} />
+                      <span>Customers: {booking.guests}</span>
+                    </div>
+                    <div>Total: ${booking.totalPrice}</div>
+                  </div>
+                </Space>
+              ),
+            },
+            {
+              title: "Date & Timings",
+              render: (_, booking) => (
+                <Space size={24}>
+                  <div>
+                    <div>Check-In:</div>
+                    <Typography.Text type="secondary">
+                      {new Date(booking.checkInDate).toLocaleString()}
+                    </Typography.Text>
+                  </div>
+                  <div>
+                    <div>Check-Out:</div>
+                    <Typography.Text type="secondary">
+                      {new Date(booking.checkOutDate).toLocaleString()}
+                    </Typography.Text>
+                  </div>
+                </Space>
+              ),
+            },
+            {
+              title: "Payment",
+              width: 180,
+              render: (_, booking) => (
+                <Space direction="vertical">
+                  <Tag color={booking.isPaid ? "green" : "red"}>{booking.isPaid ? "Paid" : "UnPaid"}</Tag>
+                  {!booking.isPaid && <Button size="small">Pay Now</Button>}
+                </Space>
+              ),
+            },
+          ]}
+        />
       </div>
     </div>
   );

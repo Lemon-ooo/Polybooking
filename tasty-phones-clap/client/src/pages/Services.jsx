@@ -1,5 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { Row, Col, Card, Typography, Button, Badge } from "antd";
+const { Title: AntTitle, Paragraph } = Typography;
 
 const Services = () => {
   const servicesData = [
@@ -59,61 +61,46 @@ const Services = () => {
   ];
 
   return (
-    <div className="py-24 px-6 md:px-16 lg:px-24 xl:px-32 bg-gray-50">
-      {/* Heading */}
-      <div className="text-center mb-14">
-        <h1 className="text-3xl md:text-4xl font-playfair font-semibold text-gray-800">
+    <div style={{ padding: "96px 24px", background: "#f9fafb" }}>
+      <div style={{ textAlign: "center", marginBottom: 56 }}>
+        <AntTitle level={2} style={{ marginBottom: 8 }}>
           Our Premium Services
-        </h1>
-        <p className="text-gray-600 mt-4 max-w-2xl mx-auto">
-          Choose from our exclusive range of hospitality services to enhance
-          your stay with comfort, convenience, and style.
-        </p>
+        </AntTitle>
+        <Paragraph type="secondary" style={{ maxWidth: 720, margin: "0 auto" }}>
+          Choose from our exclusive range of hospitality services to enhance your stay with comfort,
+          convenience, and style.
+        </Paragraph>
       </div>
 
-      {/* Services grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+      <Row gutter={[24, 24]}>
         {servicesData.map((service) => (
-          <div
-            key={service._id}
-            className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col"
-          >
-            {/* Image */}
-            <div className="relative overflow-hidden">
-              <img
-                src={service.image}
-                alt={service.name}
-                className="w-full h-64 object-cover transform hover:scale-105 transition-transform duration-300"
-              />
-              <span className="absolute top-4 right-4 bg-orange-500 text-white text-sm font-semibold px-3 py-1 rounded-full">
-                ${service.price}
-              </span>
-            </div>
-
-            {/* Info */}
-            <div className="p-6 flex-1 flex flex-col justify-between">
-              <div>
-                <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                  {service.name}
-                </h2>
-                <p className="text-gray-600 text-sm mb-6">
-                  {service.description}
-                </p>
-              </div>
-
-              {/* Button luôn hiển thị và căn giữa */}
-              <div className="mt-auto flex justify-center">
-                <Link
-                  to={`/services/${service._id}`}
-                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-7 py-3 rounded-full transition-all duration-300"
-                >
-                  Learn More
-                </Link>
-              </div>
-            </div>
-          </div>
+          <Col key={service._id} xs={24} sm={12} lg={8}>
+            <Badge.Ribbon text={`$${service.price}`} color="orange">
+              <Card
+                hoverable
+                cover={
+                  <img
+                    src={service.image}
+                    alt={service.name}
+                    style={{ height: 256, objectFit: "cover" }}
+                  />
+                }
+              >
+                <Card.Meta title={service.name} description={
+                  <Paragraph type="secondary" style={{ marginTop: 8 }}>
+                    {service.description}
+                  </Paragraph>
+                } />
+                <div style={{ display: "flex", justifyContent: "center", marginTop: 16 }}>
+                  <Link to={`/services/${service._id}`}>
+                    <Button type="primary" shape="round">Learn More</Button>
+                  </Link>
+                </div>
+              </Card>
+            </Badge.Ribbon>
+          </Col>
         ))}
-      </div>
+      </Row>
     </div>
   );
 };

@@ -7,6 +7,8 @@ import {
   roomsDummyData,
 } from "../assets/assets";
 import StarRating from "../components/StarRating";
+import { Row, Col, Image, Typography, Tag, DatePicker, InputNumber, Button, Divider, Space, Card } from "antd";
+import dayjs from "dayjs";
 
 const RoomDetails = () => {
   const { id } = useParams();
@@ -22,130 +24,104 @@ const RoomDetails = () => {
     room && (
       <div className="py-28 md:py-35 px-4 md:px-16 lg:px-24 xl:px-32">
         {/*Room Details*/}
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-2">
-          <h1 className=" text-3xl md:text-4xl font-playfair">
-            {room.hotel.name}
-            <span className=" font-inter text-sm">({room.roomType})</span>
-          </h1>
-          <p className="text-xs font-inter py-1.5 px-3 text-white bg-orange-500 rounded-full">
-            20% OFF
-          </p>
-        </div>
+        <Row align="middle" gutter={[12, 12]}>
+          <Col>
+            <Typography.Title level={2} style={{ margin: 0 }}>
+              {room.hotel.name} <Typography.Text type="secondary">({room.roomType})</Typography.Text>
+            </Typography.Title>
+          </Col>
+          <Col>
+            <Tag color="orange">20% OFF</Tag>
+          </Col>
+        </Row>
         {/*Room Raiting*/}
-        <div className="flex items-center gap-1 mt-2">
+        <Space size="small" style={{ marginTop: 8 }}>
           <StarRating />
-          <p className="ml-2">200+ reviews</p>
-        </div>
+          <Typography.Text>200+ reviews</Typography.Text>
+        </Space>
         {/*Room Address*/}
-        <div className="flex items-center gap-1 text-gray-500 mt-2">
+        <Space size={8} style={{ marginTop: 8, color: "#6b7280" }}>
           <img src={assets.locationIcon} alt="location-icon" />
           <span>{room.hotel.address}</span>
-        </div>
+        </Space>
         {/*Room Images*/}
-        <div className="flex flex-col lg:flex-row mt-6 gap-6">
-          <div className="lg:w-1/2 w-full">
-            {/* Cải tiến: Thêm h-full để lấp đầy container */}
-            <img
-              src={mainImage}
-              alt="Room Image"
-              className="w-full rounded-xl shadow-lg object-cover h-full"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4 lg:w-1/2 w-full">
-            {room?.images.length > 1 &&
-              room.images.map((image, index) => (
-                <img
-                  onClick={() => setMainImage(image)}
-                  key={index}
-                  src={image}
-                  alt="Room Image"
-                  // Cải tiến: Thêm h-40 để cố định chiều cao ảnh phụ
-                  className={`w-full h-40 rounded-xl shadow-md object-cover cursor-pointer ${
-                    mainImage === image
-                      ? "outline outline-3 outline-orange-500"
-                      : ""
-                  }`}
-                />
-              ))}
-          </div>
-        </div>
+        <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
+          <Col xs={24} lg={12}>
+            <Image src={mainImage} alt="Room Image" style={{ borderRadius: 12 }} />
+          </Col>
+          <Col xs={24} lg={12}>
+            <Row gutter={[12, 12]}>
+              {room?.images.length > 1 &&
+                room.images.map((image, index) => (
+                  <Col xs={12} key={index}>
+                    <Image
+                      preview={false}
+                      onClick={() => setMainImage(image)}
+                      src={image}
+                      alt="Room Image"
+                      style={{
+                        height: 160,
+                        width: "100%",
+                        objectFit: "cover",
+                        borderRadius: 10,
+                        outline: mainImage === image ? "3px solid #fa8c16" : undefined,
+                      }}
+                    />
+                  </Col>
+                ))}
+            </Row>
+          </Col>
+        </Row>
         {/*---*/}
         {/*Room Highlights*/}
-        <div className="flex flex-col md:flex-row md:justify-between mt-10">
-          <div className="flex flex-col">
-            <h1 className="text-3xl md:text-4xl font-playfair">
+        <Row justify="space-between" style={{ marginTop: 24 }}>
+          <Col>
+            <Typography.Title level={3} style={{ marginBottom: 12 }}>
               Experience Luxury Like Never Before
-            </h1>
-            <div className="flex flex-wrap items-center mt-3 mb-6 gap-4">
+            </Typography.Title>
+            <Space size={[8, 8]} wrap>
               {room.amenities.map((item, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100"
-                >
-                  <img
-                    src={facilityIcons[item]}
-                    alt={item}
-                    className="w-5 h-5"
-                  />
-                  <p className="text-xs">{item}</p>
-                </div>
+                <Tag key={index} icon={<img src={facilityIcons[item]} alt={item} style={{ width: 16, height: 16 }} />}>
+                  {item}
+                </Tag>
               ))}
-            </div>
-          </div>
-          {/*Room Price*/}
-          <p className="text-2xl font-medium">${room.pricePerNight}/night</p>
-        </div>
+            </Space>
+          </Col>
+          <Col>
+            <Typography.Title level={4} style={{ margin: 0 }}>
+              ${room.pricePerNight}/night
+            </Typography.Title>
+          </Col>
+        </Row>
         {/*---*/}
         {/*CheckIn checkOut Form*/}
-        <form className="flex flex-col md:flex-row items-start md:items-center justify-between bg-white shadow-[0px_0px_20px_rgba(0,0,0,0.15)] p-6 rounded-xl mx-auto mt-16 max-w-[1200px]">
-          <div className="flex flex-col flex-wrap md:flex-row items-start md:items-center gap-4 md:gap-10 text-gray-500">
-            {/* Check-In */}
-            <div className="flex flex-col">
-              <label htmlFor="CheckInDate" className="font-medium">
-                Check-In
-              </label>
-              <input
-                type="date"
-                id="CheckInDate"
-                className="w-full rounded border border-gray-300 px-3 py-2 mt-1.5 outline-none"
-                required
-              />
-            </div>
-            <div className="w-px h-15 bg-gray-300/70 max-md:hidden"></div>
-            <div className="flex flex-col">
-              <label htmlFor="CheckOutDate" className="font-medium">
-                Check-Out
-              </label>
-              <input
-                type="date"
-                id="CheckOutDate"
-                className="w-full rounded border border-gray-300 px-3 py-2 mt-1.5 outline-none"
-                required
-              />
-            </div>
-            <div className="w-px h-15 bg-gray-300/70 max-md:hidden"></div>
-            <div className="flex flex-col">
-              <label htmlFor="Customers" className="font-medium">
-                Customers
-              </label>
-              <input
-                type="number"
-                id="Customers"
-                placeholder="0"
-                min="1"
-                className="max-w-20 rounded border border-gray-300 px-3 py-2 mt-1.5 outline-none"
-                required
-              />
-            </div>
-          </div>
-          <button
-            type="submit"
-            className="bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all text-white rounded-md max-md:w-full max-md:mt-6 md:px-16 py-3 md:py-4 text-base cursor-pointer flex-shrink-0 self-center"
-            // className="bg-primary hover:bg-primary-dull active:scale-95 transition-all text-white rounded-md max-md:w-full max-md:mt-6 md:px-25 py-3 md:py-4 text-base cursor-pointer"
-          >
-            Check Availability
-          </button>
-        </form>
+        <Card style={{ marginTop: 32, maxWidth: 1200, marginLeft: "auto", marginRight: "auto" }}>
+          <Row align="middle" gutter={[16, 16]} justify="space-between">
+            <Col xs={24} md={6}>
+              <Space direction="vertical" style={{ width: "100%" }}>
+                <Typography.Text strong>Check-In</Typography.Text>
+                <DatePicker style={{ width: "100%" }} format="YYYY-MM-DD" disabledDate={(d) => d && d < dayjs().startOf("day")} />
+              </Space>
+            </Col>
+            <Col xs={24} md={6}>
+              <Space direction="vertical" style={{ width: "100%" }}>
+                <Typography.Text strong>Check-Out</Typography.Text>
+                <DatePicker style={{ width: "100%" }} format="YYYY-MM-DD" disabledDate={(d) => d && d < dayjs().startOf("day")} />
+              </Space>
+            </Col>
+            <Col xs={24} md={6}>
+              <Space direction="vertical" style={{ width: "100%" }}>
+                <Typography.Text strong>Customers</Typography.Text>
+                <InputNumber min={1} defaultValue={1} style={{ width: "100%" }} />
+              </Space>
+            </Col>
+            <Col xs={24} md={6}>
+              <Button type="primary" size="large" block>
+                Check Availability
+              </Button>
+            </Col>
+          </Row>
+        </Card>
         {/* Common Specifications */}
         <div className="mt-25 space-y-4">
           {roomCommonData.map((spec, index) => (
@@ -162,38 +138,34 @@ const RoomDetails = () => {
             </div>
           ))}
         </div>
-        <div className="max-w-3xl border-y border-gray-300 my-15 py-10 text-gray-500">
+        <Divider style={{ margin: "40px 0" }} />
+        <div style={{ color: "#6b7280", maxWidth: 720 }}>
           <p>
-            Customers will be allocated on the ground floor according to
-            availability. You get a comfortable Two bedroom apartment has a true
-            city feeling. The price quoted is for two customers, at the
-            customers slot please mark the number of guests to get the exact
-            price for groups. The customers will be allocated ground floor
-            according to availability. You get the comfortable two bedroom
-            apartment that has a true city feeling.
+            Customers will be allocated on the ground floor according to availability. You get a comfortable Two
+            bedroom apartment has a true city feeling. The price quoted is for two customers, at the customers slot
+            please mark the number of guests to get the exact price for groups. The customers will be allocated ground
+            floor according to availability. You get the comfortable two bedroom apartment that has a true city feeling.
           </p>
         </div>
         {/*Hosted by  //chua len logo*/}
 
-        <div className="flex flex-col items-start gap-4">
-          <div className="flex gap-4">
+        <Space direction="vertical" size={12}>
+          <Space size={12}>
             <img
               src={room.hotel.owner.image}
               alt="Host"
-              className="h-14 w-14 md:h-16 md:w-16 rounded-full"
+              style={{ height: 64, width: 64, borderRadius: 9999 }}
             />
             <div>
-              <p className="text-lg md:text-xl">Hosted by {room.hotel.name}</p>
-              <div className="flex items-center mt-1">
+              <Typography.Title level={4} style={{ margin: 0 }}>Hosted by {room.hotel.name}</Typography.Title>
+              <Space size="small" style={{ marginTop: 4 }}>
                 <StarRating />
-                <p className="ml-2">200+ reviews</p>
-              </div>
+                <Typography.Text>200+ reviews</Typography.Text>
+              </Space>
             </div>
-          </div>
-          <button className="px-6 py-2.5 mt-4 rounded text-white bg-blue-600 hover:bg-blue-700 transition-all cursor-pointer">
-            Contact Now
-          </button>
-        </div>
+          </Space>
+          <Button type="primary">Contact Now</Button>
+        </Space>
       </div>
     )
   );
