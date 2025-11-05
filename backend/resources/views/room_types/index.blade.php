@@ -13,7 +13,7 @@
 
     {{-- Nút thêm mới --}}
     <div class="mb-3">
-        <a href="{{ route('room-types.create') }}" class="btn btn-primary">
+        <a href="{{ route('web.room-types.create') }}" class="btn btn-primary">
             + Thêm mới
         </a>
     </div>
@@ -39,9 +39,9 @@
                             <td>{{ $roomType->description ?? '—' }}</td>
                             <td>{{ number_format($roomType->base_price, 2) }}</td>
                             <td>
-                                <a href="{{ route('room-types.show', $roomType) }}" class="btn btn-sm btn-info text-white">Xem</a>
-                                <a href="{{ route('room-types.edit', $roomType) }}" class="btn btn-sm btn-warning text-white">Sửa</a>
-                                <form action="{{ route('room-types.destroy', $roomType) }}" method="POST" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn xóa loại phòng này?');">
+                                <a href="{{ route('web.room-types.show', $roomType) }}" class="btn btn-sm btn-info text-white">Xem</a>
+                                <a href="{{ route('web.room-types.edit', $roomType) }}" class="btn btn-sm btn-warning text-white">Sửa</a>
+                                <form action="{{ route('web.room-types.destroy', $roomType) }}" method="POST" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn xóa loại phòng này?');">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-sm btn-danger">Xóa</button>

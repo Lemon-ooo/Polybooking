@@ -22,7 +22,7 @@ class ServiceController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:1000',
             'price' => 'required|numeric',
             'description' => 'nullable|string',
             'image' => 'nullable|string',

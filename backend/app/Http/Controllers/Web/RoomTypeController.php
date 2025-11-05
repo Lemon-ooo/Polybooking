@@ -1,7 +1,7 @@
 <?php
 
-namespace App\Http\Controllers;
-
+namespace App\Http\Controllers\Web;
+use App\Http\Controllers\Controller;
 use App\Models\RoomType;
 use Illuminate\Http\Request;
 
@@ -36,7 +36,7 @@ class RoomTypeController extends Controller
         ]);
 
         RoomType::create($validated);
-        return redirect()->route('room-types.index')->with('success', 'Loại phòng đã được thêm!');
+        return redirect()->route('web.room-types.index')->with('success', 'Loại phòng đã được thêm!');
     
     }
 
@@ -70,7 +70,7 @@ class RoomTypeController extends Controller
         ]);
 
         $roomType->update($validated);
-        return redirect()->route('room-types.index')->with('success', 'Loại phòng đã được cập nhật!');
+        return redirect()->route('web.room-types.index')->with('success', 'Loại phòng đã được cập nhật!');
     }
 
     /**
@@ -79,6 +79,6 @@ class RoomTypeController extends Controller
     public function destroy(RoomType $roomType)
     {
         $roomType->delete();
-        return redirect()->route('room-types.index')->with('success', 'Loại phòng đã được xóa!');
+        return redirect()->route('web.room-types.index')->with('success', 'Loại phòng đã được xóa!');
     }
 }
