@@ -1,9 +1,14 @@
 import React from "react";
 import { Layout, Menu, Button, Dropdown, Avatar, theme } from "antd";
 import { useLogout, useGetIdentity, useMenu } from "@refinedev/core";
-import { UserOutlined, LogoutOutlined, ToolOutlined } from "@ant-design/icons";
+import {
+  UserOutlined,
+  LogoutOutlined,
+  DashboardOutlined,
+  HomeOutlined,
+  ToolOutlined,
+} from "@ant-design/icons";
 import { ThemedTitle } from "@refinedev/antd";
-import { useNavigate } from "react-router-dom";
 
 const { Header, Sider, Content } = Layout;
 
@@ -14,15 +19,6 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({
   const { data: identity } = useGetIdentity();
   const { token } = theme.useToken();
   const { menuItems } = useMenu();
-  const navigate = useNavigate();
-
-  const handleLogout = async () => {
-    await logout();
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-
-    navigate("/", { replace: true });
-  };
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -78,7 +74,7 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({
                   key: "logout",
                   icon: <LogoutOutlined />,
                   label: "Đăng xuất",
-                  onClick: handleLogout, // ✅ Gọi hàm logout mới
+                  onClick: () => logout({ redirectPath: "/login" }),
                 },
               ],
             }}

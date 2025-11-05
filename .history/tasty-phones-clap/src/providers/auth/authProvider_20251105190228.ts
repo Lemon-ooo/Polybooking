@@ -4,16 +4,14 @@ import { LoginRequest, LoginResponse, User } from "../../interfaces";
 const API_URL = "http://localhost:8000/api";
 
 export const authProvider: AuthProvider = {
-  // 🔐 LOGIN
   login: async ({ email, password }: LoginRequest) => {
     try {
-      console.log("🔐 Attempting login for:", email);
+      console.log("🔐 Attempting login for:", email); // ✅ Debug
 
       const response = await fetch(`${API_URL}/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Accept: "application/json", // ✅ Thêm dòng này để tránh redirect CORS
         },
         body: JSON.stringify({ email, password }),
       });
@@ -25,27 +23,32 @@ export const authProvider: AuthProvider = {
       }
 
       const data: LoginResponse = await response.json();
-      console.log("✅ Login response:", data);
+      console.log("✅ Login response:", data); // ✅ Debug
 
       if (data.success) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
 
+        // ✅ Ưu tiên dùng redirect_to từ server, fallback về logic client
         const redirectTo =
           data.redirect_to ||
           (data.user.role === "admin" ? "/admin" : "/client");
 
-        console.log("🔄 Redirecting to:", redirectTo);
-        return { success: true, redirectTo };
-      }
+        console.log("🔄 Redirecting to:", redirectTo); // ✅ Debug
 
-      return {
-        success: false,
-        error: {
-          message: data.message || "Đăng nhập thất bại",
-          name: "LoginError",
-        },
-      };
+        return {
+          success: true,
+          redirectTo: redirectTo,
+        };
+      } else {
+        return {
+          success: false,
+          error: {
+            message: data.message || "Đăng nhập thất bại",
+            name: "LoginError",
+          },
+        };
+      }
     } catch (error: any) {
       console.error("❌ Login catch error:", error);
       return {
@@ -58,78 +61,119 @@ export const authProvider: AuthProvider = {
     }
   },
 
-  // 🚪 LOGOUT
   logout: async () => {
     try {
       const token = localStorage.getItem("token");
+      console.log("🚪 Logging out...");
+
       if (token) {
         await fetch(`${API_URL}/logout`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
-            Accept: "application/json",
           },
         });
+        console.log("✅ Logout API call successful");
       }
 
       localStorage.removeItem("token");
       localStorage.removeItem("user");
 
-      return { success: true, redirectTo: "/login" };
+      return Promise.resolve({
+        success: true,
+        redirectTo: "/login",
+      });
     } catch (error) {
       console.error("❌ Logout error:", error);
-      return {
+      return Promise.resolve({
         success: false,
-        error: { message: "Đăng xuất thất bại", name: "LogoutError" },
-      };
+        error: {
+          message: "Đăng xuất thất bại",
+          name: "LogoutError",
+        },
+      });
     }
   },
 
-  // 🔍 CHECK AUTH
-  check: async () => {
+  check: async (ctx) => {
     const token = localStorage.getItem("token");
+    const user = localStorage.getItem("user");
+
+    console.log(
+      "🔍 Auth check - Token exists:",
+      !!token,
+      "User exists:",
+      !!user
+    ); // ✅ Debug
+
     if (!token) {
-      return { authenticated: false, redirectTo: "/login", logout: true };
+      console.log("❌ No token, redirect to login");
+      return {
+        authenticated: false,
+        redirectTo: "/login",
+        logout: true,
+      };
     }
 
     try {
       const response = await fetch(`${API_URL}/profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
-          Accept: "application/json",
         },
       });
 
-      if (response.ok) {
-        return { authenticated: true };
-      }
+      console.log("📊 Profile check status:", response.status); // ✅ Debug
 
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      return { authenticated: false, redirectTo: "/login", logout: true };
+      if (response.ok) {
+        console.log("✅ User is authenticated");
+        return {
+          authenticated: true,
+        };
+      } else {
+        console.log("❌ Token invalid, clearing storage");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        return {
+          authenticated: false,
+          redirectTo: "/login",
+          logout: true,
+        };
+      }
     } catch (error) {
-      console.error("❌ Check error:", error);
-      return { authenticated: true }; // ⚠️ Cho phép tiếp tục trong dev
+      console.error("❌ Check error, assuming authenticated:", error);
+      // Trong môi trường production, có thể return false
+      // Nhưng trong development, return true để tiếp tục debug
+      return {
+        authenticated: true,
+      };
     }
   },
 
-  // ⚠️ HANDLE ERROR
   onError: async (error) => {
     console.error("🚨 Auth onError:", error);
+
     if (error?.status === 401 || error?.status === 403) {
-      localStorage.clear();
-      return { logout: true, redirectTo: "/login" };
+      console.log("🛑 Unauthorized/Forbidden, logging out");
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      return {
+        logout: true,
+        redirectTo: "/login",
+      };
     }
+
     return {};
   },
 
-  // 👤 GET IDENTITY
   getIdentity: async () => {
     try {
       const userStr = localStorage.getItem("user");
+      console.log("👤 GetIdentity - user from storage:", userStr); // ✅ Debug
+
       if (userStr) {
         const user: User = JSON.parse(userStr);
+        console.log("👤 GetIdentity - parsed user:", user);
         return {
           id: user.id,
           name: user.name,
@@ -137,6 +181,7 @@ export const authProvider: AuthProvider = {
           role: user.role,
         };
       }
+      console.log("👤 GetIdentity - no user found");
       return null;
     } catch (error) {
       console.error("❌ GetIdentity error:", error);
@@ -144,12 +189,12 @@ export const authProvider: AuthProvider = {
     }
   },
 
-  // 🔑 GET PERMISSIONS
   getPermissions: async () => {
     try {
       const userStr = localStorage.getItem("user");
       if (userStr) {
         const user: User = JSON.parse(userStr);
+        console.log("🔑 GetPermissions - user role:", user.role); // ✅ Debug
         return user.role;
       }
       return null;
@@ -159,39 +204,40 @@ export const authProvider: AuthProvider = {
     }
   },
 
-  // 📝 REGISTER (giống login, có redirect)
+  // ✅ Refine v5 required methods
   register: async ({ name, email, password, password_confirmation }) => {
     try {
-      console.log("📝 Attempting registration for:", email);
-
       const response = await fetch(`${API_URL}/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Accept: "application/json", // ✅ Cần thiết
         },
-        body: JSON.stringify({ name, email, password, password_confirmation }),
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          password_confirmation,
+        }),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("❌ Register error:", response.status, errorText);
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(errorText || "Đăng ký thất bại");
       }
 
       const data = await response.json();
-      console.log("✅ Register response:", data);
+      console.log("📝 Register response:", data);
 
       if (data.success) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
 
-        const redirectTo =
-          data.redirect_to ||
-          (data.user.role === "admin" ? "/admin" : "/client");
+        const redirectTo = data.user.role === "admin" ? "/admin" : "/client";
 
-        console.log("🎉 Registration successful, redirect to:", redirectTo);
-        return { success: true, redirectTo };
+        return {
+          success: true,
+          redirectTo,
+        };
       }
 
       return {
@@ -202,7 +248,7 @@ export const authProvider: AuthProvider = {
         },
       };
     } catch (error: any) {
-      console.error("❌ Register catch error:", error);
+      console.error("❌ Register error:", error);
       return {
         success: false,
         error: {
@@ -213,6 +259,13 @@ export const authProvider: AuthProvider = {
     }
   },
 
-  forgotPassword: async () => ({ success: false }),
-  updatePassword: async () => ({ success: false }),
+  forgotPassword: async (params) => {
+    console.log("🔑 ForgotPassword called (not implemented)");
+    return { success: false };
+  },
+
+  updatePassword: async (params) => {
+    console.log("🔄 UpdatePassword called (not implemented)");
+    return { success: false };
+  },
 };

@@ -69,7 +69,7 @@ Route::middleware('auth:sanctum')->group(function () {
             ->names([
                 'store'   => 'api.amenities.store',
                 'update'  => 'api.amenities.update',
-'destroy' => 'api.amenities.destroy',
+                'destroy' => 'api.amenities.destroy',
             ]);
 
         // Thống kê admin

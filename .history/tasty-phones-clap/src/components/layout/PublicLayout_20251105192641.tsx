@@ -4,6 +4,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   HomeOutlined,
   UserOutlined,
+  HotelOutlined,
   LoginOutlined,
   UserAddOutlined,
 } from "@ant-design/icons";
@@ -25,7 +26,7 @@ export const PublicLayout: React.FC<{ children: React.ReactNode }> = ({
     },
     {
       key: "rooms",
-      icon: <HomeOutlined />,
+      icon: <HotelOutlined />,
       label: <Link to="/rooms">Phòng & Giá</Link>,
     },
   ];
@@ -44,7 +45,7 @@ export const PublicLayout: React.FC<{ children: React.ReactNode }> = ({
         {/* Logo và Menu */}
         <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <HomeOutlined
+            <HotelOutlined
               style={{ fontSize: "24px", color: token.colorPrimary }}
             />
             <span style={{ fontWeight: "bold", fontSize: "18px" }}>
@@ -78,7 +79,7 @@ export const PublicLayout: React.FC<{ children: React.ReactNode }> = ({
       <Content>{children}</Content>
 
       <Footer style={{ textAlign: "center", background: token.colorBgLayout }}>
-        PolyStay Home Booking System ©2024 - Dự án tốt nghiệp
+        PolyStay Hotel Booking System ©2024 - Dự án tốt nghiệp
       </Footer>
     </Layout>
   );

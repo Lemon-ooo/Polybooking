@@ -1,22 +1,16 @@
 import React from "react";
+import { useRegister } from "@refinedev/core";
 import { Form, Input, Button, Card, Typography, message } from "antd";
 import { useNavigate } from "react-router-dom";
-import { authProvider } from "../../../../providers/auth/authProvider";
-// ⚠️ import đúng đường dẫn của bạn
 
 const { Title, Text } = Typography;
 
 export const Register: React.FC = () => {
+  const { mutate: register } = useRegister();
   const navigate = useNavigate();
 
   const onFinish = async (values: any) => {
-    if (!authProvider.register) {
-      message.error("Chức năng đăng ký chưa được cấu hình.");
-      return;
-    }
-
-    const result = await authProvider.register(values);
-
+    const result = await register(values);
     if (result?.success) {
       message.success("Đăng ký thành công!");
       navigate(result.redirectTo || "/client");
