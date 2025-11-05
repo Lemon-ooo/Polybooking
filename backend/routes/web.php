@@ -27,28 +27,28 @@ Route::get('/admin', [AdminController::class, 'index'])->name('admin.dashboard')
 | Rooms (CRUD đầy đủ)
 |--------------------------------------------------------------------------
 */
-Route::get('/rooms',                [RoomController::class, 'index'])->name('rooms.index');
-Route::get('/rooms/create',         [RoomController::class, 'create'])->name('rooms.create');
+Route::get('/rooms',                [RoomController::class, 'index'])->name('web.rooms.index');
+Route::get('/rooms/create',         [RoomController::class, 'create'])->name('web.rooms.create');
 Route::post('/rooms',               [RoomController::class, 'store'])->name('web.rooms.store'); // ĐÃ SỬA
-Route::get('/rooms/{room}',         [RoomController::class, 'show'])->name('rooms.show');
-Route::get('/rooms/{room}/edit',    [RoomController::class, 'edit'])->name('rooms.edit');
-Route::put('/rooms/{room}',         [RoomController::class, 'update'])->name('rooms.update');
-Route::patch('/rooms/{room}',       [RoomController::class, 'update'])->name('rooms.update.patch');
-Route::delete('/rooms/{room}',      [RoomController::class, 'destroy'])->name('rooms.destroy');
+Route::get('/rooms/{room}',         [RoomController::class, 'show'])->name('web.rooms.show');
+Route::get('/rooms/{room}/edit',    [RoomController::class, 'edit'])->name('web.rooms.edit');
+Route::put('/rooms/{room}',         [RoomController::class, 'update'])->name('web.rooms.update');
+Route::patch('/rooms/{room}',       [RoomController::class, 'update'])->name('web.rooms.update.patch');
+Route::delete('/rooms/{room}',      [RoomController::class, 'destroy'])->name('web.rooms.destroy');
 
 /*
 |--------------------------------------------------------------------------
 | Room Types (CRUD đầy đủ)
 |--------------------------------------------------------------------------
 */
-Route::get('/room-types',                 [RoomTypeController::class, 'index'])->name('room-types.index');
-Route::get('/room-types/create',          [RoomTypeController::class, 'create'])->name('room-types.create');
+Route::get('/room-types',                 [RoomTypeController::class, 'index'])->name('web.room-types.index');
+Route::get('/room-types/create',          [RoomTypeController::class, 'create'])->name('web.room-types.create');
 Route::post('/room-types',                [RoomTypeController::class, 'store'])->name('web.room-types.store');
-Route::get('/room-types/{room_type}',     [RoomTypeController::class, 'show'])->name('room-types.show');
-Route::get('/room-types/{room_type}/edit',[RoomTypeController::class, 'edit'])->name('room-types.edit');
-Route::put('/room-types/{room_type}',     [RoomTypeController::class, 'update'])->name('room-types.update');
-Route::patch('/room-types/{room_type}',   [RoomTypeController::class, 'update'])->name('room-types.update.patch');
-Route::delete('/room-types/{room_type}',  [RoomTypeController::class, 'destroy'])->name('room-types.destroy');
+Route::get('/room-types/{room_type}',     [RoomTypeController::class, 'show'])->name('web.room-types.show');
+Route::get('/room-types/{room_type}/edit',[RoomTypeController::class, 'edit'])->name('web.room-types.edit');
+Route::put('/room-types/{room_type}',     [RoomTypeController::class, 'update'])->name('web.room-types.update');
+Route::patch('/room-types/{room_type}',   [RoomTypeController::class, 'update'])->name('web.room-types.update.patch');
+Route::delete('/room-types/{room_type}',  [RoomTypeController::class, 'destroy'])->name('web.room-types.destroy');
 
 /*
 |--------------------------------------------------------------------------
