@@ -1,7 +1,7 @@
 import React from "react";
 import { Form, Input, Button, Card, Typography, message } from "antd";
 import { useNavigate } from "react-router-dom";
-import { authProvider } from "../../../../providers/auth/authProvider";
+import { authProvider } from "../../../../providers";
 // ⚠️ import đúng đường dẫn của bạn
 
 const { Title, Text } = Typography;
@@ -10,18 +10,18 @@ export const Register: React.FC = () => {
   const navigate = useNavigate();
 
   const onFinish = async (values: any) => {
-    if (!authProvider.register) {
-      message.error("Chức năng đăng ký chưa được cấu hình.");
-      return;
-    }
+    try {
+      const result = await authProvider.register(values);
 
-    const result = await authProvider.register(values);
-
-    if (result?.success) {
-      message.success("Đăng ký thành công!");
-      navigate(result.redirectTo || "/client");
-    } else {
-      message.error(result?.error?.message || "Đăng ký thất bại");
+      if (result?.success) {
+        message.success("Đăng ký thành công!");
+        navigate(result.redirectTo || "/client");
+      } else {
+        message.error(result?.error?.message || "Đăng ký thất bại");
+      }
+    } catch (error) {
+      console.error(error);
+      message.error("Đăng ký thất bại, vui lòng thử lại");
     }
   };
 

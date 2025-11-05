@@ -1,18 +1,29 @@
 import React from "react";
-import { Refine } from "@refinedev/core";
+import { Refine, useGetIdentity } from "@refinedev/core";
 import { useNotificationProvider } from "@refinedev/antd";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { DashboardOutlined } from "@ant-design/icons";
 
 import { authProvider, dataProvider, accessControlProvider } from "./providers";
 import { Login } from "./components/pages/share/login";
-import { Register } from "./components/pages/share/register"; // ✅ Thêm Register
-import { HomePage } from "./components/pages/share/homePage";
+import { Register } from "./components/pages/share/register";
 import { AdminDashboard } from "./components/pages/admin/dashboard";
 import { ClientDashboard } from "./components/pages/client/dashboard";
 import { AdminLayout } from "./components/layout/AdminLayout";
 import { ClientLayout } from "./components/layout/ClientLayout";
-import { PublicLayout } from "./components/layout/PublicLayout";
+
+const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
+  const { data: identity } = useGetIdentity();
+
+  if (identity?.role === "admin") {
+    return <AdminLayout>{children}</AdminLayout>;
+  } else if (identity?.role === "client") {
+    return <ClientLayout>{children}</ClientLayout>;
+  }
+
+  // Nếu chưa xác định role (chưa đăng nhập)
+  return <>{children}</>;
+};
 
 function App() {
   return (
@@ -30,7 +41,7 @@ function App() {
           },
           {
             name: "client-dashboard",
-            list: "/client",
+            list: "/",
             meta: { label: "Trang chủ", icon: <DashboardOutlined /> },
           },
         ]}
@@ -40,40 +51,28 @@ function App() {
         }}
       >
         <Routes>
-          {/* ✅ Public routes (không yêu cầu đăng nhập) */}
-          <Route
-            path="/"
-            element={
-              <PublicLayout>
-                <HomePage />
-              </PublicLayout>
-            }
-          />
+          {/* 🔓 Route công khai (không có layout) */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* ✅ Client routes */}
+          {/* 🔒 Route riêng có layout */}
           <Route
-            path="/client"
+            path="/*"
             element={
-              <ClientLayout>
-                <ClientDashboard />
-              </ClientLayout>
+              <LayoutWrapper>
+                <Routes>
+                  {/* Admin */}
+                  <Route path="/admin" element={<AdminDashboard />} />
+
+                  {/* Client — path chính "/" */}
+                  <Route path="/" element={<ClientDashboard />} />
+
+                  {/* Mặc định điều hướng về "/" */}
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </LayoutWrapper>
             }
           />
-
-          {/* ✅ Admin routes */}
-          <Route
-            path="/admin"
-            element={
-              <AdminLayout>
-                <AdminDashboard />
-              </AdminLayout>
-            }
-          />
-
-          {/* ✅ Redirect fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Refine>
     </BrowserRouter>

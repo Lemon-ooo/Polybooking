@@ -106,6 +106,16 @@ export const Login: React.FC = () => {
             </Button>
           </Form.Item>
         </Form>
+
+        <div style={{ textAlign: "center", marginTop: 16, color: "#666" }}>
+          <p>Demo accounts:</p>
+          <p>
+            <strong>Admin:</strong> admin@example.com / password
+          </p>
+          <p>
+            <strong>Client:</strong> client@example.com / password
+          </p>
+        </div>
       </Card>
     </Layout>
   );

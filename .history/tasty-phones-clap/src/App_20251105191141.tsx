@@ -1,18 +1,28 @@
 import React from "react";
-import { Refine } from "@refinedev/core";
+import { Refine, useGetIdentity } from "@refinedev/core";
 import { useNotificationProvider } from "@refinedev/antd";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { DashboardOutlined } from "@ant-design/icons";
 
+import { DashboardOutlined } from "@ant-design/icons";
 import { authProvider, dataProvider, accessControlProvider } from "./providers";
 import { Login } from "./components/pages/share/login";
-import { Register } from "./components/pages/share/register"; // ✅ Thêm Register
-import { HomePage } from "./components/pages/share/homePage";
+import { Register } from "./components/pages/share/register";
 import { AdminDashboard } from "./components/pages/admin/dashboard";
 import { ClientDashboard } from "./components/pages/client/dashboard";
 import { AdminLayout } from "./components/layout/AdminLayout";
 import { ClientLayout } from "./components/layout/ClientLayout";
-import { PublicLayout } from "./components/layout/PublicLayout";
+
+const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
+  const { data: identity } = useGetIdentity();
+
+  if (identity?.role === "admin") {
+    return <AdminLayout>{children}</AdminLayout>;
+  } else if (identity?.role === "client") {
+    return <ClientLayout>{children}</ClientLayout>;
+  }
+
+  return <>{children}</>;
+};
 
 function App() {
   return (
@@ -21,17 +31,23 @@ function App() {
         dataProvider={dataProvider}
         authProvider={authProvider}
         accessControlProvider={accessControlProvider}
-        notificationProvider={useNotificationProvider()}
+        notificationProvider={useNotificationProvider}
         resources={[
           {
             name: "admin-dashboard",
             list: "/admin",
-            meta: { label: "Dashboard", icon: <DashboardOutlined /> },
+            meta: {
+              label: "Dashboard",
+              icon: <DashboardOutlined />,
+            },
           },
           {
             name: "client-dashboard",
             list: "/client",
-            meta: { label: "Trang chủ", icon: <DashboardOutlined /> },
+            meta: {
+              label: "Trang chủ",
+              icon: <DashboardOutlined />,
+            },
           },
         ]}
         options={{
@@ -40,40 +56,23 @@ function App() {
         }}
       >
         <Routes>
-          {/* ✅ Public routes (không yêu cầu đăng nhập) */}
-          <Route
-            path="/"
-            element={
-              <PublicLayout>
-                <HomePage />
-              </PublicLayout>
-            }
-          />
+          {/* Các route public KHÔNG có layout */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* ✅ Client routes */}
+          {/* Các route có layout */}
           <Route
-            path="/client"
+            path="/*"
             element={
-              <ClientLayout>
-                <ClientDashboard />
-              </ClientLayout>
+              <LayoutWrapper>
+                <Routes>
+                  <Route path="/admin" element={<AdminDashboard />} />
+                  <Route path="/client" element={<ClientDashboard />} />
+                  <Route path="/" element={<Navigate to="/login" replace />} />
+                </Routes>
+              </LayoutWrapper>
             }
           />
-
-          {/* ✅ Admin routes */}
-          <Route
-            path="/admin"
-            element={
-              <AdminLayout>
-                <AdminDashboard />
-              </AdminLayout>
-            }
-          />
-
-          {/* ✅ Redirect fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Refine>
     </BrowserRouter>

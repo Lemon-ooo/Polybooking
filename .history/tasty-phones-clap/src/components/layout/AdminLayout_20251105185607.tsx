@@ -14,14 +14,14 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({
   const { data: identity } = useGetIdentity();
   const { token } = theme.useToken();
   const { menuItems } = useMenu();
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // ✅ Dùng navigate để điều hướng thủ công
 
   const handleLogout = async () => {
-    await logout();
+    await logout(); // Gọi refine logout -> xoá token, user
     localStorage.removeItem("token");
     localStorage.removeItem("user");
 
-    navigate("/", { replace: true });
+    navigate("/login", { replace: true }); // ✅ Điều hướng thủ công về trang login
   };
 
   return (

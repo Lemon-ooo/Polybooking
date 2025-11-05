@@ -11,10 +11,7 @@ export const authProvider: AuthProvider = {
 
       const response = await fetch(`${API_URL}/login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json", // ✅ Thêm dòng này để tránh redirect CORS
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
@@ -68,7 +65,6 @@ export const authProvider: AuthProvider = {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
-            Accept: "application/json",
           },
         });
       }
@@ -95,10 +91,7 @@ export const authProvider: AuthProvider = {
 
     try {
       const response = await fetch(`${API_URL}/profile`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (response.ok) {
@@ -110,7 +103,7 @@ export const authProvider: AuthProvider = {
       return { authenticated: false, redirectTo: "/login", logout: true };
     } catch (error) {
       console.error("❌ Check error:", error);
-      return { authenticated: true }; // ⚠️ Cho phép tiếp tục trong dev
+      return { authenticated: true }; // ⚠️ Dev mode: cho phép tiếp tục
     }
   },
 
@@ -159,17 +152,14 @@ export const authProvider: AuthProvider = {
     }
   },
 
-  // 📝 REGISTER (giống login, có redirect)
+  // 📝 REGISTER (giống login)
   register: async ({ name, email, password, password_confirmation }) => {
     try {
       console.log("📝 Attempting registration for:", email);
 
       const response = await fetch(`${API_URL}/register`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json", // ✅ Cần thiết
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password, password_confirmation }),
       });
 
