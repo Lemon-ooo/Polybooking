@@ -1,68 +1,112 @@
 import React from "react";
 import { assets } from "../assets/assets";
-import { Layout, Typography, Row, Col, Space, Input, Button, Divider } from "antd";
 
 const Footer = () => {
   return (
-    <Layout.Footer style={{ background: "#F6F9FC", color: "#6b7280" }}>
-      <Row gutter={[24, 24]} justify="space-between">
-        <Col xs={24} md={8}>
-          <img src={assets.logo} alt="logo" style={{ height: 36, marginBottom: 12, filter: "invert(1) opacity(0.8)" }} />
-          <Typography.Paragraph>
-            Discover the world's most extraordinary places to stay, from boutique homestays to luxury villas and private islands.
-          </Typography.Paragraph>
-          <Space size={12} style={{ marginTop: 12 }}>
+    <div className="bg-[#F6F9FC] text-gray-500/80 pt-8 px-6 md:px-16 lg:px-24 xl:px-32">
+      <div className="flex flex-wrap justify-between gap-12 md:gap-6">
+        <div className="max-w-80">
+          <img
+            src={assets.logo}
+            alt="logo"
+            className="mb-4 h-8 md:h-9 invert opacity-80"
+          />
+          <p className="text-sm">
+            Discover the world's most extraordinary places to stay, from
+            boutique homestays to luxury villas and private islands.
+          </p>
+          <div className="flex items-center gap-3 mt-4">
+            {/* Instagram */}
             <img src={assets.instagramIcon} alt="Instagram-icon" />
+            {/* Facebook */}
             <img src={assets.facebookIcon} alt="Facebook-icon" />
+            {/* Twitter */}
             <img src={assets.twitterIcon} alt="Twitter-icon" />
+            {/* LinkedIn */}
             <img src={assets.linkendinIcon} alt="LinkedIn-icon" />
-          </Space>
-        </Col>
-        <Col xs={12} md={4}>
-          <Typography.Title level={5} style={{ color: "#111827" }}>COMPANY</Typography.Title>
-          <Space direction="vertical">
-            <a href="#">About</a>
-            <a href="#">Careers</a>
-            <a href="#">Press</a>
-            <a href="#">Blog</a>
-            <a href="#">Partners</a>
-          </Space>
-        </Col>
-        <Col xs={12} md={4}>
-          <Typography.Title level={5} style={{ color: "#111827" }}>SUPPORT</Typography.Title>
-          <Space direction="vertical">
-            <a href="#">Help Center</a>
-            <a href="#">Safety Information</a>
-            <a href="#">Cancellation Options</a>
-            <a href="#">Contact Us</a>
-            <a href="#">Accessibility</a>
-          </Space>
-        </Col>
-        <Col xs={24} md={8}>
-          <Typography.Title level={5} style={{ color: "#111827" }}>STAY UPDATED</Typography.Title>
-          <Typography.Paragraph>
+          </div>
+        </div>
+
+        <div>
+          <p className=" font-playfair text-lg text-gray-800">COMPANY</p>
+          <ul className="mt-3 flex flex-col gap-2 text-sm">
+            <li>
+              <a href="#">About</a>
+            </li>
+            <li>
+              <a href="#">Careers</a>
+            </li>
+            <li>
+              <a href="#">Press</a>
+            </li>
+            <li>
+              <a href="#">Blog</a>
+            </li>
+            <li>
+              <a href="#">Partners</a>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <p className="font-playfair text-lg text-gray-800">SUPPORT</p>
+          <ul className="mt-3 flex flex-col gap-2 text-sm">
+            <li>
+              <a href="#">Help Center</a>
+            </li>
+            <li>
+              <a href="#">Safety Information</a>
+            </li>
+            <li>
+              <a href="#">Cancellation Options</a>
+            </li>
+            <li>
+              <a href="#">Contact Us</a>
+            </li>
+            <li>
+              <a href="#">Accessibility</a>
+            </li>
+          </ul>
+        </div>
+
+        <div className="max-w-80">
+          <p className=" font-playfair text-lg text-gray-800">STAY UPDATED</p>
+          <p className="mt-3 text-sm">
             Subscribe to our newsletter for inspiration and special offers.
-          </Typography.Paragraph>
-          <Space.Compact style={{ width: "100%" }}>
-            <Input placeholder="Your email" />
-            <Button type="default">
-              <img src={assets.arrowIcon} alt="arrow-icon" style={{ width: 14, filter: "invert(1)" }} />
-            </Button>
-          </Space.Compact>
-        </Col>
-      </Row>
-      <Divider />
-      <Row justify="space-between" align="middle">
-        <Col>© {new Date().getFullYear()} PolyStay. All rights reserved.</Col>
-        <Col>
-          <Space size={16}>
+          </p>
+          <div className="flex items-center mt-4">
+            <input
+              type="text"
+              className="bg-white rounded-l border border-gray-300 h-9 px-3 outline-none"
+              placeholder="Your email"
+            />
+            <button className="flex items-center justify-center bg-black h-9 w-9 aspect-square rounded-r">
+              {/* Arrow icon */}
+              <img
+                src={assets.arrowIcon}
+                alt="arrow-icon"
+                className="w-3.5 invert"
+              />
+            </button>
+          </div>
+        </div>
+      </div>
+      <hr className="border-gray-300 mt-8" />
+      <div className="flex flex-col md:flex-row gap-2 items-center justify-between py-5">
+        <p>© {new Date().getFullYear()} PolyStay. All rights reserved.</p>
+        <ul className="flex items-center gap-4">
+          <li>
             <a href="#">Privacy</a>
+          </li>
+          <li>
             <a href="#">Terms</a>
+          </li>
+          <li>
             <a href="#">Sitemap</a>
-          </Space>
-        </Col>
-      </Row>
-    </Layout.Footer>
+          </li>
+        </ul>
+      </div>
+    </div>
   );
 };
 

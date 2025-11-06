@@ -8,17 +8,14 @@ import RoomDetails from "./pages/RoomDetails";
 import MyBookings from "./pages/MyBookings";
 import HomestayRed from "./components/HomestayRed";
 import Services from "./pages/Services";
-import { Layout } from "antd";
 
 const App = () => {
   const isOwnerPath = useLocation().pathname.includes("owner");
   return (
-    <Layout>
+    <div>
       {!isOwnerPath && <Navbar />}
       {false && <HomestayRed />}
-      <Layout.Content
-        style={{ minHeight: "70vh", paddingTop: isOwnerPath ? 0 : 64 }}
-      >
+      <div className="min-h-[70vh]">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/rooms" element={<AllRooms />} />
@@ -27,9 +24,9 @@ const App = () => {
           <Route path="/services" element={<Services />} />
           <Route path="/services/:id" element={<Services />} />
         </Routes>
-      </Layout.Content>
+      </div>
       <Footer />
-    </Layout>
+    </div>
   );
 };
 

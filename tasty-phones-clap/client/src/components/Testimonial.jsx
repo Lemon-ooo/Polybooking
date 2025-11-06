@@ -2,61 +2,36 @@ import React from "react";
 import Title from "./Title";
 import { testimonials } from "../assets/assets";
 import StarRating from "./StarRating";
-import { Carousel, Card, Row, Col } from "antd";
 
 const Testimonial = () => {
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        padding: "80px 24px",
-        background: "#f1f5f9",
-      }}
-    >
+    <div className="flex flex-col items-center px-6 md:px-16 lg:px-24 bg-slate-50 pt-20 pb-30">
       <Title
         title="What Our Customers Say"
         subTitle="Discover why discerning travelers consistently choose PolyStay for their exclusive and luxurious accommodations around the world."
       />
-      <div style={{ width: "100%", maxWidth: 1000, marginTop: 40 }}>
-        <Carousel autoplay dots>
-          {[0, 1].map((slide) => (
-            <div key={slide}>
-              <Row gutter={[16, 16]} justify="center">
-                {testimonials.slice(slide * 3, slide * 3 + 3).map((t) => (
-                  <Col key={t.id} xs={24} sm={12} md={8}>
-                    <Card>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 12,
-                        }}
-                      >
-                        <img
-                          style={{ width: 48, height: 48, borderRadius: 9999 }}
-                          src={t.image}
-                          alt={t.name}
-                        />
-                        <div>
-                          <p style={{ fontSize: 18 }}>{t.name}</p>
-                          <p style={{ color: "#6b7280" }}>{t.address}</p>
-                        </div>
-                      </div>
-                      <div style={{ marginTop: 12 }}>
-                        <StarRating rating={t.rating} />
-                      </div>
-                      <p style={{ color: "#6b7280", marginTop: 12 }}>
-                        "{t.review}"
-                      </p>
-                    </Card>
-                  </Col>
-                ))}
-              </Row>
+      <div className="flex flex-wrap items-center  gap-6 mt-20 ">
+        {testimonials.map((testimonial) => (
+          <div key={testimonial.id} className="bg-white p-6 rounded-xl shadow ">
+            <div className="flex items-center gap-3">
+              <img
+                className="w-12 h-12 rounded-full"
+                src={testimonial.image}
+                alt={testimonial.name}
+              />
+              <div>
+                <p className="font-playfair text-xl">{testimonial.name}</p>
+                <p className="text-gray-500">{testimonial.address}</p>
+              </div>
             </div>
-          ))}
-        </Carousel>
+            <div className="flex items-center gap-1 mt-4">
+              <StarRating />
+            </div>
+            <p className="text-gray-500 max-w-90 mt-4">
+              "{testimonial.review}"
+            </p>
+          </div>
+        ))}
       </div>
     </div>
   );

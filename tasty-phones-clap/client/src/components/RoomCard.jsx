@@ -1,40 +1,44 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { assets } from "../assets/assets";
-import { Card, Tag, Button, Typography, Space } from "antd";
 
 const RoomCard = ({ room, index }) => {
   return (
-    <Link to={"/rooms/" + room._id} onClick={() => scrollTo(0, 0)} key={room._id}>
-      <Card
-        hoverable
-        cover={<img src={room.images[0]} alt="room" />}
-        bodyStyle={{ padding: 16 }}
-      >
-        {index % 2 === 0 && (
-          <Tag style={{ position: "absolute", top: 12, left: 12 }} color="white">
-            <span style={{ color: "#111" }}>Best Seller</span>
-          </Tag>
-        )}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <Typography.Text strong className="font-playfair" style={{ fontSize: 18 }}>
+    <Link
+      to={"/rooms/" + room._id}
+      onClick={() => scrollTo(0, 0)}
+      key={room._id}
+      className="relative max-w-70 w-full rounded-xl overflow-hidden bg-white text-gray-500/90 shadow-[0px_4px_4px_rgba(0,0,0,0.05)]"
+    >
+      <img src={room.images[0]} alt="" />
+      {index % 2 === 0 && (
+        <p className="px-3 py-1 absolute top-3 left-3 text-xs bg-white text-gray-800 font-medium rounded-full">
+          Best Seller
+        </p>
+      )}
+      <div className="p-4 pt-5">
+        <div className="flex items-center justify-between">
+          <p className="font-playfair text-xl font-medium text-gray-800">
             {room.hotel.name}
-          </Typography.Text>
-          <Space size={4}>
+          </p>
+          <div className="flex items-center gap-1">
             <img src={assets.starIconFilled} alt="Star-icon" /> 4.5
-          </Space>
+          </div>
         </div>
-        <Space size={8} style={{ marginTop: 8, color: "#6b7280" }}>
+        <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
           <img src={assets.locationIcon} alt="Location-icon" />
           <span>{room.hotel.address}</span>
-        </Space>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 12 }}>
-          <Typography.Text>
-            <span style={{ fontSize: 18, color: "#111827" }}>${room.pricePerNight}</span>/night
-          </Typography.Text>
-          <Button type="default" size="small" shape="round">Book Now</Button>
         </div>
-      </Card>
+        <div className="flex items-center justify-between mt-4">
+          <p>
+            <span className="text-xl text-gray-800">${room.pricePerNight}</span>
+            /night
+          </p>
+          <button className="px-4 py-2 text-sm font-medium border border-gray-300 rounded hover:bg-gray-50 transition-all cursor-pointer">
+            Book Now
+          </button>
+        </div>
+      </div>
     </Link>
   );
 };

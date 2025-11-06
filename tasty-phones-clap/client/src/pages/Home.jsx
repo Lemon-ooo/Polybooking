@@ -4,7 +4,6 @@ import FeaturedDestination from "../components/FeaturedDestination";
 import ExclusiveOffers from "../components/ExclusiveOffers";
 import Testimonial from "../components/Testimonial";
 import NewsLetter from "../components/NewsLetter";
-import { Divider } from "antd";
 
 const Home = () => {
   return (
@@ -13,7 +12,6 @@ const Home = () => {
       <FeaturedDestination />
       <ExclusiveOffers />
       <Testimonial />
-      <Divider />
       <NewsLetter />
     </>
   );
