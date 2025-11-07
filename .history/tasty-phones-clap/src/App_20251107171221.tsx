@@ -18,6 +18,7 @@ import { PublicLayout } from "./components/layout/PublicLayout";
 import { RoomList } from "./components/pages/admin/rooms/list";
 import { RoomCreate } from "./components/pages/admin/rooms/create";
 import { RoomEdit } from "./components/pages/admin/rooms/edit";
+import { RoomShow } from "./components/pages/admin/rooms/show";
 
 function App() {
   return (
@@ -118,6 +119,14 @@ function App() {
             element={
               <AdminLayout>
                 <RoomEdit />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/admin/rooms/show/:id"
+            element={
+              <AdminLayout>
+                <RoomShow />
               </AdminLayout>
             }
           />

@@ -1,5 +1,5 @@
 // interfaces/rooms.ts
-export interface Room extends BaseRecord {
+export interface Room {
   room_id: number;
   room_number: string;
   room_type_id: number;
@@ -59,20 +59,21 @@ export interface CreateRoomRequest {
   description: string;
   price: number;
   status: string;
-  amenities?: number[];
+  amenities?: number[]; // array of amenity_ids
 }
 
 // Update room request
 export interface UpdateRoomRequest extends Partial<CreateRoomRequest> {}
 
-// Room status options
-export const ROOM_STATUSES = [
-  { label: "Trống", value: "trống", color: "green" },
-  { label: "Đang sử dụng", value: "đang sử dụng", color: "blue" },
-  { label: "Available", value: "available", color: "green" },
-  { label: "Bảo trì", value: "maintenance", color: "orange" },
-  { label: "Đã đặt", value: "occupied", color: "red" },
-] as const;
+// Room status options based on your API
+export const ROOM_STATUSES: { label: string; value: string; color: string }[] =
+  [
+    { label: "Trống", value: "trống", color: "green" },
+    { label: "Đang sử dụng", value: "đang sử dụng", color: "blue" },
+    { label: "Available", value: "available", color: "green" },
+    { label: "Bảo trì", value: "maintenance", color: "orange" },
+    { label: "Đã đặt", value: "occupied", color: "red" },
+  ];
 
 // Utility functions
 export const getRoomStatusColor = (status: string): string => {
@@ -86,8 +87,5 @@ export const getRoomStatusLabel = (status: string): string => {
 };
 
 export const formatPrice = (price: string): string => {
-  const priceNumber = parseFloat(price);
-  return isNaN(priceNumber)
-    ? "0 VND"
-    : `${priceNumber.toLocaleString("vi-VN")} VND`;
+  return `${parseFloat(price).toLocaleString("vi-VN")} VND`;
 };

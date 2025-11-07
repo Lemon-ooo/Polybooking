@@ -1,16 +1,8 @@
+// components/pages/admin/rooms/list.tsx
 import React from "react";
 import { List, useTable, DateField } from "@refinedev/antd";
-import { useDelete } from "@refinedev/core";
-import {
-  Table,
-  Tag,
-  Typography,
-  Alert,
-  Button,
-  Tooltip,
-  Popconfirm,
-  message,
-} from "antd";
+import { Table, Tag, Typography, Alert, Button, Space } from "antd";
+import { Tooltip } from "antd";
 import {
   Room,
   getRoomStatusColor,
@@ -21,26 +13,8 @@ import {
 const { Text } = Typography;
 
 export const RoomList: React.FC = () => {
-  const { tableProps, queryResult } = useTable<Room>({
-    resource: "rooms",
-  });
-  const { data, isLoading, isError, error } = queryResult || {};
-
-  const { mutate: deleteRoom } = useDelete<Room>();
-
-  const handleDelete = (id: number) => {
-    deleteRoom(
-      { resource: "rooms", id: id.toString() },
-      {
-        onSuccess: () => {
-          message.success("Xóa phòng thành công");
-        },
-        onError: () => {
-          message.error("Xóa phòng thất bại");
-        },
-      }
-    );
-  };
+  const tableQueryResult: any = queryResult;
+  const { data, isLoading, isError, error } = tableQueryResult || {};
 
   if (isError) {
     return (
@@ -57,7 +31,7 @@ export const RoomList: React.FC = () => {
     <List>
       <div style={{ marginBottom: 16 }}>
         <Button
-          onClick={() => queryResult?.refetch?.()}
+          onClick={() => tableQueryResult.refetch()}
           loading={isLoading}
           type="primary"
         >
@@ -70,7 +44,7 @@ export const RoomList: React.FC = () => {
 
       <Table
         {...tableProps}
-        rowKey="id"
+        rowKey="id" // ✅ rowKey phải là id
         loading={isLoading}
         dataSource={tableProps.dataSource || []}
         scroll={{ x: 1000 }}
@@ -141,22 +115,6 @@ export const RoomList: React.FC = () => {
           title="Ngày tạo"
           render={(value: string) => <DateField value={value} />}
           sorter
-        />
-        {/* Cột Hành động - Nút Xóa */}
-        <Table.Column
-          title="Hành động"
-          render={(_, record: Room) => (
-            <Popconfirm
-              title="Bạn có chắc muốn xóa phòng này không?"
-              onConfirm={() => handleDelete(record.id)}
-              okText="Xóa"
-              cancelText="Hủy"
-            >
-              <Button danger size="small">
-                Xóa
-              </Button>
-            </Popconfirm>
-          )}
         />
       </Table>
     </List>

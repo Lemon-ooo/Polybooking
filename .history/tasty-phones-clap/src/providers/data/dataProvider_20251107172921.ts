@@ -1,9 +1,9 @@
 // providers/dataProvider.ts
 import { DataProvider } from "@refinedev/core";
 import { axiosInstance } from "./axiosConfig";
+import { RoomListResponse, RoomResponse } from "../../interfaces/rooms";
 
 export const dataProvider: DataProvider = {
-  // ✅ Sửa getList với types đúng
   getList: async ({ resource, pagination, sorters, filters, meta }) => {
     const { current = 1, pageSize = 10 } = pagination || {};
 
@@ -23,17 +23,17 @@ export const dataProvider: DataProvider = {
 
     try {
       const response = await axiosInstance.get(`/${resource}`, { params });
-      const responseData = response.data;
+      const responseData: RoomListResponse = response.data;
 
-      // ✅ Map data với type an toàn
-      const mappedData = responseData.data.map((room: any) => ({
-        id: room.room_id, // Refine bắt buộc có field 'id'
+      // ✅ Map room_id to id để Refine hoạt động đúng
+      const mappedData = responseData.data.map((room) => ({
         ...room,
+        id: room.room_id, // Refine cần field 'id'
       }));
 
       return {
         data: mappedData,
-        total: responseData.meta?.total || 0,
+        total: responseData.meta.total,
       };
     } catch (error) {
       console.error("Error in getList:", error);
@@ -41,15 +41,15 @@ export const dataProvider: DataProvider = {
     }
   },
 
-  // ✅ Sửa getOne
   getOne: async ({ resource, id, meta }) => {
     try {
       const response = await axiosInstance.get(`/${resource}/${id}`);
-      const responseData = response.data;
+      const responseData: RoomResponse = response.data;
 
+      // ✅ Map room_id to id
       const mappedData = {
-        id: responseData.data.room_id,
         ...responseData.data,
+        id: responseData.data.room_id,
       };
 
       return {
@@ -61,15 +61,15 @@ export const dataProvider: DataProvider = {
     }
   },
 
-  // ✅ Sửa create
   create: async ({ resource, variables, meta }) => {
     try {
       const response = await axiosInstance.post(`/${resource}`, variables);
       const responseData = response.data;
 
+      // ✅ Map room_id to id
       const mappedData = {
-        id: responseData.data.room_id,
         ...responseData.data,
+        id: responseData.data.room_id,
       };
 
       return {
@@ -81,15 +81,15 @@ export const dataProvider: DataProvider = {
     }
   },
 
-  // ✅ Sửa update
   update: async ({ resource, id, variables, meta }) => {
     try {
       const response = await axiosInstance.put(`/${resource}/${id}`, variables);
       const responseData = response.data;
 
+      // ✅ Map room_id to id
       const mappedData = {
-        id: responseData.data.room_id,
         ...responseData.data,
+        id: responseData.data.room_id,
       };
 
       return {
@@ -101,7 +101,6 @@ export const dataProvider: DataProvider = {
     }
   },
 
-  // ✅ Sửa deleteOne
   deleteOne: async ({ resource, id, meta }) => {
     try {
       await axiosInstance.delete(`/${resource}/${id}`);
@@ -114,17 +113,17 @@ export const dataProvider: DataProvider = {
     }
   },
 
-  // ✅ Sửa getMany
+  // ... các method khác giữ nguyên
   getMany: async ({ resource, ids, meta }) => {
     try {
       const response = await axiosInstance.get(`/${resource}`, {
         params: { ids: ids.join(",") },
       });
-      const responseData = response.data;
+      const responseData: RoomListResponse = response.data;
 
-      const mappedData = responseData.data.map((room: any) => ({
-        id: room.room_id,
+      const mappedData = responseData.data.map((room) => ({
         ...room,
+        id: room.room_id,
       }));
 
       return {
@@ -136,21 +135,13 @@ export const dataProvider: DataProvider = {
     }
   },
 
-  // ✅ Sửa createMany
   createMany: async ({ resource, variables, meta }) => {
     try {
       const response = await axiosInstance.post(`/${resource}/batch`, {
         data: variables,
       });
-      const responseData = response.data;
-
-      const mappedData = responseData.data.map((room: any, index: number) => ({
-        id: room.room_id || Date.now() + index,
-        ...room,
-      }));
-
       return {
-        data: mappedData,
+        data: response.data.data || response.data,
       };
     } catch (error) {
       console.error("Error in createMany:", error);
@@ -158,22 +149,14 @@ export const dataProvider: DataProvider = {
     }
   },
 
-  // ✅ Sửa updateMany
   updateMany: async ({ resource, ids, variables, meta }) => {
     try {
       const response = await axiosInstance.patch(`/${resource}/batch`, {
         ids,
         data: variables,
       });
-      const responseData = response.data;
-
-      const mappedData = responseData.data.map((room: any) => ({
-        id: room.room_id,
-        ...room,
-      }));
-
       return {
-        data: mappedData,
+        data: response.data.data || response.data,
       };
     } catch (error) {
       console.error("Error in updateMany:", error);
@@ -181,7 +164,6 @@ export const dataProvider: DataProvider = {
     }
   },
 
-  // ✅ Sửa deleteMany
   deleteMany: async ({ resource, ids, meta }) => {
     try {
       await axiosInstance.delete(`/${resource}/batch`, {
@@ -198,7 +180,6 @@ export const dataProvider: DataProvider = {
 
   getApiUrl: () => "http://localhost:8000/api",
 
-  // ✅ Sửa custom
   custom: async ({
     url,
     method,

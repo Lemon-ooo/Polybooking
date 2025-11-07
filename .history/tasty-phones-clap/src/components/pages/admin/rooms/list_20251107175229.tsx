@@ -1,6 +1,5 @@
 import React from "react";
-import { List, useTable, DateField } from "@refinedev/antd";
-import { useDelete } from "@refinedev/core";
+import { List, useTable, DateField, useDelete } from "@refinedev/antd";
 import {
   Table,
   Tag,

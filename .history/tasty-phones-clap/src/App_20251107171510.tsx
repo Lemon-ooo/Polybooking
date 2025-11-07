@@ -121,6 +121,14 @@ function App() {
               </AdminLayout>
             }
           />
+          <Route
+            path="/admin/rooms/show/:id"
+            element={
+              <AdminLayout>
+                <RoomShow />
+              </AdminLayout>
+            }
+          />
 
           {/* ✅ Redirect fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
