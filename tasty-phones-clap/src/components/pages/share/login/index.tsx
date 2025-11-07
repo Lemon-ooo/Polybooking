@@ -18,22 +18,8 @@ export const Login: React.FC = () => {
       onSuccess: (data) => {
         console.log("✅ Login successful:", data);
 
-        // Lấy user từ localStorage (do authProvider lưu vào khi login thành công)
-        const userStr = localStorage.getItem("user");
-        if (userStr) {
-          const user = JSON.parse(userStr);
-
-          // ✅ Điều hướng theo role
-          if (user.role === "admin") {
-            navigate("/admin", { replace: true });
-          } else if (user.role === "client") {
-            navigate("/client", { replace: true });
-          } else {
-            navigate("/login", { replace: true });
-          }
-        } else {
-          navigate("/login", { replace: true });
-        }
+        // Sau khi đăng nhập thành công, chuyển về trang chủ
+        navigate("/", { replace: true });
       },
       onError: (error: any) => {
         console.error("❌ Login error:", error);

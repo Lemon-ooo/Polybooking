@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Layout,
   Menu,
@@ -13,6 +13,7 @@ import {
   Dropdown,
   Typography,
   Space,
+  message,
 } from "antd";
 import {
   HomeOutlined,
@@ -31,22 +32,46 @@ import {
   MenuUnfoldOutlined,
   MenuFoldOutlined,
 } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
+import { useGetIdentity, useLogout } from "@refinedev/core";
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
 
-// Thông tin người dùng giả lập
-const mockIdentity = {
-  name: "Admin",
-  avatar: "",
-  role: "Quản trị viên",
-};
-
-export function AdminLayout() {
+export function AdminLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
+  const navigate = useNavigate();
+  const { mutate: logout } = useLogout();
+  const { data: user, isLoading } = useGetIdentity<{
+    id: number;
+    name: string;
+    email: string;
+    avatar: string;
+    role: string;
+  }>();
+
+  useEffect(() => {
+    // Đợi quá trình lấy thông tin người dùng hoàn tất trước khi chuyển hướng.
+    // Nếu vẫn đang tải, không làm gì để tránh redirect nhầm khi reload trang.
+    if (isLoading) return;
+
+    // Kiểm tra đăng nhập và quyền admin
+    if (!user) {
+      message.error("Vui lòng đăng nhập để truy cập trang quản trị!");
+      navigate("/admin/login");
+      return;
+    }
+
+    if (user.role !== "admin") {
+      message.error("Bạn không có quyền truy cập trang quản trị!");
+      navigate("/");
+      return;
+    }
+  }, [user, isLoading, navigate]);
 
   const handleLogout = () => {
-    console.log("Đăng xuất");
+    logout();
+    navigate("/admin/login");
   };
 
   const userMenuItems = [
@@ -55,14 +80,14 @@ export function AdminLayout() {
       icon: <UserOutlined />,
       label: "Hồ sơ",
     },
-    { type: "divider" },
+    { key: "divider", type: "divider" },
     {
       key: "logout",
       icon: <LogoutOutlined />,
       label: "Đăng xuất",
       onClick: handleLogout,
     },
-  ];
+  ] as const;
 
   // Menu sidebar
   const menuItems = [
@@ -72,9 +97,9 @@ export function AdminLayout() {
     { key: "customers", icon: <TeamOutlined />, label: "Khách Hàng" },
     { key: "revenue", icon: <DollarOutlined />, label: "Doanh Thu" },
     { key: "calendar", icon: <CalendarOutlined />, label: "Lịch Làm Việc" },
-    { type: "divider" },
+    { key: "divider", type: "divider" },
     { key: "settings", icon: <SettingOutlined />, label: "Cài Đặt" },
-  ];
+  ] as const;
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -106,7 +131,8 @@ export function AdminLayout() {
             fontWeight: "bold",
           }}
         >
-          <AppstoreOutlined /> {!collapsed && <span style={{ marginLeft: 8 }}>PolyStayAdmin</span>}
+          <AppstoreOutlined />{" "}
+          {!collapsed && <span style={{ marginLeft: 8 }}>PolyStayAdmin</span>}
         </div>
 
         {/* User Info */}
@@ -119,11 +145,18 @@ export function AdminLayout() {
             gap: 10,
           }}
         >
-          <Avatar size={45} icon={<UserOutlined />} style={{ background: "#1890ff" }} />
-          {!collapsed && (
+          <Avatar
+            size={45}
+            icon={<UserOutlined />}
+            src={user?.avatar}
+            style={{ background: "#1890ff" }}
+          />
+          {!collapsed && user && (
             <div>
-              <div style={{ color: "#fff", fontWeight: "bold" }}>{mockIdentity.name}</div>
-              <div style={{ color: "#aaa", fontSize: 12 }}>{mockIdentity.role}</div>
+              <div style={{ color: "#fff", fontWeight: "bold" }}>
+                {user.name}
+              </div>
+              <div style={{ color: "#aaa", fontSize: 12 }}>{user.role}</div>
             </div>
           )}
         </div>
@@ -141,12 +174,14 @@ export function AdminLayout() {
           theme="dark"
           mode="inline"
           defaultSelectedKeys={["dashboard"]}
-          items={menuItems}
+          items={menuItems as any}
         />
       </Sider>
 
       {/* MAIN LAYOUT */}
-      <Layout style={{ marginLeft: collapsed ? 80 : 240, transition: "all 0.2s" }}>
+      <Layout
+        style={{ marginLeft: collapsed ? 80 : 240, transition: "all 0.2s" }}
+      >
         {/* HEADER */}
         <Header
           style={{
@@ -177,7 +212,10 @@ export function AdminLayout() {
             <Badge count={7}>
               <BellOutlined style={{ fontSize: 18, color: "#fff" }} />
             </Badge>
-            <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+            <Dropdown
+              menu={{ items: userMenuItems as any }}
+              placement="bottomRight"
+            >
               <Avatar icon={<UserOutlined />} style={{ cursor: "pointer" }} />
             </Dropdown>
           </Space>
@@ -185,16 +223,15 @@ export function AdminLayout() {
 
         {/* CONTENT */}
         <Content style={{ padding: 20, background: "#f5f6fa" }}>
-          <Title level={3} style={{ marginBottom: 20 }}>
-            Tổng Quan Hệ Thống
-          </Title>
-
-          {/* Statistic cards */}
+          {/* Render children - main content */}
+          {children} {/* Statistic cards */}
           <Row gutter={[16, 16]}>
             <Col xs={24} sm={12} md={6}>
-              <Card style={{ background: "#1890ff", color: "#fff" }} bordered={false}>
+              <Card style={{ background: "#1890ff", color: "#fff" }}>
                 <Statistic
-                  title={<span style={{ color: "#fff" }}>Đơn Đặt Phòng Hôm Nay</span>}
+                  title={
+                    <span style={{ color: "#fff" }}>Đơn Đặt Phòng Hôm Nay</span>
+                  }
                   value={125}
                   suffix="đơn"
                   valueStyle={{ color: "#fff" }}
@@ -203,9 +240,11 @@ export function AdminLayout() {
             </Col>
 
             <Col xs={24} sm={12} md={6}>
-              <Card style={{ background: "#52c41a", color: "#fff" }} bordered={false}>
+              <Card style={{ background: "#52c41a", color: "#fff" }}>
                 <Statistic
-                  title={<span style={{ color: "#fff" }}>Phòng Đang Trống</span>}
+                  title={
+                    <span style={{ color: "#fff" }}>Phòng Đang Trống</span>
+                  }
                   value={48}
                   suffix="phòng"
                   valueStyle={{ color: "#fff" }}
@@ -214,7 +253,7 @@ export function AdminLayout() {
             </Col>
 
             <Col xs={24} sm={12} md={6}>
-              <Card style={{ background: "#faad14", color: "#fff" }} bordered={false}>
+              <Card style={{ background: "#faad14", color: "#fff" }}>
                 <Statistic
                   title={<span style={{ color: "#fff" }}>Khách Hàng Mới</span>}
                   value={32}
@@ -225,9 +264,11 @@ export function AdminLayout() {
             </Col>
 
             <Col xs={24} sm={12} md={6}>
-              <Card style={{ background: "#ff4d4f", color: "#fff" }} bordered={false}>
+              <Card style={{ background: "#ff4d4f", color: "#fff" }}>
                 <Statistic
-                  title={<span style={{ color: "#fff" }}>Doanh Thu Hôm Nay</span>}
+                  title={
+                    <span style={{ color: "#fff" }}>Doanh Thu Hôm Nay</span>
+                  }
                   value={8200000}
                   suffix="₫"
                   valueStyle={{ color: "#fff" }}
@@ -235,7 +276,6 @@ export function AdminLayout() {
               </Card>
             </Col>
           </Row>
-
           {/* Bảng dữ liệu / Thống kê */}
           <Row gutter={[16, 16]} style={{ marginTop: 20 }}>
             <Col xs={24} lg={12}>
@@ -259,22 +299,35 @@ export function AdminLayout() {
               </Card>
             </Col>
           </Row>
-
           {/* Danh sách chat (mô phỏng) */}
           <Row gutter={[16, 16]} style={{ marginTop: 20 }}>
             <Col xs={24} lg={12}>
-              <Card title="Tin Nhắn Gần Đây" extra={<Button type="link">Xem tất cả</Button>}>
+              <Card
+                title="Tin Nhắn Gần Đây"
+                extra={<Button type="link">Xem tất cả</Button>}
+              >
                 <div style={{ maxHeight: 250, overflowY: "auto" }}>
-                  <p><b>Khách Hàng 1:</b> Xin hỏi còn phòng đôi ngày mai không?</p>
-                  <p><b>Khách Hàng 2:</b> Tôi muốn hủy đơn đặt phòng #1123</p>
-                  <p><b>Khách Hàng 3:</b> Phòng có bao gồm ăn sáng không?</p>
-                  <p><b>Khách Hàng 4:</b> Cảm ơn, dịch vụ rất tuyệt!</p>
+                  <p>
+                    <b>Khách Hàng 1:</b> Xin hỏi còn phòng đôi ngày mai không?
+                  </p>
+                  <p>
+                    <b>Khách Hàng 2:</b> Tôi muốn hủy đơn đặt phòng #1123
+                  </p>
+                  <p>
+                    <b>Khách Hàng 3:</b> Phòng có bao gồm ăn sáng không?
+                  </p>
+                  <p>
+                    <b>Khách Hàng 4:</b> Cảm ơn, dịch vụ rất tuyệt!
+                  </p>
                 </div>
               </Card>
             </Col>
 
             <Col xs={24} lg={12}>
-              <Card title="Thông Báo Hệ Thống" extra={<Button type="link">Xem thêm</Button>}>
+              <Card
+                title="Thông Báo Hệ Thống"
+                extra={<Button type="link">Xem thêm</Button>}
+              >
                 <ul style={{ margin: 0, paddingLeft: 20 }}>
                   <li>Phòng 203 đã check-in lúc 8:45 sáng.</li>
                   <li>Phòng 405 cần dọn dẹp lúc 11:30.</li>

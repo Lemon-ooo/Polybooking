@@ -59,7 +59,11 @@ export const ClientLayout: React.FC<{ children: React.ReactNode }> = ({
     { name: "Home", path: "/client", key: "/client" },
     { name: "Rooms", path: "/client/rooms", key: "/client/rooms" },
     { name: "Services", path: "/client/services", key: "/client/services" },
-    { name: "Experience", path: "/client/experience", key: "/client/experience" },
+    {
+      name: "Experience",
+      path: "/client/experience",
+      key: "/client/experience",
+    },
     { name: "About", path: "/client/about", key: "/client/about" },
   ];
 

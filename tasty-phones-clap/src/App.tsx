@@ -17,13 +17,13 @@ import RoomDetails from "./components/pages/share/rooms/roomDetails"; // ✅ Th�
 import AllServices from "./components/pages/share/services/services"; // ✅ Thêm AllServices
 import ServiceDetails from "./components/pages/share/services/serviceDetails"; // ✅ Thêm ServiceDetails
 import { AdminDashboard } from "./components/pages/admin/dashboard";
+import { AdminLoginPage } from "./pages/admin/login";
 import { ClientDashboard } from "./components/pages/client/dashboard";
 import { ClientRooms } from "./components/pages/client/rooms"; // ✅ Thêm ClientRooms
 import { ClientServices } from "./components/pages/client/services"; // ✅ Thêm ClientServices
 import { AdminLayout } from "./components/layout/AdminLayout";
 import { ClientLayout } from "./components/layout/ClientLayout";
 import { PublicLayout } from "./components/layout/PublicLayout";
-
 
 function App() {
   return (
@@ -148,11 +148,16 @@ function App() {
           />
 
           {/* ✅ Admin routes */}
+          {/* Admin routes */}
+          <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route
-            path="/admin"
+            path="/admin/*"
             element={
               <AdminLayout>
-                <AdminDashboard />
+                <Routes>
+                  <Route path="dashboard" element={<AdminDashboard />} />
+                  {/* Thêm các route admin khác ở đây */}
+                </Routes>
               </AdminLayout>
             }
           />

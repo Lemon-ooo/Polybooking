@@ -1,0 +1,222 @@
+import { IAuthError, ILoginForm, IUser } from "../../interfaces/auth";
+
+const API_URL = 'http://localhost:8000/api';
+
+export const authProvider = {
+  login: async ({ email, password }: ILoginForm) => {
+    try {
+      const response = await fetch(`${API_URL}/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          error: {
+            name: 'Login Error',
+            message: data.message || 'Đăng nhập thất bại'
+          } as IAuthError
+        };
+      }
+
+      // Check if user is admin
+      if (data.user?.role === 'client') {
+        return {
+          success: false,
+          error: {
+            name: 'Unauthorized',
+            message: 'Bạn không có quyền truy cập trang quản trị'
+          } as IAuthError
+        };
+      }
+
+      // Save auth info
+      localStorage.setItem('auth', JSON.stringify({
+        ...data.user,
+        token: data.token
+      }));
+
+      return {
+        success: true,
+        redirectTo: '/admin/dashboard'
+      };
+
+    } catch (error: any) {
+      return {
+        success: false,
+        error: {
+          name: 'Login Error',
+          message: error.message || 'Đã có lỗi xảy ra'
+        } as IAuthError
+      };
+    }
+  },
+
+  logout: async () => {
+    try {
+      const auth = localStorage.getItem('auth');
+      if (auth) {
+        const { token } = JSON.parse(auth);
+        await fetch(`${API_URL}/logout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
+      }
+
+      localStorage.removeItem('auth');
+      return {
+        success: true,
+        redirectTo: '/admin/login'
+      };
+    } catch (error) {
+      // Still remove auth even if API fails
+      localStorage.removeItem('auth');
+      return {
+        success: true,
+        redirectTo: '/admin/login'
+      };
+    }
+  },
+
+  check: async () => {
+    const auth = localStorage.getItem('auth');
+    
+    if (!auth) {
+      return {
+        authenticated: false,
+        error: {
+          message: 'Vui lòng đăng nhập',
+          name: 'not authenticated'
+        } as IAuthError,
+        logout: true,
+        redirectTo: '/admin/login'
+      };
+    }
+
+    try {
+      const { token, role } = JSON.parse(auth);
+
+      if (role === 'client') {
+        return {
+          authenticated: false,
+          error: {
+            message: 'Không có quyền truy cập',
+            name: 'unauthorized'
+          } as IAuthError,
+          logout: true,
+          redirectTo: '/admin/login'
+        };
+      }
+
+      // Verify token with backend
+      const response = await fetch(`${API_URL}/check-role`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        return {
+          authenticated: false,
+          error: {
+            message: 'Phiên làm việc hết hạn hoặc không có quyền truy cập',
+            name: 'unauthorized'
+          } as IAuthError,
+          logout: true,
+          redirectTo: '/admin/login'
+        };
+      }
+
+      const data = await response.json();
+      if (data.role === 'client') {
+        return {
+          authenticated: false,
+          error: {
+            message: 'Bạn không có quyền truy cập trang quản trị',
+            name: 'unauthorized'
+          } as IAuthError,
+          logout: true,
+          redirectTo: '/admin/login'
+        };
+      }
+
+      return {
+        authenticated: true
+      };
+
+    } catch (error) {
+      return {
+        authenticated: false,
+        error: {
+          message: 'Lỗi xác thực',
+          name: 'auth error'
+        } as IAuthError,
+        logout: true,
+        redirectTo: '/admin/login'
+      };
+    }
+  },
+
+  getIdentity: async () => {
+    try {
+      const auth = localStorage.getItem('auth');
+      if (!auth) return null;
+
+      const { token } = JSON.parse(auth);
+
+      // Try to verify token with backend and get fresh profile
+      const response = await fetch(`${API_URL}/profile`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        // token invalid or expired
+        localStorage.removeItem('auth');
+        return null;
+      }
+
+      const data = await response.json();
+
+      // server returns { success: true, user: { ... } }
+      const user = data.user ?? data;
+
+      // update localStorage in case server has fresher data
+      localStorage.setItem('auth', JSON.stringify({ ...user, token }));
+
+      return user as IUser;
+    } catch (err) {
+      return null;
+    }
+  },
+
+  onError: async (error: IAuthError) => {
+    const auth = localStorage.getItem('auth');
+
+    if (error.status === 401 || error.status === 403) {
+      if (auth) {
+        localStorage.removeItem('auth');
+      }
+      return {
+        logout: true,
+        redirectTo: '/admin/login',
+        error
+      };
+    }
+
+    return { error };
+  }
+};
