@@ -17,14 +17,22 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|unique:users',
             'password' => 'required|string|min:6',
+<<<<<<< HEAD
             'role' => 'in:admin,client'
+=======
+            'role' => 'in:' . User::ROLE_ADMIN . ',' . User::ROLE_CLIENT
+>>>>>>> lamtangthanh
         ]);
 
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => bcrypt($validated['password']),
+<<<<<<< HEAD
             'role' => $validated['role'] ?? 'client'
+=======
+            'role' => $validated['role'] ?? User::ROLE_CLIENT
+>>>>>>> lamtangthanh
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -85,4 +93,26 @@ class AuthController extends Controller
             'user' => $request->user()
         ]);
     }
+<<<<<<< HEAD
 }
+=======
+
+    // 🔸 Kiểm tra role của user
+    public function checkRole(Request $request)
+    {
+        $user = $request->user();
+        
+        if ($user->role === User::ROLE_CLIENT) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không có quyền truy cập'
+            ], 403);
+        }
+        
+        return response()->json([
+            'success' => true,
+            'role' => $user->role
+        ]);
+    }
+}
+>>>>>>> lamtangthanh
