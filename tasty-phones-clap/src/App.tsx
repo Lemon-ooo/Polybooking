@@ -17,7 +17,6 @@ import RoomDetails from "./components/pages/share/rooms/roomDetails"; // ✅ Th�
 import AllServices from "./components/pages/share/services/services"; // ✅ Thêm AllServices
 import ServiceDetails from "./components/pages/share/services/serviceDetails"; // ✅ Thêm ServiceDetails
 import { AdminDashboard } from "./components/pages/admin/dashboard";
-import { AdminLoginPage } from "./pages/admin/login";
 import { ClientDashboard } from "./components/pages/client/dashboard";
 import { ClientRooms } from "./components/pages/client/rooms"; // ✅ Thêm ClientRooms
 import { ClientServices } from "./components/pages/client/services"; // ✅ Thêm ClientServices
@@ -149,7 +148,6 @@ function App() {
 
           {/* ✅ Admin routes */}
           {/* Admin routes */}
-          <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route
             path="/admin/*"
             element={

@@ -41,21 +41,10 @@ export const authProvider = {
         };
       }
 
-      // Kiểm tra role admin
-      if (data.user?.role !== 'admin') {
-        return {
-          success: false,
-          error: {
-            name: 'Unauthorized',
-            message: 'Bạn không có quyền truy cập trang quản trị'
-          } as IAuthError
-        };
-      }
-
       // Xoá thông tin auth cũ nếu có
       localStorage.removeItem('auth');
-      
-      // Lưu thông tin auth mới
+
+      // Lưu thông tin auth mới (lưu role để dùng cho redirect)
       const token = data.token.startsWith('Bearer ') ? data.token : `Bearer ${data.token}`;
       const authState: AuthState = {
         ...data.user,
@@ -63,9 +52,13 @@ export const authProvider = {
       };
       localStorage.setItem('auth', JSON.stringify(authState));
 
+      // Redirect theo role: admin -> /admin (dashboard), client -> /
+      const role = data.user?.role || 'client';
+  const redirectTo = role === 'admin' ? '/admin/dashboard' : '/';
+
       return {
         success: true,
-        redirectTo: '/admin/dashboard',
+        redirectTo,
         notification: {
           type: 'success',
           messageType: 'success',
@@ -107,7 +100,7 @@ export const authProvider = {
       localStorage.removeItem('auth');
       return {
         success: true,
-        redirectTo: '/admin/login',
+        redirectTo: '/',
         notification: {
           type: 'success',
           messageType: 'success',
@@ -122,7 +115,7 @@ export const authProvider = {
       localStorage.removeItem('auth');
       return {
         success: true,
-        redirectTo: '/admin/login',
+        redirectTo: '/',
         notification: {
           type: 'success',
           messageType: 'success',
@@ -141,20 +134,13 @@ export const authProvider = {
     if (!auth) {
       return {
         authenticated: false,
-        redirectTo: '/admin/login'
+        redirectTo: '/login'
       };
     }
 
     try {
-      const { role } = JSON.parse(auth) as AuthState;
-      if (role !== 'admin') {
-        localStorage.removeItem('auth');
-        return {
-          authenticated: false,
-          redirectTo: '/admin/login'
-        };
-      }
-
+      // If auth exists consider user authenticated. Role-based guards should be
+      // handled by route-level checks if needed.
       return {
         authenticated: true
       };
@@ -163,7 +149,7 @@ export const authProvider = {
       localStorage.removeItem('auth');
       return {
         authenticated: false,
-        redirectTo: '/admin/login'
+        redirectTo: '/login'
       };
     }
   },
@@ -174,11 +160,6 @@ export const authProvider = {
       if (!auth) return null;
 
       const data = JSON.parse(auth) as AuthState;
-      if (data.role !== 'admin') {
-        localStorage.removeItem('auth');
-        return null;
-      }
-
       return data as IUser;
     } catch (err) {
       localStorage.removeItem('auth');
@@ -191,7 +172,7 @@ export const authProvider = {
       localStorage.removeItem('auth');
       return {
         logout: true,
-        redirectTo: '/admin/login'
+        redirectTo: '/login'
       };
     }
     return { error };

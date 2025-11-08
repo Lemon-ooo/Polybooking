@@ -15,11 +15,17 @@ export const Login: React.FC = () => {
     setError("");
 
     login(values, {
-      onSuccess: (data) => {
+      onSuccess: (data: any) => {
         console.log("✅ Login successful:", data);
 
-        // Sau khi đăng nhập thành công, chuyển về trang chủ
-        navigate("/", { replace: true });
+        // Nếu authProvider trả về redirectTo thì chuyển đến đó (ví dụ /admin/dashboard)
+        const redirectTo = data?.redirectTo || "/";
+        // Nếu redirect là trang admin thì reload nguyên trang để đảm bảo identity được load lại
+        if (redirectTo.startsWith("/admin")) {
+          window.location.href = redirectTo;
+        } else {
+          navigate(redirectTo, { replace: true });
+        }
       },
       onError: (error: any) => {
         console.error("❌ Login error:", error);

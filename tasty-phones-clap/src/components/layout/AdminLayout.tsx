@@ -58,7 +58,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     // Kiểm tra đăng nhập và quyền admin
     if (!user) {
       message.error("Vui lòng đăng nhập để truy cập trang quản trị!");
-      navigate("/admin/login");
+      navigate("/login");
       return;
     }
 
@@ -71,7 +71,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
   const handleLogout = () => {
     logout();
-    navigate("/admin/login");
+    navigate("/login");
   };
 
   const userMenuItems = [
