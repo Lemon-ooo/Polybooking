@@ -120,10 +120,3 @@ export const Register: React.FC = () => {
           </Form.Item>
 
           <Text>
-            Đã có tài khoản? <a onClick={() => navigate("/login")}>Đăng nhập</a>
-          </Text>
-        </Form>
-      </Card>
-    </div>
-  );
-};

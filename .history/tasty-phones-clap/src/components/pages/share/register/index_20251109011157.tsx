@@ -2,48 +2,26 @@ import React from "react";
 import { Form, Input, Button, Card, Typography, message } from "antd";
 import { useNavigate } from "react-router-dom";
 import { authProvider } from "../../../../providers/auth/authProvider";
+// ⚠️ import đúng đường dẫn của bạn
 
 const { Title, Text } = Typography;
 
-interface IRegisterForm {
-  name: string;
-  email: string;
-  password: string;
-  password_confirmation: string;
-}
-
 export const Register: React.FC = () => {
   const navigate = useNavigate();
-  const [form] = Form.useForm<IRegisterForm>();
 
-  const onFinish = async (values: IRegisterForm) => {
+  const onFinish = async (values: any) => {
     if (!authProvider.register) {
       message.error("Chức năng đăng ký chưa được cấu hình.");
       return;
     }
 
-    try {
-      const result = await authProvider.register(values);
+    const result = await authProvider.register(values);
 
-      if (result?.success) {
-        message.success("Đăng ký thành công!");
-        navigate(result.redirectTo || "/client");
-      }
-    } catch (error: any) {
-      const errorMessage = error?.message || "Đăng ký thất bại";
-
-      // Nếu lỗi liên quan email (ví dụ email đã tồn tại)
-      if (errorMessage.toLowerCase().includes("email")) {
-        form.setFields([
-          {
-            name: "email",
-            errors: [errorMessage],
-          },
-        ]);
-      } else {
-        // Các lỗi khác hiển thị toast
-        message.error(errorMessage);
-      }
+    if (result?.success) {
+      message.success("Đăng ký thành công!");
+      navigate(result.redirectTo || "/client");
+    } else {
+      message.error(result?.error?.message || "Đăng ký thất bại");
     }
   };
 
@@ -61,7 +39,7 @@ export const Register: React.FC = () => {
         title={<Title level={3}>Tạo tài khoản mới</Title>}
         style={{ width: 400 }}
       >
-        <Form form={form} layout="vertical" onFinish={onFinish}>
+        <Form layout="vertical" onFinish={onFinish}>
           <Form.Item
             label="Họ và tên"
             name="name"
@@ -84,10 +62,7 @@ export const Register: React.FC = () => {
           <Form.Item
             label="Mật khẩu"
             name="password"
-            rules={[
-              { required: true, message: "Vui lòng nhập mật khẩu" },
-              { min: 6, message: "Mật khẩu phải ít nhất 6 ký tự" },
-            ]}
+            rules={[{ required: true, message: "Vui lòng nhập mật khẩu" }]}
           >
             <Input.Password placeholder="********" />
           </Form.Item>

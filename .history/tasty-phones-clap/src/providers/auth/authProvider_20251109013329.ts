@@ -1,10 +1,5 @@
 import { message } from "antd";
-import {
-  IAuthError,
-  ILoginForm,
-  IRegisterForm,
-  IUser,
-} from "../../interfaces/auth";
+import { IAuthError, ILoginForm, IUser } from "../../interfaces/auth";
 
 const API_URL = import.meta.env.DEV
   ? "/api"
@@ -36,36 +31,55 @@ export const authProvider = {
       const data = await response.json();
 
       if (!response.ok) {
-        // ❌ Sai thông tin -> throw error để useLogin.onError xử lý
-        throw new Error(data.message || "Email hoặc mật khẩu không đúng!");
+        // ❌ Sai thông tin -> chỉ hiển thị lỗi, không redirect
+        message.error(data.message || "Email hoặc mật khẩu không đúng!");
+        return {
+          success: false,
+          error: {
+            name: "Login Error",
+            message: data.message || "Email hoặc mật khẩu không đúng",
+          } as IAuthError,
+        };
       }
 
       // Xóa auth cũ
       localStorage.removeItem("auth");
 
+      // Chuẩn hoá token
       const token = data.token.startsWith("Bearer ")
         ? data.token
         : `Bearer ${data.token}`;
 
+      // Lưu auth mới
       const authState: AuthState = {
         ...data.user,
         token,
       };
       localStorage.setItem("auth", JSON.stringify(authState));
 
-      // Redirect theo role
+      // 🎯 Redirect theo role
       const role = data.user.role;
       let redirectTo = "/";
+
       if (role === "admin") redirectTo = "/admin/dashboard";
       if (role === "client") redirectTo = "/client";
 
+      // ✅ Thông báo thành công
       message.success("Đăng nhập thành công!");
 
-      return { success: true, redirectTo };
+      return {
+        success: true,
+        redirectTo,
+      };
     } catch (error: any) {
-      message.error(error.message || "Đăng nhập thất bại!");
-      // Throw để useLogin.onError bắt
-      throw error;
+      message.error("Đã có lỗi xảy ra khi đăng nhập!");
+      return {
+        success: false,
+        error: {
+          name: "Login Error",
+          message: error.message || "Đã có lỗi xảy ra",
+        } as IAuthError,
+      };
     }
   },
 
@@ -90,7 +104,11 @@ export const authProvider = {
 
     localStorage.removeItem("auth");
     message.success("Đăng xuất thành công!");
-    return { success: true, redirectTo: "/login" };
+
+    return {
+      success: true,
+      redirectTo: "/login",
+    };
   },
 
   // ======================
@@ -115,22 +133,18 @@ export const authProvider = {
       const data = await response.json();
 
       if (!response.ok) {
-        // Lấy thông báo từ backend
-        let errorMessage = "Đăng ký thất bại!";
-
-        // Nếu backend trả lỗi validation email
-        if (data.errors?.email?.[0]) {
-          errorMessage = "Email này đã được đăng ký!";
-        } else if (data.message) {
-          errorMessage = data.message;
-        }
-
-        // Hiển thị thông báo cho user
-        message.error(errorMessage);
-
-        throw new Error(errorMessage);
+        // ❌ Lỗi từ backend
+        message.error(data.message || "Đăng ký thất bại!");
+        return {
+          success: false,
+          error: {
+            name: "Register Error",
+            message: data.message || "Đăng ký thất bại",
+          } as IAuthError,
+        };
       }
 
+      // Lưu token và thông tin user
       const token = data.token.startsWith("Bearer ")
         ? data.token
         : `Bearer ${data.token}`;
@@ -139,19 +153,30 @@ export const authProvider = {
         ...data.user,
         token,
       };
+
       localStorage.setItem("auth", JSON.stringify(authState));
 
+      // Redirect theo role
       const role = data.user.role;
       let redirectTo = "/";
       if (role === "admin") redirectTo = "/admin/dashboard";
       if (role === "client") redirectTo = "/client";
 
       message.success("Đăng ký thành công!");
-      return { success: true, redirectTo };
+
+      return {
+        success: true,
+        redirectTo,
+      };
     } catch (error: any) {
-      // Đảm bảo mọi lỗi đều show
-      if (!error.message) message.error("Đăng ký thất bại!");
-      throw error;
+      message.error("Đã có lỗi xảy ra khi đăng ký!");
+      return {
+        success: false,
+        error: {
+          name: "Register Error",
+          message: error.message || "Đã có lỗi xảy ra",
+        } as IAuthError,
+      };
     }
   },
 
@@ -163,7 +188,10 @@ export const authProvider = {
 
     if (!auth) {
       message.warning("Vui lòng đăng nhập để tiếp tục!");
-      return { authenticated: false, redirectTo: "/login" };
+      return {
+        authenticated: false,
+        redirectTo: "/login",
+      };
     }
 
     try {
@@ -171,14 +199,20 @@ export const authProvider = {
 
       if (window.location.pathname.startsWith("/admin") && role !== "admin") {
         message.warning("Bạn không có quyền truy cập trang quản trị!");
-        return { authenticated: false, redirectTo: "/client" };
+        return {
+          authenticated: false,
+          redirectTo: "/client",
+        };
       }
 
       return { authenticated: true };
     } catch {
       localStorage.removeItem("auth");
       message.error("Phiên đăng nhập không hợp lệ!");
-      return { authenticated: false, redirectTo: "/login" };
+      return {
+        authenticated: false,
+        redirectTo: "/login",
+      };
     }
   },
 
@@ -205,7 +239,10 @@ export const authProvider = {
     if (error.status === 401 || error.status === 403) {
       localStorage.removeItem("auth");
       message.warning("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!");
-      return { logout: true, redirectTo: "/login" };
+      return {
+        logout: true,
+        redirectTo: "/login",
+      };
     }
 
     return { error };

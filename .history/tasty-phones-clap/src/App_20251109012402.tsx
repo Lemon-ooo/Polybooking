@@ -23,7 +23,6 @@ import { ClientDashboard } from "./components/pages/client/dashboard";
 import { ClientRooms } from "./components/pages/client/rooms";
 import { ClientServices } from "./components/pages/client/services";
 import { AdminDashboard } from "./components/pages/admin/dashboard";
-import { RoomList } from "./components/pages/admin/rooms/list";
 
 export default function App() {
   return (
@@ -76,7 +75,6 @@ export default function App() {
           >
             <Route index element={<AdminDashboard />} />
             <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="rooms" element={<RoomList />} />
           </Route>
 
           {/* 🚀 Fallback */}

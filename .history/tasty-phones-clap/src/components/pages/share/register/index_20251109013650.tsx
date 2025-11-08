@@ -14,7 +14,6 @@ interface IRegisterForm {
 
 export const Register: React.FC = () => {
   const navigate = useNavigate();
-  const [form] = Form.useForm<IRegisterForm>();
 
   const onFinish = async (values: IRegisterForm) => {
     if (!authProvider.register) {
@@ -28,22 +27,11 @@ export const Register: React.FC = () => {
       if (result?.success) {
         message.success("Đăng ký thành công!");
         navigate(result.redirectTo || "/client");
+      } else {
+        message.error(result?.error?.message || "Đăng ký thất bại");
       }
     } catch (error: any) {
-      const errorMessage = error?.message || "Đăng ký thất bại";
-
-      // Nếu lỗi liên quan email (ví dụ email đã tồn tại)
-      if (errorMessage.toLowerCase().includes("email")) {
-        form.setFields([
-          {
-            name: "email",
-            errors: [errorMessage],
-          },
-        ]);
-      } else {
-        // Các lỗi khác hiển thị toast
-        message.error(errorMessage);
-      }
+      message.error(error?.message || "Đăng ký thất bại");
     }
   };
 
@@ -61,7 +49,7 @@ export const Register: React.FC = () => {
         title={<Title level={3}>Tạo tài khoản mới</Title>}
         style={{ width: 400 }}
       >
-        <Form form={form} layout="vertical" onFinish={onFinish}>
+        <Form layout="vertical" onFinish={onFinish}>
           <Form.Item
             label="Họ và tên"
             name="name"

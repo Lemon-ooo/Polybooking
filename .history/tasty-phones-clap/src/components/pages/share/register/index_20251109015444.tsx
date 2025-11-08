@@ -28,22 +28,25 @@ export const Register: React.FC = () => {
       if (result?.success) {
         message.success("Đăng ký thành công!");
         navigate(result.redirectTo || "/client");
+      } else {
+        // Nếu backend trả về lỗi email đã tồn tại
+        const errorMessage =
+          result?.error?.message || "Đăng ký thất bại. Vui lòng thử lại.";
+
+        // Hiển thị thông báo ở input email
+        if (errorMessage.toLowerCase().includes("email")) {
+          form.setFields([
+            {
+              name: "email",
+              errors: [errorMessage],
+            },
+          ]);
+        } else {
+          message.error(errorMessage);
+        }
       }
     } catch (error: any) {
-      const errorMessage = error?.message || "Đăng ký thất bại";
-
-      // Nếu lỗi liên quan email (ví dụ email đã tồn tại)
-      if (errorMessage.toLowerCase().includes("email")) {
-        form.setFields([
-          {
-            name: "email",
-            errors: [errorMessage],
-          },
-        ]);
-      } else {
-        // Các lỗi khác hiển thị toast
-        message.error(errorMessage);
-      }
+      message.error(error?.message || "Đăng ký thất bại");
     }
   };
 

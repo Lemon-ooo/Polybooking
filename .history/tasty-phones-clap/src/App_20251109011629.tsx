@@ -5,7 +5,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import { authProvider, dataProvider, accessControlProvider } from "./providers";
 
-import { PublicLayout } from "./components/layout/PublicLayout";
 import { ClientLayout } from "./components/layout/ClientLayout";
 import { AdminLayout } from "./components/layout/AdminLayout";
 
@@ -23,7 +22,7 @@ import { ClientDashboard } from "./components/pages/client/dashboard";
 import { ClientRooms } from "./components/pages/client/rooms";
 import { ClientServices } from "./components/pages/client/services";
 import { AdminDashboard } from "./components/pages/admin/dashboard";
-import { RoomList } from "./components/pages/admin/rooms/list";
+import { PublicLayout } from "./components/layout/PublicLayout";
 
 export default function App() {
   return (
@@ -76,7 +75,6 @@ export default function App() {
           >
             <Route index element={<AdminDashboard />} />
             <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="rooms" element={<RoomList />} />
           </Route>
 
           {/* 🚀 Fallback */}

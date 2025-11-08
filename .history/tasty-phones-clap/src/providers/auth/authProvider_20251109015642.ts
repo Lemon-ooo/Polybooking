@@ -96,64 +96,47 @@ export const authProvider = {
   // ======================
   // 🔓 REGISTER
   // ======================
-  register: async ({
-    name,
-    email,
-    password,
-    password_confirmation,
-  }: IRegisterForm) => {
-    try {
-      const response = await fetch(`${API_URL}/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({ name, email, password, password_confirmation }),
-      });
+  register: async ({ name, email, password, password_confirmation }: IRegisterForm) => {
+  try {
+    const response = await fetch(`${API_URL}/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ name, email, password, password_confirmation }),
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (!response.ok) {
-        // Lấy thông báo từ backend
-        let errorMessage = "Đăng ký thất bại!";
-
-        // Nếu backend trả lỗi validation email
-        if (data.errors?.email?.[0]) {
-          errorMessage = "Email này đã được đăng ký!";
-        } else if (data.message) {
-          errorMessage = data.message;
-        }
-
-        // Hiển thị thông báo cho user
-        message.error(errorMessage);
-
-        throw new Error(errorMessage);
-      }
-
-      const token = data.token.startsWith("Bearer ")
-        ? data.token
-        : `Bearer ${data.token}`;
-
-      const authState: AuthState = {
-        ...data.user,
-        token,
-      };
-      localStorage.setItem("auth", JSON.stringify(authState));
-
-      const role = data.user.role;
-      let redirectTo = "/";
-      if (role === "admin") redirectTo = "/admin/dashboard";
-      if (role === "client") redirectTo = "/client";
-
-      message.success("Đăng ký thành công!");
-      return { success: true, redirectTo };
-    } catch (error: any) {
-      // Đảm bảo mọi lỗi đều show
-      if (!error.message) message.error("Đăng ký thất bại!");
-      throw error;
+    if (!response.ok) {
+      const emailError = data.errors?.email?.[0];
+      throw new Error(emailError || data.message || "Đăng ký thất bại!");
     }
-  },
+
+    const token = data.token.startsWith("Bearer ")
+      ? data.token
+      : `Bearer ${data.token}`;
+
+    const authState: AuthState = {
+      ...data.user,
+      token,
+    };
+    localStorage.setItem("auth", JSON.stringify(authState));
+
+    const role = data.user.role;
+    let redirectTo = "/";
+    if (role === "admin") redirectTo = "/admin/dashboard";
+    if (role === "client") redirectTo = "/client";
+
+    message.success("Đăng ký thành công!");
+    return { success: true, redirectTo };
+  } catch (error: any) {
+    message.error(error.message || "Đăng ký thất bại!");
+    throw error;
+  }
+},
+
 
   // ======================
   // 🧩 CHECK (bảo vệ route)

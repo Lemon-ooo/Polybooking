@@ -224,18 +224,13 @@ export const PublicLayout: React.FC = () => {
                 </Button>
               </Dropdown>
             ) : (
-              <Space size="small">
-                <Button type="default" onClick={() => navigate("/register")}>
-                  Register
-                </Button>
-                <Button
-                  type="default"
-                  icon={<LoginOutlined />}
-                  onClick={() => navigate("/login")}
-                >
-                  Login
-                </Button>
-              </Space>
+              <Button
+                type="default"
+                icon={<LoginOutlined />}
+                onClick={() => navigate("/login")}
+              >
+                Login
+              </Button>
             )}
           </Space>
         )}

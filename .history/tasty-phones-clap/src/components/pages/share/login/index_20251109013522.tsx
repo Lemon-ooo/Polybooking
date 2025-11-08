@@ -16,14 +16,20 @@ export const Login: React.FC = () => {
 
     login(values, {
       onSuccess: (data: any) => {
-        // Khi login thành công, redirect theo role
+        console.log("✅ Login successful:", data);
+
+        // Nếu authProvider trả về redirectTo thì chuyển đến đó (ví dụ /admin/dashboard)
         const redirectTo = data?.redirectTo || "/";
-        navigate(redirectTo, { replace: true });
+        // Nếu redirect là trang admin thì reload nguyên trang để đảm bảo identity được load lại
+        if (redirectTo.startsWith("/admin")) {
+          window.location.href = redirectTo;
+        } else {
+          navigate(redirectTo, { replace: true });
+        }
       },
       onError: (error: any) => {
-        // Khi login thất bại, show alert
         console.error("❌ Login error:", error);
-        setError(error?.message || "Email hoặc mật khẩu không đúng!");
+        setError(error?.message || "Đăng nhập thất bại");
       },
     });
   };

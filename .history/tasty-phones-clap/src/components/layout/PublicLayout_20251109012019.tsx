@@ -9,7 +9,7 @@ import {
   Space,
   Dropdown,
 } from "antd";
-import { Link, useNavigate, useLocation, Outlet } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   UserOutlined,
   LoginOutlined,
@@ -20,7 +20,7 @@ import {
   DashboardOutlined,
   LogoutOutlined,
 } from "@ant-design/icons";
-// @ts-ignore
+// @ts-ignore - assets.js không có type definitions
 import { assets } from "../../assets/assets";
 import { useGetIdentity, useLogout } from "@refinedev/core";
 import { Footer as AppFooter } from "./Footer";
@@ -29,7 +29,9 @@ const { Header, Content } = Layout;
 
 const BookIcon = () => <BookOutlined style={{ fontSize: "16px" }} />;
 
-export const PublicLayout: React.FC = () => {
+export const PublicLayout: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const { token } = theme.useToken();
   const navigate = useNavigate();
   const location = useLocation();
@@ -37,19 +39,26 @@ export const PublicLayout: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
+  // Sử dụng Refine authentication
   const { data: identity } = useGetIdentity();
   const { mutate: logout } = useLogout();
 
-  const user =
-    identity ||
-    (() => {
-      try {
-        const userStr = localStorage.getItem("user");
-        return userStr ? JSON.parse(userStr) : null;
-      } catch {
-        return null;
+  const user = identity;
+
+  // Kiểm tra user từ localStorage làm fallback
+  const getUserFromStorage = () => {
+    try {
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        return JSON.parse(userStr);
       }
-    })();
+    } catch (error) {
+      return null;
+    }
+    return null;
+  };
+
+  const currentUser = user || getUserFromStorage();
 
   const navLinks = [
     { name: "Home", path: "/", key: "/" },
@@ -60,22 +69,47 @@ export const PublicLayout: React.FC = () => {
   ];
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    // Kiểm tra kích thước màn hình
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
     checkMobile();
     window.addEventListener("resize", checkMobile);
 
-    const handleScroll = () =>
-      setIsScrolled(window.scrollY > 10 || location.pathname !== "/");
-    handleScroll();
-    window.addEventListener("scroll", handleScroll);
+    if (location.pathname !== "/") {
+      setIsScrolled(true);
+    } else {
+      setIsScrolled(false);
+    }
 
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10 || location.pathname !== "/");
+    };
+
+    window.addEventListener("scroll", handleScroll);
     return () => {
-      window.removeEventListener("resize", checkMobile);
       window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", checkMobile);
     };
   }, [location.pathname]);
 
   const linkColor = isScrolled ? "#374151" : "#fff"; // gray-700 khi scroll, trắng khi top
+  const menuItems = navLinks.map((link) => ({
+    key: link.key,
+    label: (
+      <Link
+        to={link.path}
+        style={{
+          color: linkColor,
+          textDecoration: "none",
+          fontFamily: "sans-serif",
+        }}
+      >
+        {link.name}
+      </Link>
+    ),
+  }));
 
   const headerStyle: React.CSSProperties = {
     position: "fixed",
@@ -116,6 +150,14 @@ export const PublicLayout: React.FC = () => {
               transition: "all 0.3s ease",
             }}
           />
+          <span
+            style={{
+              color: isScrolled ? "#374151" : "#fff",
+              fontSize: "18px",
+              fontWeight: "bold",
+              fontFamily: "sans-serif",
+            }}
+          ></span>
         </Link>
 
         {/* Desktop Nav */}
@@ -137,8 +179,12 @@ export const PublicLayout: React.FC = () => {
                 style={{
                   color: linkColor,
                   textDecoration: "none",
+                  fontFamily: "sans-serif",
                   fontSize: "14px",
+                  fontWeight: "normal",
+                  whiteSpace: "nowrap",
                   position: "relative",
+                  paddingBottom: "4px",
                 }}
               >
                 {link.name}
@@ -157,36 +203,44 @@ export const PublicLayout: React.FC = () => {
                 )}
               </Link>
             ))}
-            {user && (
-              <Button
-                type="default"
-                onClick={() => navigate("/owner")}
-                style={{
-                  borderRadius: "999px",
-                  padding: "4px 16px",
-                  fontSize: "14px",
-                  fontWeight: 300,
-                  marginLeft: "8px",
-                }}
-              >
-                Dashboard
-              </Button>
-            )}
+
+            <Button
+              type="default"
+              onClick={() => navigate("/owner")}
+              style={{
+                borderColor: isScrolled ? "#000" : "#fff",
+                color: isScrolled ? "#000" : "#fff",
+                background: "transparent",
+                borderRadius: "999px",
+                padding: "4px 16px",
+                fontSize: "14px",
+                fontWeight: "300",
+                whiteSpace: "nowrap",
+                marginLeft: "8px",
+              }}
+            >
+              Dashboard
+            </Button>
           </div>
         )}
 
         {/* Desktop Right */}
         {!isMobile && (
-          <Space size="large">
+          <Space size="large" style={{ display: "flex", alignItems: "center" }}>
             <Button
               type="text"
               icon={
                 <SearchOutlined
-                  style={{ fontSize: "20px", color: linkColor }}
+                  style={{
+                    fontSize: "20px",
+                    color: isScrolled ? "#374151" : "#fff",
+                  }}
                 />
               }
+              style={{ display: "flex", alignItems: "center", padding: "4px" }}
             />
-            {user ? (
+
+            {currentUser ? (
               <Dropdown
                 menu={{
                   items: [
@@ -199,7 +253,7 @@ export const PublicLayout: React.FC = () => {
                     {
                       key: "logout",
                       icon: <LogoutOutlined />,
-                      label: "Logout",
+                      label: "Đăng xuất",
                       onClick: () => logout(),
                     },
                   ],
@@ -211,31 +265,40 @@ export const PublicLayout: React.FC = () => {
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 8,
-                    color: linkColor,
+                    gap: "8px",
+                    color: isScrolled ? "#374151" : "#fff",
                   }}
                 >
                   <Avatar
                     size="small"
                     icon={<UserOutlined />}
-                    src={user?.image}
+                    src={currentUser?.image}
                   />
-                  <span>{user?.name || user?.email || "User"}</span>
+                  <span style={{ color: isScrolled ? "#374151" : "#fff" }}>
+                    {currentUser?.name || currentUser?.email || "User"}
+                  </span>
                 </Button>
               </Dropdown>
             ) : (
-              <Space size="small">
-                <Button type="default" onClick={() => navigate("/register")}>
-                  Register
-                </Button>
-                <Button
-                  type="default"
-                  icon={<LoginOutlined />}
-                  onClick={() => navigate("/login")}
-                >
-                  Login
-                </Button>
-              </Space>
+              <Button
+                type="default"
+                icon={<LoginOutlined />}
+                onClick={() => navigate("/login")}
+                style={{
+                  background: isScrolled ? "#000" : "#fff",
+                  color: isScrolled ? "#fff" : "#000",
+                  border: isScrolled ? "1px solid #000" : "none",
+                  borderRadius: "999px",
+                  padding: "10px 32px",
+                  fontSize: "14px",
+                  fontWeight: "normal",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                Login
+              </Button>
             )}
           </Space>
         )}
@@ -243,7 +306,7 @@ export const PublicLayout: React.FC = () => {
         {/* Mobile Menu Button */}
         {isMobile && (
           <Space size="small">
-            {user && (
+            {currentUser && (
               <Dropdown
                 menu={{
                   items: [
@@ -256,7 +319,7 @@ export const PublicLayout: React.FC = () => {
                     {
                       key: "logout",
                       icon: <LogoutOutlined />,
-                      label: "Logout",
+                      label: "Đăng xuất",
                       onClick: () => logout(),
                     },
                   ],
@@ -266,14 +329,19 @@ export const PublicLayout: React.FC = () => {
                 <Avatar
                   size="small"
                   icon={<UserOutlined />}
-                  src={user?.image}
+                  src={currentUser?.image}
                 />
               </Dropdown>
             )}
             <Button
               type="text"
               icon={
-                <MenuOutlined style={{ fontSize: "20px", color: "#fff" }} />
+                <MenuOutlined
+                  style={{
+                    fontSize: "20px",
+                    color: "#fff",
+                  }}
+                />
               }
               onClick={() => setIsMenuOpen(true)}
             />
@@ -288,47 +356,62 @@ export const PublicLayout: React.FC = () => {
         onClose={() => setIsMenuOpen(false)}
         open={isMenuOpen}
         width="100%"
+        style={{ width: "100vw" }}
         closeIcon={<CloseOutlined />}
       >
         <Menu
           mode="vertical"
           selectedKeys={[location.pathname]}
-          items={navLinks.map((link) => ({
-            key: link.key,
-            label: <Link to={link.path}>{link.name}</Link>,
-            onClick: () => setIsMenuOpen(false),
+          items={menuItems.map((item) => ({
+            ...item,
+            onClick: () => {
+              setIsMenuOpen(false);
+            },
           }))}
+          style={{ border: "none", marginBottom: "24px" }}
         />
-        {user && (
+
+        {currentUser && (
           <Button
             type="default"
+            icon={<DashboardOutlined />}
             onClick={() => {
               navigate("/owner");
               setIsMenuOpen(false);
             }}
-            style={{ width: "100%", marginTop: 12 }}
+            style={{ width: "100%", marginBottom: "12px" }}
           >
             Dashboard
           </Button>
         )}
-        {!user && (
+
+        {!currentUser && (
           <Button
             type="primary"
+            icon={<LoginOutlined />}
             onClick={() => {
               navigate("/login");
               setIsMenuOpen(false);
             }}
-            style={{ width: "100%", marginTop: 12 }}
+            style={{ width: "100%" }}
           >
             Login
           </Button>
         )}
       </Drawer>
 
-      <Content style={{ marginTop: 64, width: "100%" }}>
-        <Outlet />
+      <Content
+        style={{
+          marginTop: "64px",
+          padding: 0,
+          margin: "64px 0 0 0",
+          width: "100%",
+        }}
+      >
+        {children}
       </Content>
 
+      {/* Footer */}
       <AppFooter />
     </Layout>
   );

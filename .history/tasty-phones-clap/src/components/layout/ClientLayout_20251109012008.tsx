@@ -9,7 +9,7 @@ import {
   Space,
   Dropdown,
 } from "antd";
-import { Link, useNavigate, useLocation, Outlet } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   UserOutlined,
   LoginOutlined,
@@ -17,8 +17,8 @@ import {
   MenuOutlined,
   CloseOutlined,
   BookOutlined,
-  DashboardOutlined,
   LogoutOutlined,
+  DashboardOutlined,
 } from "@ant-design/icons";
 // @ts-ignore
 import { assets } from "../../assets/assets";
@@ -29,7 +29,9 @@ const { Header, Content } = Layout;
 
 const BookIcon = () => <BookOutlined style={{ fontSize: "16px" }} />;
 
-export const PublicLayout: React.FC = () => {
+export const ClientLayout: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const { token } = theme.useToken();
   const navigate = useNavigate();
   const location = useLocation();
@@ -39,24 +41,30 @@ export const PublicLayout: React.FC = () => {
 
   const { data: identity } = useGetIdentity();
   const { mutate: logout } = useLogout();
+  const user = identity;
 
-  const user =
-    identity ||
-    (() => {
-      try {
-        const userStr = localStorage.getItem("user");
-        return userStr ? JSON.parse(userStr) : null;
-      } catch {
-        return null;
-      }
-    })();
+  const getUserFromStorage = () => {
+    try {
+      const userStr = localStorage.getItem("user");
+      if (userStr) return JSON.parse(userStr);
+    } catch {
+      return null;
+    }
+    return null;
+  };
+
+  const currentUser = user || getUserFromStorage();
 
   const navLinks = [
-    { name: "Home", path: "/", key: "/" },
-    { name: "Rooms", path: "/rooms", key: "/rooms" },
-    { name: "Services", path: "/services", key: "/services" },
-    { name: "Experience", path: "/experience", key: "/experience" },
-    { name: "About", path: "/about", key: "/about" },
+    { name: "Home", path: "/client", key: "/client" },
+    { name: "Rooms", path: "/client/rooms", key: "/client/rooms" },
+    { name: "Services", path: "/client/services", key: "/client/services" },
+    {
+      name: "Experience",
+      path: "/client/experience",
+      key: "/client/experience",
+    },
+    { name: "About", path: "/client/about", key: "/client/about" },
   ];
 
   useEffect(() => {
@@ -64,18 +72,34 @@ export const PublicLayout: React.FC = () => {
     checkMobile();
     window.addEventListener("resize", checkMobile);
 
-    const handleScroll = () =>
-      setIsScrolled(window.scrollY > 10 || location.pathname !== "/");
-    handleScroll();
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10 || location.pathname !== "/client");
+    };
     window.addEventListener("scroll", handleScroll);
 
     return () => {
-      window.removeEventListener("resize", checkMobile);
       window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", checkMobile);
     };
   }, [location.pathname]);
 
-  const linkColor = isScrolled ? "#374151" : "#fff"; // gray-700 khi scroll, trắng khi top
+  const linkColor = isScrolled ? "#374151" : "#fff";
+
+  const menuItems = navLinks.map((link) => ({
+    key: link.key,
+    label: (
+      <Link
+        to={link.path}
+        style={{
+          color: linkColor,
+          textDecoration: "none",
+          fontFamily: "sans-serif",
+        }}
+      >
+        {link.name}
+      </Link>
+    ),
+  }));
 
   const headerStyle: React.CSSProperties = {
     position: "fixed",
@@ -88,14 +112,13 @@ export const PublicLayout: React.FC = () => {
     justifyContent: "space-between",
     padding: "16px 64px",
     transition: "all 0.3s ease",
-    background: isScrolled ? "rgba(255,255,255,0.8)" : "#5C4BFF",
+    background: isScrolled ? "rgba(255,255,255,0.85)" : "#5C4BFF",
     backdropFilter: isScrolled ? "blur(10px)" : "none",
     boxShadow: isScrolled ? "0 2px 8px rgba(0,0,0,0.1)" : "none",
-    width: "100%",
   };
 
   return (
-    <Layout style={{ minHeight: "100vh", overflowX: "hidden", width: "100%" }}>
+    <Layout style={{ minHeight: "100vh", overflowX: "hidden" }}>
       <Header style={headerStyle}>
         {/* Logo */}
         <Link
@@ -118,7 +141,7 @@ export const PublicLayout: React.FC = () => {
           />
         </Link>
 
-        {/* Desktop Nav */}
+        {/* Desktop Navigation */}
         {!isMobile && (
           <div
             style={{
@@ -137,7 +160,9 @@ export const PublicLayout: React.FC = () => {
                 style={{
                   color: linkColor,
                   textDecoration: "none",
+                  fontFamily: "sans-serif",
                   fontSize: "14px",
+                  paddingBottom: "4px",
                   position: "relative",
                 }}
               >
@@ -151,27 +176,11 @@ export const PublicLayout: React.FC = () => {
                       right: 0,
                       height: "2px",
                       background: linkColor,
-                      transition: "all 0.3s ease",
                     }}
                   />
                 )}
               </Link>
             ))}
-            {user && (
-              <Button
-                type="default"
-                onClick={() => navigate("/owner")}
-                style={{
-                  borderRadius: "999px",
-                  padding: "4px 16px",
-                  fontSize: "14px",
-                  fontWeight: 300,
-                  marginLeft: "8px",
-                }}
-              >
-                Dashboard
-              </Button>
-            )}
           </div>
         )}
 
@@ -186,64 +195,93 @@ export const PublicLayout: React.FC = () => {
                 />
               }
             />
-            {user ? (
-              <Dropdown
-                menu={{
-                  items: [
-                    {
-                      key: "bookings",
-                      icon: <BookIcon />,
-                      label: "My Bookings",
-                      onClick: () => navigate("/my-bookings"),
-                    },
-                    {
-                      key: "logout",
-                      icon: <LogoutOutlined />,
-                      label: "Logout",
-                      onClick: () => logout(),
-                    },
-                  ],
-                }}
-                placement="bottomRight"
-              >
-                <Button
-                  type="text"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    color: linkColor,
-                  }}
-                >
-                  <Avatar
-                    size="small"
-                    icon={<UserOutlined />}
-                    src={user?.image}
-                  />
-                  <span>{user?.name || user?.email || "User"}</span>
-                </Button>
-              </Dropdown>
-            ) : (
-              <Space size="small">
-                <Button type="default" onClick={() => navigate("/register")}>
-                  Register
-                </Button>
+            {currentUser ? (
+              <>
                 <Button
                   type="default"
-                  icon={<LoginOutlined />}
-                  onClick={() => navigate("/login")}
+                  onClick={() => navigate("/owner")}
+                  style={{
+                    borderColor: isScrolled ? "#000" : "#fff",
+                    color: isScrolled ? "#000" : "#fff",
+                    background: "transparent",
+                    borderRadius: "999px",
+                    padding: "4px 16px",
+                    fontSize: "14px",
+                    fontWeight: "300",
+                    whiteSpace: "nowrap",
+                    marginLeft: "8px",
+                  }}
                 >
-                  Login
+                  Dashboard
                 </Button>
-              </Space>
+
+                <Dropdown
+                  menu={{
+                    items: [
+                      {
+                        key: "bookings",
+                        icon: <BookIcon />,
+                        label: "My Bookings",
+                        onClick: () => navigate("/my-bookings"),
+                      },
+                      {
+                        key: "logout",
+                        icon: <LogoutOutlined />,
+                        label: "Logout",
+                        onClick: () => logout(),
+                      },
+                    ],
+                  }}
+                  placement="bottomRight"
+                >
+                  <Button
+                    type="text"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      color: isScrolled ? "#374151" : "#fff",
+                    }}
+                  >
+                    <Avatar
+                      size="small"
+                      icon={<UserOutlined />}
+                      src={currentUser?.image}
+                    />
+                    <span style={{ color: isScrolled ? "#374151" : "#fff" }}>
+                      {currentUser?.name || currentUser?.email || "User"}
+                    </span>
+                  </Button>
+                </Dropdown>
+              </>
+            ) : (
+              <Button
+                type="default"
+                icon={<LoginOutlined />}
+                onClick={() => navigate("/login")}
+                style={{
+                  background: isScrolled ? "#000" : "#fff",
+                  color: isScrolled ? "#fff" : "#000",
+                  border: isScrolled ? "1px solid #000" : "none",
+                  borderRadius: "999px",
+                  padding: "10px 32px",
+                  fontSize: "14px",
+                  fontWeight: "normal",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                Login
+              </Button>
             )}
           </Space>
         )}
 
-        {/* Mobile Menu Button */}
+        {/* Mobile Menu */}
         {isMobile && (
-          <Space size="small">
-            {user && (
+          <Space>
+            {currentUser && (
               <Dropdown
                 menu={{
                   items: [
@@ -261,12 +299,11 @@ export const PublicLayout: React.FC = () => {
                     },
                   ],
                 }}
-                placement="bottomRight"
               >
                 <Avatar
                   size="small"
                   icon={<UserOutlined />}
-                  src={user?.image}
+                  src={currentUser?.image}
                 />
               </Dropdown>
             )}
@@ -293,42 +330,43 @@ export const PublicLayout: React.FC = () => {
         <Menu
           mode="vertical"
           selectedKeys={[location.pathname]}
-          items={navLinks.map((link) => ({
-            key: link.key,
-            label: <Link to={link.path}>{link.name}</Link>,
+          items={menuItems.map((item) => ({
+            ...item,
             onClick: () => setIsMenuOpen(false),
           }))}
+          style={{ border: "none", marginBottom: "24px" }}
         />
-        {user && (
+
+        {currentUser && (
           <Button
             type="default"
+            icon={<DashboardOutlined />}
             onClick={() => {
               navigate("/owner");
               setIsMenuOpen(false);
             }}
-            style={{ width: "100%", marginTop: 12 }}
+            style={{ width: "100%", marginBottom: "12px" }}
           >
             Dashboard
           </Button>
         )}
-        {!user && (
+
+        {!currentUser && (
           <Button
             type="primary"
+            icon={<LoginOutlined />}
             onClick={() => {
               navigate("/login");
               setIsMenuOpen(false);
             }}
-            style={{ width: "100%", marginTop: 12 }}
+            style={{ width: "100%" }}
           >
             Login
           </Button>
         )}
       </Drawer>
 
-      <Content style={{ marginTop: 64, width: "100%" }}>
-        <Outlet />
-      </Content>
-
+      <Content style={{ marginTop: "64px" }}>{children}</Content>
       <AppFooter />
     </Layout>
   );
