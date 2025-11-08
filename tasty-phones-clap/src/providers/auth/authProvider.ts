@@ -1,9 +1,9 @@
+import { message } from "antd";
 import { IAuthError, ILoginForm, IUser } from "../../interfaces/auth";
 
-// Use relative /api in dev so Vite proxy handles CORS; in production fall back to VITE_API_URL or localhost
 const API_URL = import.meta.env.DEV
-  ? '/api'
-  : (import.meta.env.VITE_API_URL || 'http://localhost:8000/api');
+  ? "/api"
+  : (import.meta.env.VITE_API_URL || "http://localhost:8000/api");
 
 interface AuthState {
   token: string;
@@ -14,167 +14,168 @@ interface AuthState {
 }
 
 export const authProvider = {
+  // ======================
+  // 🔐 LOGIN
+  // ======================
   login: async ({ email, password }: ILoginForm) => {
     try {
       const response = await fetch(`${API_URL}/login`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          "Content-Type": "application/json",
+          Accept: "application/json",
         },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
-  // Debug logs for dev: response status and body
-  // NOTE: remove or lower verbosity in production
-  // eslint-disable-next-line no-console
-  console.debug('[authProvider] login response', { status: response.status, body: data });
 
       if (!response.ok) {
+        // ❌ Sai thông tin -> chỉ hiển thị lỗi, không redirect
+        message.error(data.message || "Email hoặc mật khẩu không đúng!");
         return {
           success: false,
           error: {
-            name: 'Login Error',
-            message: data.message || 'Email hoặc mật khẩu không đúng'
-          } as IAuthError
+            name: "Login Error",
+            message: data.message || "Email hoặc mật khẩu không đúng",
+          } as IAuthError,
         };
       }
 
-      // Xoá thông tin auth cũ nếu có
-      localStorage.removeItem('auth');
+      // Xóa auth cũ
+      localStorage.removeItem("auth");
 
-      // Lưu thông tin auth mới (lưu role để dùng cho redirect)
-      const token = data.token.startsWith('Bearer ') ? data.token : `Bearer ${data.token}`;
+      // Chuẩn hoá token
+      const token = data.token.startsWith("Bearer ")
+        ? data.token
+        : `Bearer ${data.token}`;
+
+      // Lưu auth mới
       const authState: AuthState = {
         ...data.user,
-        token
+        token,
       };
-      localStorage.setItem('auth', JSON.stringify(authState));
+      localStorage.setItem("auth", JSON.stringify(authState));
 
-      // Redirect theo role: admin -> /admin (dashboard), client -> /
-      const role = data.user?.role || 'client';
-  const redirectTo = role === 'admin' ? '/admin/dashboard' : '/';
+      // 🎯 Redirect theo role
+      const role = data.user.role;
+      let redirectTo = "/";
+
+      if (role === "admin") redirectTo = "/admin/dashboard";
+      if (role === "client") redirectTo = "/client";
+
+      // ✅ Thông báo thành công
+      message.success("Đăng nhập thành công!");
 
       return {
         success: true,
         redirectTo,
-        notification: {
-          type: 'success',
-          messageType: 'success',
-          message: 'Đăng nhập thành công',
-          notificationType: 'toast',
-          duration: 2000,
-          autoHideDuration: 2000
-        }
       };
-
     } catch (error: any) {
+      message.error("Đã có lỗi xảy ra khi đăng nhập!");
       return {
         success: false,
         error: {
-          name: 'Login Error',
-          message: error.message || 'Đã có lỗi xảy ra'
-        } as IAuthError
+          name: "Login Error",
+          message: error.message || "Đã có lỗi xảy ra",
+        } as IAuthError,
       };
     }
   },
 
+  // ======================
+  // 🔓 LOGOUT
+  // ======================
   logout: async () => {
     try {
-      const auth = localStorage.getItem('auth');
+      const auth = localStorage.getItem("auth");
       if (auth) {
         const { token } = JSON.parse(auth) as AuthState;
-        
-        // Gọi API logout
+
         await fetch(`${API_URL}/logout`, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Authorization': token,
-            'Accept': 'application/json'
-          }
+            Authorization: token,
+            Accept: "application/json",
+          },
         });
       }
-      
-      // Xóa dữ liệu local sau khi logout thành công
-      localStorage.removeItem('auth');
-      return {
-        success: true,
-        redirectTo: '/',
-        notification: {
-          type: 'success',
-          messageType: 'success',
-          message: 'Đăng xuất thành công',
-          notificationType: 'toast',
-          duration: 2000,
-          autoHideDuration: 2000
-        }
-      };
-    } catch (error) {
-      // Xóa dữ liệu local ngay cả khi có lỗi
-      localStorage.removeItem('auth');
-      return {
-        success: true,
-        redirectTo: '/',
-        notification: {
-          type: 'success',
-          messageType: 'success',
-          message: 'Đăng xuất thành công',
-          notificationType: 'toast',
-          duration: 2000,
-          autoHideDuration: 2000
-        }
-      };
-    }
+    } catch (_) {}
+
+    localStorage.removeItem("auth");
+    message.success("Đăng xuất thành công!");
+
+    return {
+      success: true,
+      redirectTo: "/login",
+    };
   },
 
+  // ======================
+  // 🧩 CHECK (bảo vệ route)
+  // ======================
   check: async () => {
-    const auth = localStorage.getItem('auth');
-    
+    const auth = localStorage.getItem("auth");
+
     if (!auth) {
+      message.warning("Vui lòng đăng nhập để tiếp tục!");
       return {
         authenticated: false,
-        redirectTo: '/login'
+        redirectTo: "/login",
       };
     }
 
     try {
-      // If auth exists consider user authenticated. Role-based guards should be
-      // handled by route-level checks if needed.
-      return {
-        authenticated: true
-      };
+      const { role } = JSON.parse(auth) as AuthState;
 
-    } catch (error) {
-      localStorage.removeItem('auth');
+      if (window.location.pathname.startsWith("/admin") && role !== "admin") {
+        message.warning("Bạn không có quyền truy cập trang quản trị!");
+        return {
+          authenticated: false,
+          redirectTo: "/client",
+        };
+      }
+
+      return { authenticated: true };
+    } catch {
+      localStorage.removeItem("auth");
+      message.error("Phiên đăng nhập không hợp lệ!");
       return {
         authenticated: false,
-        redirectTo: '/login'
+        redirectTo: "/login",
       };
     }
   },
 
+  // ======================
+  // 👤 GET IDENTITY
+  // ======================
   getIdentity: async () => {
-    try {
-      const auth = localStorage.getItem('auth');
-      if (!auth) return null;
+    const auth = localStorage.getItem("auth");
+    if (!auth) return null;
 
+    try {
       const data = JSON.parse(auth) as AuthState;
       return data as IUser;
-    } catch (err) {
-      localStorage.removeItem('auth');
+    } catch {
+      localStorage.removeItem("auth");
       return null;
     }
   },
 
+  // ======================
+  // ⚠️ ON ERROR
+  // ======================
   onError: async (error: IAuthError) => {
     if (error.status === 401 || error.status === 403) {
-      localStorage.removeItem('auth');
+      localStorage.removeItem("auth");
+      message.warning("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!");
       return {
         logout: true,
-        redirectTo: '/login'
+        redirectTo: "/login",
       };
     }
+
     return { error };
-  }
+  },
 };

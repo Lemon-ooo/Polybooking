@@ -10,19 +10,24 @@ import {
 
 import { authProvider, dataProvider, accessControlProvider } from "./providers";
 import { Login } from "./components/pages/share/login";
-import { Register } from "./components/pages/share/register"; // ✅ Thêm Register
+import { Register } from "./components/pages/share/register";
 import { HomePage } from "./components/pages/share/homePage";
-import AllRooms from "./components/pages/share/rooms/rooms"; // ✅ Thêm AllRooms
-import RoomDetails from "./components/pages/share/rooms/roomDetails"; // ✅ Thêm RoomDetails
-import AllServices from "./components/pages/share/services/services"; // ✅ Thêm AllServices
-import ServiceDetails from "./components/pages/share/services/serviceDetails"; // ✅ Thêm ServiceDetails
+import AllRooms from "./components/pages/share/rooms/rooms";
+import RoomDetails from "./components/pages/share/rooms/roomDetails";
+import AllServices from "./components/pages/share/services/services";
+import ServiceDetails from "./components/pages/share/services/serviceDetails";
+
 import { AdminDashboard } from "./components/pages/admin/dashboard";
 import { ClientDashboard } from "./components/pages/client/dashboard";
-import { ClientRooms } from "./components/pages/client/rooms"; // ✅ Thêm ClientRooms
-import { ClientServices } from "./components/pages/client/services"; // ✅ Thêm ClientServices
+import { ClientRooms } from "./components/pages/client/rooms";
+import { ClientServices } from "./components/pages/client/services";
+
 import { AdminLayout } from "./components/layout/AdminLayout";
 import { ClientLayout } from "./components/layout/ClientLayout";
 import { PublicLayout } from "./components/layout/PublicLayout";
+
+import { ProtectedRoute } from "./components/protected-route"; // ✅ Bảo vệ route
+
 
 function App() {
   return (
@@ -60,7 +65,8 @@ function App() {
         }}
       >
         <Routes>
-          {/* ✅ Public routes (không yêu cầu đăng nhập) */}
+
+          {/* 🚀 Public routes */}
           <Route
             path="/"
             element={
@@ -69,6 +75,7 @@ function App() {
               </PublicLayout>
             }
           />
+
           <Route
             path="/rooms"
             element={
@@ -77,6 +84,7 @@ function App() {
               </PublicLayout>
             }
           />
+
           <Route
             path="/rooms/:id"
             element={
@@ -85,6 +93,7 @@ function App() {
               </PublicLayout>
             }
           />
+
           <Route
             path="/services"
             element={
@@ -93,6 +102,7 @@ function App() {
               </PublicLayout>
             }
           />
+
           <Route
             path="/services/:id"
             element={
@@ -101,67 +111,86 @@ function App() {
               </PublicLayout>
             }
           />
+
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* ✅ Client routes */}
+
+          {/* 🚀 Client routes – bảo vệ bằng ProtectedRoute */}
           <Route
             path="/client"
             element={
-              <ClientLayout>
-                <ClientDashboard />
-              </ClientLayout>
+              <ProtectedRoute>
+                <ClientLayout>
+                  <ClientDashboard />
+                </ClientLayout>
+              </ProtectedRoute>
             }
           />
+
           <Route
             path="/client/rooms"
             element={
-              <ClientLayout>
-                <ClientRooms />
-              </ClientLayout>
+              <ProtectedRoute>
+                <ClientLayout>
+                  <ClientRooms />
+                </ClientLayout>
+              </ProtectedRoute>
             }
           />
+
           <Route
             path="/client/rooms/:id"
             element={
-              <ClientLayout>
-                <RoomDetails />
-              </ClientLayout>
+              <ProtectedRoute>
+                <ClientLayout>
+                  <RoomDetails />
+                </ClientLayout>
+              </ProtectedRoute>
             }
           />
+
           <Route
             path="/client/services"
             element={
-              <ClientLayout>
-                <ClientServices />
-              </ClientLayout>
+              <ProtectedRoute>
+                <ClientLayout>
+                  <ClientServices />
+                </ClientLayout>
+              </ProtectedRoute>
             }
           />
+
           <Route
             path="/client/services/:id"
             element={
-              <ClientLayout>
-                <ServiceDetails />
-              </ClientLayout>
+              <ProtectedRoute>
+                <ClientLayout>
+                  <ServiceDetails />
+                </ClientLayout>
+              </ProtectedRoute>
             }
           />
 
-          {/* ✅ Admin routes */}
-          {/* Admin routes */}
+
+          {/* 🚀 Admin routes */}
           <Route
             path="/admin/*"
             element={
-              <AdminLayout>
-                <Routes>
-                  <Route path="dashboard" element={<AdminDashboard />} />
-                  {/* Thêm các route admin khác ở đây */}
-                </Routes>
-              </AdminLayout>
+              <ProtectedRoute>
+                <AdminLayout>
+                  <Routes>
+                    <Route path="dashboard" element={<AdminDashboard />} />
+                  </Routes>
+                </AdminLayout>
+              </ProtectedRoute>
             }
           />
 
-          {/* ✅ Redirect fallback */}
+
+          {/* 🚀 Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
+
         </Routes>
       </Refine>
     </BrowserRouter>
