@@ -24,6 +24,7 @@ import { ClientRooms } from "./components/pages/client/rooms";
 import { ClientServices } from "./components/pages/client/services";
 import { AdminDashboard } from "./components/pages/admin/dashboard";
 import { RoomList } from "./components/pages/admin/rooms/list";
+import { ClientGallery } from "./components/pages/client/Gallery/ClientGallery";
 
 export default function App() {
   return (
@@ -46,6 +47,7 @@ export default function App() {
             <Route path="rooms/:id" element={<RoomDetails />} />
             <Route path="services" element={<AllServices />} />
             <Route path="services/:id" element={<ServiceDetails />} />
+            <Route path="gallery" element={<ClientGallery />} />
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
           </Route>
@@ -63,6 +65,7 @@ export default function App() {
             <Route path="client/rooms/:id" element={<RoomDetails />} />
             <Route path="client/services" element={<ClientServices />} />
             <Route path="client/services/:id" element={<ServiceDetails />} />
+            <Route path="client/gallery" element={<ClientGallery />} />
           </Route>
 
           {/* 🚀 Admin routes (bảo vệ bằng ProtectedRoute) */}
