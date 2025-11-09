@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import React from "react";
 import { Show, useShow, DateField, TagField } from "@refinedev/antd";
 import { Typography } from "antd";
@@ -50,5 +49,3 @@ export const RoomShow: React.FC = () => {
     </Show>
   );
 };
-=======
->>>>>>> lamtangthanh

@@ -59,7 +59,7 @@ export const ClientLayout: React.FC = () => {
       path: "/client/experience",
       key: "/client/experience",
     },
-    { name: "About", path: "/client/about", key: "/client/about" },
+    { name: "Gallery", path: "/client/gallery", key: "/client/gallery" },
   ];
 
   useEffect(() => {
