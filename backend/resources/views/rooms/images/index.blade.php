@@ -4,7 +4,7 @@
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Album ảnh của phòng: {{ $room->room_number }}</h2>
-        <a href="{{ route('rooms.index') }}" class="btn btn-secondary">Quay lại danh sách</a>
+        <a href="{{ route('web.rooms.index') }}" class="btn btn-secondary">Quay lại danh sách</a>
     </div>
 
     <!-- Form Upload -->

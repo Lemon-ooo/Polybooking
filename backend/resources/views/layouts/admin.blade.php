@@ -129,12 +129,12 @@
 
     <div class="sidebar">
         <h3>Menu</h3>
-        <a href="{{ route('room-types.index') }}">Quản lý loại phòng</a>
-        <a href="{{ route('rooms.index') }}">Quản lý phòng</a> 
+        <a href="{{ route('web.room-types.index') }}">Quản lý loại phòng</a>
+        <a href="{{ route('web.rooms.index') }}">Quản lý phòng</a> 
         <a href="{{ route('services.index') }}">Dịch vụ</a> 
-<a href="{{ route('rooms.index') }}">Album ảnh phòng</a>
+<a href="{{ route('web.rooms.index') }}">Album ảnh phòng</a>
 
-        <a href="{{ route('rooms.index') }}">Quản lý phòng</a>
+        <a href="{{ route('web.rooms.index') }}">Quản lý phòng</a>
         <a href="{{ route('amenities.index') }}">Quản lý tiện ích</a>
         <a href="{{ route('galleries.index') }}">🖼️ Quản lý Gallery</a>
         <a href="#">Quản lý booking</a>

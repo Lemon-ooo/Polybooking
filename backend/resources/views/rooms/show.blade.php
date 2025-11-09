@@ -5,8 +5,8 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h3">Chi tiết phòng</h1>
         <div>
-            <a href="{{ route('rooms.index') }}" class="btn btn-secondary btn-sm">Quay lại</a>
-            <a href="{{ route('rooms.edit', $room) }}" class="btn btn-warning btn-sm">Sửa</a>
+            <a href="{{ route('web.rooms.index') }}" class="btn btn-secondary btn-sm">Quay lại</a>
+            <a href="{{ route('web.rooms.edit', $room) }}" class="btn btn-warning btn-sm">Sửa</a>
         </div>
     </div>
 
