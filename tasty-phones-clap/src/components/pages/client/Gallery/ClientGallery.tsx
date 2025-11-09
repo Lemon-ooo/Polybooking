@@ -85,43 +85,64 @@ export const ClientGallery: React.FC = () => {
           textAlign: "center",
           padding: "40px 32px 60px 32px",
           display: "flex",
+          flexDirection: "column", // 👈 QUAN TRỌNG: Đổi sang cột dọc để căn giữa subtitle
           justifyContent: "center",
           alignItems: "center",
-          backgroundColor: "#FAFAFA ",
+          backgroundColor: "#FAFAFA",
         }}
       >
-        <span
+        {/* Hàng chứa Dấu sao và Chữ Gallery */}
+        <div style={{ display: "flex", alignItems: "center", marginBottom: 5 }}>
+          <span
+            style={{
+              fontSize: "1.5rem",
+              color: "#C4C1D9",
+              marginRight: 15,
+              lineHeight: 1,
+            }}
+          >
+            ✦
+          </span>
+          <h2
+            style={{
+              fontFamily: "'Playfair Display', serif",
+              fontSize: "3.5rem",
+              color: "#5c4bff",
+              fontWeight: 400,
+              fontStyle: "italic",
+              margin: 0,
+              lineHeight: 1,
+            }}
+          >
+            Gallery
+          </h2>
+          <span
+            style={{
+              fontSize: "1.5rem",
+              color: "#C4C1D9",
+              marginLeft: 15,
+              lineHeight: 1,
+            }}
+          >
+            ✦
+          </span>
+        </div>
+        {/*  SUBTITLE  */}
+        <p
           style={{
+            fontFamily: "'Playfair Display', serif",
             fontSize: "1.5rem",
             color: "#5c4bff",
-            marginRight: 15,
-            lineHeight: 1,
+            opacity: 0.7, // Làm nhạt hơn màu chính
+            fontWeight: 500,
+            letterSpacing: "0.09em",
+            marginTop: 0,
+            marginBottom: 0,
           }}
         >
-          ✦
-        </span>
-        <h2
-          style={{
-            fontFamily: "'Great Vibes', serif",
-            fontSize: "3.5rem",
-            color: "#5c4bff",
-            fontWeight: 400,
-            margin: 0,
-            lineHeight: 1,
-          }}
-        >
-          Gallery
-        </h2>
-        <span
-          style={{
-            fontSize: "1.5rem",
-            color: "#5c4bff",
-            marginLeft: 15,
-            lineHeight: 1,
-          }}
-        >
-          ✦
-        </span>
+          Welcome to Our Visual Journey, Where Every Frame Tells a Story.
+        </p>
+             {" "}
       </div>
       {/* ----------------------------------------------------------- */}
 

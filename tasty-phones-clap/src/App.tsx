@@ -26,6 +26,8 @@ import { AdminDashboard } from "./components/pages/admin/dashboard";
 import { RoomList } from "./components/pages/admin/rooms/list";
 import { ClientGallery } from "./components/pages/client/Gallery/ClientGallery";
 
+import { GalleryList } from "./components/pages/admin/Gallery/list";
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -80,6 +82,7 @@ export default function App() {
             <Route index element={<AdminDashboard />} />
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="rooms" element={<RoomList />} />
+            <Route path="gallery" element={<GalleryList />} />
           </Route>
 
           {/* 🚀 Fallback */}
