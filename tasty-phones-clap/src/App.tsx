@@ -15,7 +15,8 @@ import { HomePage } from "./components/pages/share/homePage";
 import AllRooms from "./components/pages/share/rooms/rooms";
 import RoomDetails from "./components/pages/share/rooms/roomDetails";
 import AllServices from "./components/pages/share/services/services";
-import ServiceDetails from "./components/pages/share/services/serviceDetails";
+import ServiceDetails from "./components/pages/share/services/serviceDetails"; // Public version
+
 import { Login } from "./components/pages/share/login";
 import { Register } from "./components/pages/share/register";
 
@@ -24,6 +25,9 @@ import { ClientRooms } from "./components/pages/client/rooms";
 import { ClientServices } from "./components/pages/client/services";
 import { AdminDashboard } from "./components/pages/admin/dashboard";
 import { RoomList } from "./components/pages/admin/rooms/list";
+import ServicesDetail from "./components/pages/client/services/ServicesDetail";
+
+// ⚠️ Thêm import mới cho trang chi tiết dịch vụ của client
 
 export default function App() {
   return (
@@ -50,7 +54,7 @@ export default function App() {
             <Route path="register" element={<Register />} />
           </Route>
 
-          {/* 🚀 Client routes (bảo vệ bằng ProtectedRoute) */}
+          {/* 🚀 Client routes */}
           <Route
             element={
               <ProtectedRoute>
@@ -62,10 +66,12 @@ export default function App() {
             <Route path="client/rooms" element={<ClientRooms />} />
             <Route path="client/rooms/:id" element={<RoomDetails />} />
             <Route path="client/services" element={<ClientServices />} />
-            <Route path="client/services/:id" element={<ServiceDetails />} />
+
+            {/* ⚙️ Sửa ở đây: dùng ServicesDetail.tsx (mới) */}
+            <Route path="client/services/:id" element={<ServicesDetail />} />
           </Route>
 
-          {/* 🚀 Admin routes (bảo vệ bằng ProtectedRoute) */}
+          {/* 🚀 Admin routes */}
           <Route
             path="admin/*"
             element={
