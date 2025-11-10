@@ -7,7 +7,7 @@
     <div class="alert">{{ session('success') }}</div>
 @endif
 
-<a href="{{ route('amenities.create') }}" class="btn">+ Thêm tiện ích</a>
+<a href="{{ route('web.amenities.create') }}" class="btn">+ Thêm tiện ích</a>
 
 <table>
     <thead>
@@ -35,8 +35,8 @@
                 </td>
                 <td>{{ Str::limit($item->description, 50) }}</td>
                 <td>
-                    <a href="{{ route('amenities.edit', $item->amenity_id) }}" class="btn">Sửa</a>
-                    <form action="{{ route('amenities.destroy', $item->amenity_id) }}" method="POST" style="display:inline;">
+                    <a href="{{ route('web.amenities.edit', $item->amenity_id) }}" class="btn">Sửa</a>
+                    <form action="{{ route('web.amenities.destroy', $item->amenity_id) }}" method="POST" style="display:inline;">
                         @csrf
                         @method('DELETE')
                         <button class="btn" style="background:#e53935;">Xóa</button>

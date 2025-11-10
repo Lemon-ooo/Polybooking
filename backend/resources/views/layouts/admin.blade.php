@@ -131,12 +131,12 @@
         <h3>Menu</h3>
         <a href="{{ route('web.room-types.index') }}">Quản lý loại phòng</a>
         <a href="{{ route('web.rooms.index') }}">Quản lý phòng</a> 
-        <a href="{{ route('services.index') }}">Dịch vụ</a> 
+        <a href="{{ route('web.services.index') }}">Dịch vụ</a> 
 <a href="{{ route('web.rooms.index') }}">Album ảnh phòng</a>
 
         <a href="{{ route('web.rooms.index') }}">Quản lý phòng</a>
-        <a href="{{ route('amenities.index') }}">Quản lý tiện ích</a>
-        <a href="{{ route('galleries.index') }}">🖼️ Quản lý Gallery</a>
+        <a href="{{ route('web.amenities.index') }}">Quản lý tiện ích</a>
+        <a href="{{ route('web.galleries.index') }}">🖼️ Quản lý Gallery</a>
         <a href="#">Quản lý booking</a>
         <a href="#">Báo cáo</a>
     </div>

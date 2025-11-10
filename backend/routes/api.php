@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AmenityController;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\RoomTypeController;
 use App\Http\Controllers\Api\RoomController;
+use App\Http\Controllers\Api\GalleryController;
 
 // Public Authentication routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -20,6 +21,7 @@ Route::get('/services', [ServiceController::class, 'index']);
 Route::get('/services/{service}', [ServiceController::class, 'show']);
 Route::get('/room-types/{room_type}', [RoomTypeController::class, 'show']);
 Route::get('/amenities/{amenity}', [AmenityController::class, 'show']);
+Route::get('/galleries', [GalleryController::class, 'index']);
 
 // Common authenticated routes
 Route::middleware('auth:sanctum')->group(function () {

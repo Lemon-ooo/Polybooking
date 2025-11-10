@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Web;
+namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Gallery;
@@ -9,19 +9,19 @@ use Illuminate\Support\Facades\Storage;
 
 class GalleryController extends Controller
 {
+    // Lấy danh sách gallery, nhóm theo category
     public function index()
-{
-    $galleries = \App\Models\Gallery::orderBy('created_at', 'desc')->get()
-        ->groupBy('gallery_category'); // Nhóm theo category
-
-    return view('galleries.index', compact('galleries'));
-}
-
-    public function create()
     {
-        return view('galleries.create');
+        $galleries = Gallery::orderBy('created_at', 'desc')->get()
+            ->groupBy('gallery_category');
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $galleries
+        ]);
     }
 
+    // Thêm ảnh mới
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -32,21 +32,31 @@ class GalleryController extends Controller
 
         $path = $request->file('image')->store('galleries', 'public');
 
-        Gallery::create([
+        $gallery = Gallery::create([
             'gallery_category' => $validated['gallery_category'],
             'image_path' => $path,
             'caption' => $validated['caption'] ?? null,
         ]);
 
-        return redirect()->route('web.galleries.index')->with('success', 'Thêm ảnh thành công!');
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Thêm ảnh thành công!',
+            'data' => $gallery
+        ]);
     }
 
+    // Xóa ảnh
     public function destroy(Gallery $gallery)
     {
         if ($gallery->image_path) {
             Storage::disk('public')->delete($gallery->image_path);
         }
+
         $gallery->delete();
-        return back()->with('success', 'Xóa ảnh thành công!');
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Xóa ảnh thành công!'
+        ]);
     }
 }

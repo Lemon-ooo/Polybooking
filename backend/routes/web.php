@@ -55,42 +55,42 @@ Route::delete('/room-types/{room_type}',  [RoomTypeController::class, 'destroy']
 | Amenities (CRUD đầy đủ)
 |--------------------------------------------------------------------------
 */
-Route::get('/amenities',                [AmenityController::class, 'index'])->name('amenities.index');
-Route::get('/amenities/create',         [AmenityController::class, 'create'])->name('amenities.create');
+Route::get('/amenities',                [AmenityController::class, 'index'])->name('web.amenities.index');
+Route::get('/amenities/create',         [AmenityController::class, 'create'])->name('web.amenities.create');
 Route::post('/amenities',               [AmenityController::class, 'store'])->name('web.amenities.store');
-Route::get('/amenities/{amenity}',      [AmenityController::class, 'show'])->name('amenities.show');
-Route::get('/amenities/{amenity}/edit', [AmenityController::class, 'edit'])->name('amenities.edit');
-Route::put('/amenities/{amenity}',      [AmenityController::class, 'update'])->name('amenities.update');
-Route::patch('/amenities/{amenity}',    [AmenityController::class, 'update'])->name('amenities.update.patch');
-Route::delete('/amenities/{amenity}',   [AmenityController::class, 'destroy'])->name('amenities.destroy');
+Route::get('/amenities/{amenity}',      [AmenityController::class, 'show'])->name('web.amenities.show');
+Route::get('/amenities/{amenity}/edit', [AmenityController::class, 'edit'])->name('web.amenities.edit');
+Route::put('/amenities/{amenity}',      [AmenityController::class, 'update'])->name('web.amenities.update');
+Route::patch('/amenities/{amenity}',    [AmenityController::class, 'update'])->name('web.amenities.update.patch');
+Route::delete('/amenities/{amenity}',   [AmenityController::class, 'destroy'])->name('web.amenities.destroy');
 
 /*
 |--------------------------------------------------------------------------
 | Galleries (CRUD đầy đủ)
 |--------------------------------------------------------------------------
 */
-Route::get('/galleries',                [GalleryController::class, 'index'])->name('galleries.index');
-Route::get('/galleries/create',         [GalleryController::class, 'create'])->name('galleries.create');
+Route::get('/galleries',                [GalleryController::class, 'index'])->name('web.galleries.index');
+Route::get('/galleries/create',         [GalleryController::class, 'create'])->name('web.galleries.create');
 Route::post('/galleries',               [GalleryController::class, 'store'])->name('web.galleries.store');
-Route::get('/galleries/{gallery}',      [GalleryController::class, 'show'])->name('galleries.show');
-Route::get('/galleries/{gallery}/edit', [GalleryController::class, 'edit'])->name('galleries.edit');
-Route::put('/galleries/{gallery}',      [GalleryController::class, 'update'])->name('galleries.update');
-Route::patch('/galleries/{gallery}',    [GalleryController::class, 'update'])->name('galleries.update.patch');
-Route::delete('/galleries/{gallery}',   [GalleryController::class, 'destroy'])->name('galleries.destroy');
+Route::get('/galleries/{gallery}',      [GalleryController::class, 'show'])->name('web.galleries.show');
+Route::get('/galleries/{gallery}/edit', [GalleryController::class, 'edit'])->name('web.galleries.edit');
+Route::put('/galleries/{gallery}',      [GalleryController::class, 'update'])->name('web.galleries.update');
+Route::patch('/galleries/{gallery}',    [GalleryController::class, 'update'])->name('web.galleries.update.patch');
+Route::delete('/galleries/{gallery}',   [GalleryController::class, 'destroy'])->name('web.galleries.destroy');
 
 /*
 |--------------------------------------------------------------------------
 | Services (CRUD đầy đủ)
 |--------------------------------------------------------------------------
 */
-Route::get('/services',                [ServiceController::class, 'index'])->name('services.index');
-Route::get('/services/create',         [ServiceController::class, 'create'])->name('services.create');
+Route::get('/services',                [ServiceController::class, 'index'])->name('web.services.index');
+Route::get('/services/create',         [ServiceController::class, 'create'])->name('web.services.create');
 Route::post('/services',               [ServiceController::class, 'store'])->name('web.services.store');
-Route::get('/services/{service}',      [ServiceController::class, 'show'])->name('services.show');
-Route::get('/services/{service}/edit', [ServiceController::class, 'edit'])->name('services.edit');
-Route::put('/services/{service}',      [ServiceController::class, 'update'])->name('services.update');
-Route::patch('/services/{service}',    [ServiceController::class, 'update'])->name('services.update.patch');
-Route::delete('/services/{service}',   [ServiceController::class, 'destroy'])->name('services.destroy');
+Route::get('/services/{service}',      [ServiceController::class, 'show'])->name('web.services.show');
+Route::get('/services/{service}/edit', [ServiceController::class, 'edit'])->name('web.services.edit');
+Route::put('/services/{service}',      [ServiceController::class, 'update'])->name('web.services.update');
+Route::patch('/services/{service}',    [ServiceController::class, 'update'])->name('web.services.update.patch');
+Route::delete('/services/{service}',   [ServiceController::class, 'destroy'])->name('web.services.destroy');
 
 /*
 |--------------------------------------------------------------------------

@@ -39,7 +39,7 @@ class AmenityController extends Controller
 
         Amenity::create($validated);
 
-        return redirect()->route('amenities.index')->with('success', 'Thêm tiện ích thành công!');
+        return redirect()->route('web.amenities.index')->with('success', 'Thêm tiện ích thành công!');
     }
 
     /**
@@ -64,7 +64,7 @@ class AmenityController extends Controller
 
         $amenity->update($validated);
 
-        return redirect()->route('amenities.index')->with('success', 'Cập nhật tiện ích thành công!');
+        return redirect()->route('web.amenities.index')->with('success', 'Cập nhật tiện ích thành công!');
     }
 
     /**
@@ -73,6 +73,6 @@ class AmenityController extends Controller
     public function destroy(Amenity $amenity)
     {
         $amenity->delete();
-        return redirect()->route('amenities.index')->with('success', 'Xóa tiện ích thành công!');
+        return redirect()->route('web.amenities.index')->with('success', 'Xóa tiện ích thành công!');
     }
 }
