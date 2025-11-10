@@ -30,7 +30,7 @@ class ServiceController extends Controller
 
         $service = Service::create($request->all());
 
-        return redirect()->route('services.index')->with('success', 'Dịch vụ đã được thêm thành công.');
+        return redirect()->route('web.services.index')->with('success', 'Dịch vụ đã được thêm thành công.');
     }
 
     public function show($id)
@@ -57,7 +57,7 @@ class ServiceController extends Controller
         $service = Service::findOrFail($id);
         $service->update($request->all());
 
-        return redirect()->route('services.index')->with('success', 'Dịch vụ đã được cập nhật thành công.');
+        return redirect()->route('web.services.index')->with('success', 'Dịch vụ đã được cập nhật thành công.');
     }
 
     public function destroy($id)
@@ -65,6 +65,6 @@ class ServiceController extends Controller
         $service = Service::findOrFail($id);
         $service->delete();
 
-        return redirect()->route('services.index')->with('success', 'Dịch vụ đã được xóa thành công.');
+        return redirect()->route('web.services.index')->with('success', 'Dịch vụ đã được xóa thành công.');
     }
 }

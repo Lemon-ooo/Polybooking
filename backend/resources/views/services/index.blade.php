@@ -4,7 +4,7 @@
 <div class="page-container">
     <div class="header-row">
         <h2 class="page-title">📋 Danh sách Dịch vụ</h2>
-        <a href="{{ route('services.create') }}" class="btn btn-primary">➕ Thêm dịch vụ mới</a>
+        <a href="{{ route('web.services.create') }}" class="btn btn-primary">➕ Thêm dịch vụ mới</a>
     </div>
 
     <div class="card">
@@ -35,9 +35,9 @@
                         </td>
                         <td>
                             <div class="button-group">
-                                <a href="{{ route('services.show', $service->id) }}" class="btn btn-primary">xem</a>
-                                <a href="{{ route('services.edit', $service->id) }}" class="btn btn-primary">✏️ Sửa</a>
-                                <form action="{{ route('services.destroy', $service->id) }}" method="POST" style="display:inline;">
+                                <a href="{{ route('web.services.show', $service->id) }}" class="btn btn-primary">xem</a>
+                                <a href="{{ route('web.services.edit', $service->id) }}" class="btn btn-primary">✏️ Sửa</a>
+                                <form action="{{ route('web.services.destroy', $service->id) }}" method="POST" style="display:inline;">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa?')">🗑️ Xóa</button>
