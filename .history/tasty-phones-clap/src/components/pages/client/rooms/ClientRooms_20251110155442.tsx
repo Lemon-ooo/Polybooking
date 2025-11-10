@@ -46,27 +46,17 @@ export const ClientRooms: React.FC = () => {
 
   const { tableProps, tableQueryResult, setCurrent } = useTable<Room>({
     resource: "rooms",
-    pagination: {
-      pageSize: 6,
-      mode: "server", // Thêm mode server để pagination hoạt động
-    },
+    pagination: { pageSize: 6 },
   });
 
-  // Lấy dữ liệu phòng - FIX: Sử dụng đúng cấu trúc từ tableProps
-  const rooms = tableProps?.dataSource || [];
-  const total = tableProps?.pagination?.total || 0;
+  // Lấy dữ liệu phòng
+  const rooms = tableProps?.dataSource || tableQueryResult?.data?.data || [];
+  const total =
+    tableProps?.pagination?.total || tableQueryResult?.data?.total || 0;
   const currentPage = tableProps?.pagination?.current || 1;
-  const pageSize = tableProps?.pagination?.pageSize || 6;
   const isLoading = tableQueryResult?.isLoading;
   const isError = tableQueryResult?.isError;
   const error = tableQueryResult?.error;
-
-  // Debug dữ liệu
-  console.log("=== PAGINATION DEBUG ===");
-  console.log("tableProps:", tableProps);
-  console.log("rooms:", rooms);
-  console.log("total:", total);
-  console.log("currentPage:", currentPage);
 
   // Dữ liệu mẫu cho filter
   const roomTypes = [
@@ -84,6 +74,13 @@ export const ClientRooms: React.FC = () => {
     { value: "name", label: "Theo tên" },
   ];
 
+  const amenitiesIcons: { [key: string]: React.ReactNode } = {
+    wifi: <WifiOutlined />,
+    parking: <CarOutlined />,
+    breakfast: <CoffeeOutlined />,
+    location: <EnvironmentOutlined />,
+  };
+
   const handleViewDetails = (roomId: number) => {
     navigate(`/client/rooms/${roomId}`);
     window.scrollTo(0, 0);
@@ -91,11 +88,6 @@ export const ClientRooms: React.FC = () => {
 
   const handleBookNow = (roomId: number) => {
     navigate(`/client/booking/${roomId}`);
-  };
-
-  const handlePageChange = (page: number) => {
-    console.log("Changing to page:", page);
-    setCurrent?.(page);
   };
 
   // Hiển thị lỗi
@@ -342,15 +334,15 @@ export const ClientRooms: React.FC = () => {
                 ))}
               </Row>
 
-              {/* Pagination - FIXED */}
-              {total > pageSize && (
+              {/* Pagination */}
+              {total > 6 && (
                 <div className="pagination-container">
                   <Pagination
                     current={currentPage}
-                    pageSize={pageSize}
+                    pageSize={tableProps.pagination?.pageSize || 6}
                     total={total}
                     showSizeChanger={false}
-                    onChange={handlePageChange}
+                    onChange={(page) => setCurrent?.(page)}
                     showTotal={(total, range) =>
                       `Hiển thị ${range[0]}-${range[1]} của ${total} phòng`
                     }
