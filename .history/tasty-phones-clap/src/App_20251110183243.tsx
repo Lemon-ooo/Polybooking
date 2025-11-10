@@ -20,11 +20,8 @@ import { ClientRooms } from "./components/pages/client/rooms";
 import { ClientServices } from "./components/pages/client/services";
 import { AdminDashboard } from "./components/pages/admin/dashboard";
 import { RoomList } from "./components/pages/admin/rooms/list";
-
-// ⚠️ Thêm import mới cho trang chi tiết dịch vụ của client
 import { ClientGallery } from "./components/pages/client/Gallery";
 import { RoomDetail } from "./components/pages/client/rooms/roomDetail";
-import ServicesDetail from "./components/pages/client/services/ServicesDetail";
 
 export default function App() {
   return (
@@ -43,12 +40,11 @@ export default function App() {
           {/* 🚀 Public routes */}
           <Route element={<PublicLayout />}>
             <Route index element={<HomePage />} />
-
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
           </Route>
 
-          {/* 🚀 Client routes */}
+          {/* 🚀 Client routes (bảo vệ bằng ProtectedRoute) */}
           <Route
             element={
               <ProtectedRoute>
@@ -60,13 +56,10 @@ export default function App() {
             <Route path="client/rooms" element={<ClientRooms />} />
             <Route path="client/rooms/:id" element={<RoomDetail />} />
             <Route path="client/services" element={<ClientServices />} />
-
-            {/* ⚙️ Sửa ở đây: dùng ServicesDetail.tsx (mới) */}
-            <Route path="client/services/:id" element={<ServicesDetail />} />
             <Route path="client/galleries" element={<ClientGallery />} />
           </Route>
 
-          {/* 🚀 Admin routes */}
+          {/* 🚀 Admin routes (bảo vệ bằng ProtectedRoute) */}
           <Route
             path="admin/*"
             element={

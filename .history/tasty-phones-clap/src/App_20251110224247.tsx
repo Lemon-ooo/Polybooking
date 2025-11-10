@@ -20,11 +20,11 @@ import { ClientRooms } from "./components/pages/client/rooms";
 import { ClientServices } from "./components/pages/client/services";
 import { AdminDashboard } from "./components/pages/admin/dashboard";
 import { RoomList } from "./components/pages/admin/rooms/list";
+import ServicesDetail from "./components/pages/client/services/ServicesDetail";
 
 // ⚠️ Thêm import mới cho trang chi tiết dịch vụ của client
 import { ClientGallery } from "./components/pages/client/Gallery";
 import { RoomDetail } from "./components/pages/client/rooms/roomDetail";
-import ServicesDetail from "./components/pages/client/services/ServicesDetail";
 
 export default function App() {
   return (
