@@ -12,11 +12,6 @@ import { AdminLayout } from "./components/layout/AdminLayout";
 import { ProtectedRoute } from "./components/protected-route";
 
 import { HomePage } from "./components/pages/share/homePage";
-import AllRooms from "./components/pages/share/rooms/rooms";
-import RoomDetails from "./components/pages/share/rooms/roomDetails";
-import AllServices from "./components/pages/share/services/services";
-import ServiceDetails from "./components/pages/share/services/serviceDetails"; // Public version
-
 import { Login } from "./components/pages/share/login";
 import { Register } from "./components/pages/share/register";
 
@@ -46,10 +41,7 @@ export default function App() {
           {/* 🚀 Public routes */}
           <Route element={<PublicLayout />}>
             <Route index element={<HomePage />} />
-            <Route path="rooms" element={<AllRooms />} />
-            <Route path="rooms/:id" element={<RoomDetails />} />
-            <Route path="services" element={<AllServices />} />
-            <Route path="services/:id" element={<ServiceDetails />} />
+
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
           </Route>
@@ -64,7 +56,6 @@ export default function App() {
           >
             <Route path="client" element={<ClientDashboard />} />
             <Route path="client/rooms" element={<ClientRooms />} />
-            <Route path="client/rooms/:id" element={<RoomDetails />} />
             <Route path="client/services" element={<ClientServices />} />
 
             {/* ⚙️ Sửa ở đây: dùng ServicesDetail.tsx (mới) */}
