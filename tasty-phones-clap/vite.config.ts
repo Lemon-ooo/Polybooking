@@ -22,7 +22,7 @@ export default defineConfig({
     proxy: {
       // Proxy API requests during development to the Laravel backend to avoid CORS
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://127.0.0.1:8000',
         changeOrigin: true,
         secure: false,
         // rewrite path keeps /api prefix when forwarding
