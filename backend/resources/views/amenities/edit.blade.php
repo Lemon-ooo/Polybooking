@@ -4,7 +4,7 @@
 <div class="page-container">
     <div class="header-row">
         <h2 class="page-title">✏️ Chỉnh sửa tiện ích</h2>
-        <a href="{{ route('amenities.index') }}" class="btn btn-secondary">↩ Quay lại danh sách</a>
+        <a href="{{ route('web.amenities.index') }}" class="btn btn-secondary">↩ Quay lại danh sách</a>
     </div>
 
     @if($errors->any())
@@ -18,7 +18,7 @@
     @endif
 
     <div class="card">
-        <form action="{{ route('amenities.update', $amenity->amenity_id) }}" method="POST" class="form-grid">
+        <form action="{{ route('web.amenities.update', $amenity->amenity_id) }}" method="POST" class="form-grid">
             @csrf
             @method('PUT')
 
@@ -47,7 +47,7 @@
 
             <div class="button-group">
                 <button type="submit" class="btn btn-primary">💾 Cập nhật</button>
-                <a href="{{ route('amenities.index') }}" class="btn btn-secondary">Hủy</a>
+                <a href="{{ route('web.amenities.index') }}" class="btn btn-secondary">Hủy</a>
             </div>
         </form>
     </div>

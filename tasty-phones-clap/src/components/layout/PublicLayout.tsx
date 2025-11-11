@@ -56,7 +56,7 @@ export const PublicLayout: React.FC = () => {
     { name: "Rooms", path: "/rooms", key: "/rooms" },
     { name: "Services", path: "/services", key: "/services" },
     { name: "Experience", path: "/experience", key: "/experience" },
-    { name: "About", path: "/about", key: "/about" },
+    { name: "Gallery", path: "/gallery", key: "/gallery" },
   ];
 
   useEffect(() => {

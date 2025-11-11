@@ -4,7 +4,7 @@
 <div class="page-container">
     <div class="header-row">
         <h2 class="page-title">ℹ️ Chi tiết Dịch vụ</h2>
-        <a href="{{ route('services.index') }}" class="btn btn-secondary">↩ Quay lại</a>
+        <a href="{{ route('web.services.index') }}" class="btn btn-secondary">↩ Quay lại</a>
     </div>
 
     <div class="card">

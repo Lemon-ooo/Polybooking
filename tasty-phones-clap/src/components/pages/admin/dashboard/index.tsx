@@ -17,6 +17,7 @@ export const AdminDashboard: React.FC = () => {
             <Statistic title="Đặt phòng hôm nay" value={8} />
           </Card>
         </Col>
+
         <Col span={6}>
           <Card>
             <Statistic title="Doanh thu" value={12500000} suffix="₫" />
