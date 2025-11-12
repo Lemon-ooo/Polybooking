@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
 
 class ServiceController extends Controller
 {
@@ -17,6 +18,15 @@ class ServiceController extends Controller
         try {
             $services = Service::all();
             
+            // Tự động thêm full URL cho ảnh
+            $services->each(function ($service) {
+                if ($service->image) {
+                    $service->image_url = asset($service->image);
+                } else {
+                    $service->image_url = null;
+                }
+            });
+
             return response()->json([
                 'success' => true,
                 'data' => $services,
@@ -44,10 +54,23 @@ class ServiceController extends Controller
                 'name' => 'required|string|max:255',
                 'price' => 'required|numeric|min:0',
                 'description' => 'nullable|string',
-                'image' => 'nullable|string|max:500',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048', // 2MB
             ]);
 
-            $service = Service::create($validated);
+            $data = $request->only(['name', 'price', 'description']);
+
+            if ($request->hasFile('image')) {
+                $file = $request->file('image');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $path = $file->move(public_path('uploads/services'), $filename);
+                $data['image'] = 'uploads/services/' . $filename;
+            }
+
+            $service = Service::create($data);
+
+            if ($service->image) {
+                $service->image_url = asset($service->image);
+            }
 
             return response()->json([
                 'success' => true,
@@ -77,7 +100,11 @@ class ServiceController extends Controller
     {
         try {
             $service = Service::findOrFail($id);
-            
+
+            if ($service->image) {
+                $service->image_url = asset($service->image);
+            }
+
             return response()->json([
                 'success' => true,
                 'data' => $service,
@@ -102,11 +129,29 @@ class ServiceController extends Controller
                 'name' => 'required|string|max:255',
                 'price' => 'required|numeric|min:0',
                 'description' => 'nullable|string',
-                'image' => 'nullable|string|max:500',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             ]);
 
             $service = Service::findOrFail($id);
-            $service->update($validated);
+            $data = $request->only(['name', 'price', 'description']);
+
+            if ($request->hasFile('image')) {
+                // Xóa ảnh cũ
+                if ($service->image && file_exists(public_path($service->image))) {
+                    unlink(public_path($service->image));
+                }
+
+                $file = $request->file('image');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $file->move(public_path('uploads/services'), $filename);
+                $data['image'] = 'uploads/services/' . $filename;
+            }
+
+            $service->update($data);
+
+            if ($service->image) {
+                $service->image_url = asset($service->image);
+            }
 
             return response()->json([
                 'success' => true,
@@ -136,6 +181,12 @@ class ServiceController extends Controller
     {
         try {
             $service = Service::findOrFail($id);
+
+            // Xóa file ảnh nếu có
+            if ($service->image && file_exists(public_path($service->image))) {
+                unlink(public_path($service->image));
+            }
+
             $service->delete();
 
             return response()->json([

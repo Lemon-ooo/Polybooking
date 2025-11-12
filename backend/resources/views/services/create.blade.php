@@ -18,7 +18,7 @@
     @endif
 
     <div class="card">
-        <form action="{{ route('web.services.store') }}" method="POST" class="form-grid">
+      <form action="{{ route('web.services.store') }}" method="POST" enctype="multipart/form-data" class="form-grid">
             @csrf
             <div class="form-group">
                 <label for="name">Tên dịch vụ <span class="text-danger">*</span></label>
@@ -32,10 +32,17 @@
                 <label for="price">Giá (VNĐ) <span class="text-danger">*</span></label>
                 <input type="number" class="input-field" id="price" name="price" value="{{ old('price') }}" min="0" step="0.01" required>
             </div>
-            <div class="form-group">
-                <label for="image">URL hình ảnh</label>
-                <input type="text" class="input-field" id="image" name="image" value="{{ old('image') }}">
-            </div>
+           <div class="form-group">
+    <label for="image">Hình ảnh</label>
+    <input type="file" class="input-field" id="image" name="image" accept="image/*">
+    
+    @if(old('image') || (isset($service) && $service->image))
+        <div style="margin-top: 10px;">
+            <p><strong>Ảnh hiện tại:</strong></p>
+            <img src="{{ asset(old('image') ?? $service->image) }}" width="150" style="border-radius: 8px;">
+        </div>
+    @endif
+</div>
             <div class="button-group">
                 <button type="submit" class="btn btn-primary">💾 Thêm</button>
                 <a href="{{ route('web.services.index') }}" class="btn btn-secondary">Hủy</a>
