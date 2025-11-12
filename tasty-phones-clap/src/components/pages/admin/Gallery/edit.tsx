@@ -15,9 +15,8 @@ const { Title, Text } = Typography;
 const { TextArea } = Input;
 
 export const GalleryEdit: React.FC = () => {
-  // 1. Sử dụng useForm để xử lý việc fetch dữ liệu ban đầu và gửi dữ liệu update
   const { formProps, saveButtonProps, queryResult } = useForm<GalleryImage>({
-    resource: "images", // Đảm bảo resource name khớp với Refine config
+    resource: "images",
     action: "edit",
   });
 

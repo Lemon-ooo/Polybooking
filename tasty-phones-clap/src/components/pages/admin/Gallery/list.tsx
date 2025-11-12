@@ -11,7 +11,6 @@ import {
   message,
 } from "antd";
 
-// Định nghĩa Interface tạm thời cho Ảnh Gallery (giả định)
 interface GalleryImage extends BaseRecord {
   id: number;
   title: string;
@@ -23,17 +22,13 @@ interface GalleryImage extends BaseRecord {
 const { Text } = Typography;
 
 export const GalleryList: React.FC = () => {
-  // 1. Thay đổi resource thành "images" (hoặc tên resource Gallery của bạn)
   const { tableProps, queryResult } = useTable<GalleryImage>({
     resource: "images",
-    // Giả định resource là 'images'
   });
   const { data, isLoading, isError, error } = queryResult || {};
 
-  // 2. Thay đổi useDelete để dùng cho GalleryImage
   const { mutate: deleteImage } = useDelete<GalleryImage>();
 
-  // 3. Thay đổi logic xóa
   const handleDelete = (id: number) => {
     deleteImage(
       { resource: "images", id: id.toString() },
@@ -84,7 +79,6 @@ export const GalleryList: React.FC = () => {
           dataIndex="url"
           title="Ảnh"
           render={(value) => (
-            // Sử dụng ImageField của Ant Design hoặc chỉ định thẻ img
             <ImageField
               value={value}
               width={80}
