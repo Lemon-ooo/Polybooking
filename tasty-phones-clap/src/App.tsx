@@ -28,6 +28,9 @@ import ServicesDetail from "./components/pages/client/services/ServicesDetail";
 import { RoomCreate } from "./components/pages/admin/rooms/create";
 import { RoomEdit } from "./components/pages/admin/rooms/edit";
 
+// ✅ Thêm import cho trang Tiện Ích (admin)
+import Amenities from "./components/pages/admin/amenities";
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -45,7 +48,6 @@ export default function App() {
           {/* 🚀 Public routes */}
           <Route element={<PublicLayout />}>
             <Route index element={<HomePage />} />
-
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
           </Route>
@@ -62,8 +64,6 @@ export default function App() {
             <Route path="client/rooms" element={<ClientRooms />} />
             <Route path="client/rooms/:id" element={<RoomDetail />} />
             <Route path="client/services" element={<ClientServices />} />
-
-            {/* ⚙️ Sửa ở đây: dùng ServicesDetail.tsx (mới) */}
             <Route path="client/services/:id" element={<ServicesDetail />} />
             <Route path="client/galleries" element={<ClientGallery />} />
           </Route>
@@ -80,8 +80,14 @@ export default function App() {
             <Route index element={<AdminDashboard />} />
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="rooms" element={<RoomList />} />
+<<<<<<< HEAD
             <Route path="rooms/create" element={<RoomCreate />} />
             <Route path="rooms/edit/:id" element={<RoomEdit />} />
+=======
+
+            {/* ✅ Trang quản lý Tiện Ích */}
+            <Route path="amenities" element={<Amenities />} />
+>>>>>>> lamtangthanh
           </Route>
 
           {/* 🚀 Fallback */}
