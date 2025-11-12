@@ -51,7 +51,7 @@ class RoomController extends Controller
                 'price' => 'required|numeric|min:0',
                 'status' => 'required|string|in:available,occupied,maintenance',
                 'amenities' => 'nullable|array',
-                'amenities.*' => 'exists:amenities,amenity_id',
+                'amenities.*' => 'exists:amenities,amenities_id',
             ]);
 
             $room = Room::create($validated);
@@ -116,7 +116,7 @@ class RoomController extends Controller
                 'price' => 'required|numeric|min:0',
                 'status' => 'required|string|in:available,occupied,maintenance',
                 'amenities' => 'nullable|array',
-                'amenities.*' => 'exists:amenities,amenity_id',
+                'amenities.*' => 'exists:amenities,id',
             ]);
 
             $room->update($validated);

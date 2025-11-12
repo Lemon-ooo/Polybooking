@@ -25,8 +25,6 @@ import { RoomList } from "./components/pages/admin/rooms/list";
 import { ClientGallery } from "./components/pages/client/Gallery";
 import { RoomDetail } from "./components/pages/client/rooms/roomDetail";
 import ServicesDetail from "./components/pages/client/services/ServicesDetail";
-import { RoomCreate } from "./components/pages/admin/rooms/create";
-import { RoomEdit } from "./components/pages/admin/rooms/edit";
 
 export default function App() {
   return (
@@ -80,8 +78,8 @@ export default function App() {
             <Route index element={<AdminDashboard />} />
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="rooms" element={<RoomList />} />
-            <Route path="rooms/create" element={<RoomCreate />} />
-            <Route path="rooms/edit/:id" element={<RoomEdit />} />
+            <Route path="rooms/create" element={<RoomList />} />
+            <Route path="rooms/edit/:id" element={<RoomList />} />
           </Route>
 
           {/* 🚀 Fallback */}

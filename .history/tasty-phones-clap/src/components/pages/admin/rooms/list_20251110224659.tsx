@@ -10,9 +10,7 @@ import {
   Tooltip,
   Popconfirm,
   message,
-  Space,
 } from "antd";
-import { useNavigate } from "react-router-dom";
 import {
   Room,
   getRoomStatusColor,
@@ -23,7 +21,6 @@ import {
 const { Text } = Typography;
 
 export const RoomList: React.FC = () => {
-  const navigate = useNavigate();
   const { tableProps, queryResult } = useTable<Room>({
     resource: "rooms",
   });
@@ -58,15 +55,12 @@ export const RoomList: React.FC = () => {
 
   return (
     <List>
-      <div style={{ marginBottom: 16, display: "flex", alignItems: "center" }}>
+      <div style={{ marginBottom: 16 }}>
         <Button
+          onClick={() => queryResult?.refetch?.()}
+          loading={isLoading}
           type="primary"
-          onClick={() => navigate("/admin/rooms/create")}
-          style={{ marginRight: 16 }}
         >
-          Thêm phòng mới
-        </Button>
-        <Button onClick={() => queryResult?.refetch?.()} loading={isLoading}>
           Làm mới dữ liệu
         </Button>
         <Text style={{ marginLeft: 16 }}>
@@ -76,7 +70,7 @@ export const RoomList: React.FC = () => {
 
       <Table
         {...tableProps}
-        rowKey="room_id"
+        rowKey="id"
         loading={isLoading}
         dataSource={tableProps.dataSource || []}
         scroll={{ x: 1000 }}
@@ -109,8 +103,9 @@ export const RoomList: React.FC = () => {
           )}
           filters={[
             { text: "Trống", value: "trống" },
-            { text: "Đang sử dụng", value: "occupied" },
+            { text: "Đang sử dụng", value: "đang sử dụng" },
             { text: "Bảo trì", value: "maintenance" },
+            { text: "Đã đặt", value: "occupied" },
           ]}
           onFilter={(value, record: Room) => record.status === value}
         />
@@ -147,26 +142,20 @@ export const RoomList: React.FC = () => {
           render={(value: string) => <DateField value={value} />}
           sorter
         />
-        {/* Cột Hành động */}
+        {/* Cột Hành động - Nút Xóa */}
         <Table.Column
           title="Hành động"
           render={(_, record: Room) => (
-            <Space>
-              <Button
-                type="default"
-                onClick={() => navigate(`/admin/rooms/edit/${record.room_id}`)}
-              >
-                Sửa
+            <Popconfirm
+              title="Bạn có chắc muốn xóa phòng này không?"
+              onConfirm={() => handleDelete(record.id)}
+              okText="Xóa"
+              cancelText="Hủy"
+            >
+              <Button danger size="small">
+                Xóa
               </Button>
-              <Popconfirm
-                title="Bạn có chắc muốn xóa phòng này không?"
-                onConfirm={() => handleDelete(record.room_id)}
-                okText="Xóa"
-                cancelText="Hủy"
-              >
-                <Button danger>Sửa</Button>
-              </Popconfirm>
-            </Space>
+            </Popconfirm>
           )}
         />
       </Table>

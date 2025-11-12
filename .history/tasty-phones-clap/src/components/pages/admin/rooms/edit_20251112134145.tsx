@@ -1,6 +1,15 @@
 import React, { useEffect } from "react";
 import { Edit, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, InputNumber, Select, Checkbox, Spin, Alert } from "antd";
+import {
+  Form,
+  Input,
+  InputNumber,
+  Select,
+  Checkbox,
+  Spin,
+  Alert,
+  Skeleton,
+} from "antd";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   UpdateRoomRequest,
@@ -12,13 +21,15 @@ export const RoomEdit: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
-  // useForm của Refine
-  const { form, onFinish, queryResult, saveButtonProps } =
+  // useForm Refine
+  const { form, onFinish, saveButtonProps, queryResult } =
     useForm<UpdateRoomRequest>({
       resource: "rooms",
       id: id ? Number(id) : undefined,
       redirect: false,
-      queryOptions: { select: (data: any) => data.data },
+      queryOptions: {
+        select: (data: any) => data.data,
+      },
     });
 
   // Room type dropdown
@@ -45,7 +56,7 @@ export const RoomEdit: React.FC = () => {
   const isLoadingAmenities = amenitiesQuery?.isLoading || false;
   const isErrorAmenities = amenitiesQuery?.isError || false;
 
-  // Khi data load xong, set values vào form
+  // Khi data load xong, set giá trị cho form
   useEffect(() => {
     if (queryResult?.data) {
       const roomData = queryResult.data;
@@ -60,9 +71,9 @@ export const RoomEdit: React.FC = () => {
     }
   }, [queryResult?.data, form]);
 
-  // Submit form
+  // Handle submit
   const handleFormSubmit = async (values: any) => {
-    const payload: UpdateRoomRequest = {
+    const formattedValues: UpdateRoomRequest = {
       room_number: values.room_number,
       room_type_id: values.room_type_id,
       price: Number(values.price),
@@ -74,20 +85,26 @@ export const RoomEdit: React.FC = () => {
     };
 
     try {
-      await onFinish(payload);
+      await onFinish(formattedValues);
       navigate("/admin/rooms");
     } catch (error: any) {
       console.error("Submit error:", error.response?.data || error);
     }
   };
 
+  // Nếu đang load data, show Skeleton
+  if (queryResult.isLoading) {
+    return <Skeleton active />;
+  }
+
+  if (queryResult.isError) {
+    return <Alert message="Lỗi tải dữ liệu phòng" type="error" showIcon />;
+  }
+
   return (
     <Edit title="Chỉnh sửa phòng" saveButtonProps={saveButtonProps}>
-      <Form
-        layout="vertical"
-        form={form} // quan trọng: bind form instance
-        onFinish={handleFormSubmit}
-      >
+      <Form layout="vertical" form={form} onFinish={handleFormSubmit}>
+        {/* Room number */}
         <Form.Item
           label="Số phòng"
           name="room_number"
@@ -96,6 +113,7 @@ export const RoomEdit: React.FC = () => {
           <Input placeholder="VD: 101" />
         </Form.Item>
 
+        {/* Room type */}
         <Form.Item
           label="Loại phòng"
           name="room_type_id"
@@ -104,6 +122,7 @@ export const RoomEdit: React.FC = () => {
           <Select {...roomTypeSelectProps} placeholder="Chọn loại phòng" />
         </Form.Item>
 
+        {/* Price */}
         <Form.Item
           label="Giá phòng"
           name="price"
@@ -120,6 +139,7 @@ export const RoomEdit: React.FC = () => {
           />
         </Form.Item>
 
+        {/* Status */}
         <Form.Item
           label="Trạng thái"
           name="status"
@@ -135,10 +155,12 @@ export const RoomEdit: React.FC = () => {
           />
         </Form.Item>
 
+        {/* Description */}
         <Form.Item label="Mô tả" name="description">
           <Input.TextArea placeholder="Nhập mô tả (nếu có)" rows={3} />
         </Form.Item>
 
+        {/* Amenities */}
         <Form.Item label="Tiện nghi" name="amenities">
           {isLoadingAmenities ? (
             <Spin />

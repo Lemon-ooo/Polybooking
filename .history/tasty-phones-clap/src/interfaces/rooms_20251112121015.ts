@@ -27,7 +27,6 @@ export interface RoomType {
 }
 
 export interface Amenity {
-  id?: number;
   amenity_id: number;
   name: string;
   category: string;

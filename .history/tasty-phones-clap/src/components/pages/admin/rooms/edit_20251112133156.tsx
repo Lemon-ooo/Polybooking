@@ -12,13 +12,11 @@ export const RoomEdit: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
-  // useForm của Refine
-  const { form, onFinish, queryResult, saveButtonProps } =
+  const { form, onFinish, formProps, saveButtonProps, queryResult } =
     useForm<UpdateRoomRequest>({
       resource: "rooms",
       id: id ? Number(id) : undefined,
       redirect: false,
-      queryOptions: { select: (data: any) => data.data },
     });
 
   // Room type dropdown
@@ -33,7 +31,7 @@ export const RoomEdit: React.FC = () => {
     useSelect<Amenity>({
       resource: "amenities",
       optionLabel: "name",
-      optionValue: "amenity_id",
+      optionValue: "id", // Kiểm tra xem có phải là "id" thay vì "amenity_id" không
     });
 
   const amenitiesOptions =
@@ -45,24 +43,33 @@ export const RoomEdit: React.FC = () => {
   const isLoadingAmenities = amenitiesQuery?.isLoading || false;
   const isErrorAmenities = amenitiesQuery?.isError || false;
 
-  // Khi data load xong, set values vào form
+  // Theo dõi trạng thái loading và error
+  const isLoading = queryResult?.isLoading || false;
+  const isError = queryResult?.isError || false;
+  const roomData = queryResult?.data?.data;
+
+  // Load dữ liệu cũ vào form
   useEffect(() => {
-    if (queryResult?.data) {
-      const roomData = queryResult.data;
+    if (roomData) {
+      console.log("Loaded room data:", roomData);
+
       form.setFieldsValue({
         room_number: roomData.room_number,
         room_type_id: roomData.room_type_id,
         price: roomData.price,
         status: roomData.status,
-        description: roomData.description,
-        amenities: roomData.amenities?.map((a: any) => Number(a.amenity_id)),
+        description: roomData.description || "",
+        amenities:
+          roomData.amenities?.map(
+            (a: any) => Number(a.amenity_id || a.id) // Xử lý cả 2 trường hợp
+          ) || [],
       });
     }
-  }, [queryResult?.data, form]);
+  }, [roomData, form]);
 
-  // Submit form
+  // Handle form submit
   const handleFormSubmit = async (values: any) => {
-    const payload: UpdateRoomRequest = {
+    const formattedValues: UpdateRoomRequest = {
       room_number: values.room_number,
       room_type_id: values.room_type_id,
       price: Number(values.price),
@@ -74,20 +81,48 @@ export const RoomEdit: React.FC = () => {
     };
 
     try {
-      await onFinish(payload);
+      await onFinish(formattedValues);
       navigate("/admin/rooms");
     } catch (error: any) {
       console.error("Submit error:", error.response?.data || error);
     }
   };
 
+  // Hiển thị loading
+  if (isLoading) {
+    return (
+      <Edit title="Chỉnh sửa phòng" saveButtonProps={saveButtonProps}>
+        <div style={{ textAlign: "center", padding: "50px" }}>
+          <Spin size="large" />
+          <div>Đang tải dữ liệu...</div>
+        </div>
+      </Edit>
+    );
+  }
+
+  // Hiển thị lỗi
+  if (isError) {
+    return (
+      <Edit title="Chỉnh sửa phòng" saveButtonProps={saveButtonProps}>
+        <Alert
+          message="Lỗi tải dữ liệu"
+          description="Không thể tải thông tin phòng. Vui lòng thử lại."
+          type="error"
+          showIcon
+        />
+      </Edit>
+    );
+  }
+
   return (
     <Edit title="Chỉnh sửa phòng" saveButtonProps={saveButtonProps}>
       <Form
+        {...formProps}
         layout="vertical"
-        form={form} // quan trọng: bind form instance
+        form={form}
         onFinish={handleFormSubmit}
       >
+        {/* Room number */}
         <Form.Item
           label="Số phòng"
           name="room_number"
@@ -96,6 +131,7 @@ export const RoomEdit: React.FC = () => {
           <Input placeholder="VD: 101" />
         </Form.Item>
 
+        {/* Room type */}
         <Form.Item
           label="Loại phòng"
           name="room_type_id"
@@ -104,6 +140,7 @@ export const RoomEdit: React.FC = () => {
           <Select {...roomTypeSelectProps} placeholder="Chọn loại phòng" />
         </Form.Item>
 
+        {/* Price */}
         <Form.Item
           label="Giá phòng"
           name="price"
@@ -120,6 +157,7 @@ export const RoomEdit: React.FC = () => {
           />
         </Form.Item>
 
+        {/* Status */}
         <Form.Item
           label="Trạng thái"
           name="status"
@@ -135,10 +173,12 @@ export const RoomEdit: React.FC = () => {
           />
         </Form.Item>
 
+        {/* Description */}
         <Form.Item label="Mô tả" name="description">
           <Input.TextArea placeholder="Nhập mô tả (nếu có)" rows={3} />
         </Form.Item>
 
+        {/* Amenities */}
         <Form.Item label="Tiện nghi" name="amenities">
           {isLoadingAmenities ? (
             <Spin />
