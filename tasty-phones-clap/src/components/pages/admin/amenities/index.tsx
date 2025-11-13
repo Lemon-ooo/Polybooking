@@ -28,7 +28,6 @@ const Amenities: React.FC = () => {
   const handleSave = async (values: any) => {
     try {
       if (editing) {
-        // ⚙️ Dùng amenity_id thay vì id
         await axiosInstance.put(`/amenities/${editing.amenity_id}`, values);
         message.success("Cập nhật thành công");
       } else {
@@ -72,7 +71,7 @@ const Amenities: React.FC = () => {
       </div>
 
       <Table
-        rowKey="amenity_id" // ✅ Khóa chính đúng
+        rowKey="amenity_id"
         loading={loading}
         dataSource={amenities}
         columns={[
@@ -114,7 +113,7 @@ const Amenities: React.FC = () => {
                 <Button
                   danger
                   className="ml-2"
-                  onClick={() => handleDelete(record.amenity_id)} // ✅ Đổi id → amenity_id
+                  onClick={() => handleDelete(record.amenity_id)}
                 >
                   Xóa
                 </Button>
