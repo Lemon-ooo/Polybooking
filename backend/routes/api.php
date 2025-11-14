@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AmenityController;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\RoomTypeController;
 use App\Http\Controllers\Api\RoomController;
+use App\Http\Controllers\Api\EventController;
 
 // 🔐 Public Authentication routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -21,6 +22,12 @@ Route::get('/services/{service}', [ServiceController::class, 'show']);
 Route::get('/room-types/{room_type}', [RoomTypeController::class, 'show']);
 Route::get('/amenities/{amenity}', [AmenityController::class, 'show']);
 
+
+// --- Event public API ---
+Route::get('/events', [EventController::class, 'index']);
+Route::get('/events/{event}', [EventController::class, 'show']);
+Route::get('/events/search', [EventController::class, 'search']);
+Route::get('/events/status/{status}', [EventController::class, 'getByStatus']);
 // ❌ REMOVE các route trùng lặp
 // Route::get('/room-types', [RoomController::class, 'getRoomTypes']); // ❌ Trùng
 // Route::get('/amenities', [RoomController::class, 'getAmenities']); // ❌ Trùng
@@ -51,6 +58,10 @@ Route::middleware('auth:sanctum')->group(function () {
         
         // Quản lý tiện nghi
         Route::apiResource('amenities', AmenityController::class)->except(['index', 'show']);
+        
+
+        // Quản lý events (admin) - tạo/sửa/xóa
+        Route::apiResource('events', EventController::class)->except(['index', 'show']);
         
         // Thống kê admin
         Route::get('/admin/stats', [AuthController::class, 'getAdminStats']);
