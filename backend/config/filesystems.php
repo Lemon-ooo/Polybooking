@@ -32,7 +32,7 @@ return [
 
         'local' => [
             'driver' => 'local',
-            'root' => storage_path('app/private'),
+             'root' => public_path(), // Lưu file trực tiếp trong /public
             'serve' => true,
             'throw' => false,
             'report' => false,

@@ -34,5 +34,6 @@ Route::apiResource('amenities', AmenityController::class);
 // Dịch vụ
 Route::apiResource('services', ServiceController::class);
 
+
 // Thư viện ảnh (gallery)
 Route::apiResource('galleries', GalleryController::class);
