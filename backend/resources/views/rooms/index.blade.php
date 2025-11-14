@@ -32,29 +32,28 @@
                     <td>{{ number_format($room->price, 0) }} VNĐ</td>
                     <td>{{ ucfirst($room->status) }}</td>
 
-                    {{-- 🖼️ Hiển thị ảnh phòng --}}
+                    {{-- Hiển thị ảnh phòng - CHỈ 1 ẢNH ĐẦU TIÊN --}}
                     <td>
-    @php
-        $imagePath = $room->images->first()->image_path ?? null;
-    @endphp
+                        @php
+                            $firstImage = $room->images->first();
+                        @endphp
 
-    @if ($imagePath)
-        <img src="{{ asset('storage/' . $imagePath) }}"
-             alt="Ảnh phòng {{ $room->room_number }}"
-             width="100" height="80"
-             style="object-fit: cover; cursor: pointer; border-radius: 5px;"
-             onclick="window.location.href='{{ route('room.images.index', $room->room_id) }}';" />
-    @else
-        <img src="{{ asset('images/no-image.png') }}"
-             alt="Không có ảnh"
-             width="100" height="80"
-             style="object-fit: cover; opacity: 0.7; cursor: pointer;"
-             onclick="window.location.href='{{ route('room.images.index', $room->room_id) }}';" />
-    @endif
-</td>
+                        @if ($firstImage && $firstImage->image_path)
+                            <img src="{{ asset('storage/' . $firstImage->image_path) }}"
+                                 alt="Phòng {{ $room->room_number }}"
+                                 width="100" height="80"
+                                 style="object-fit: cover; cursor: pointer; border-radius: 8px; border: 1px solid #ddd;"
+                                 onclick="window.location.href='{{ route('room.images.index', $room->room_id) }}'">
+                        @else
+                            <img src="{{ asset('images/no-image.png') }}"
+                                 alt="Chưa có ảnh"
+                                 width="100" height="80"
+                                 style="object-fit: cover; opacity: 0.6; cursor: pointer; border-radius: 8px;"
+                                 onclick="window.location.href='{{ route('room.images.index', $room->room_id) }}'">
+                        @endif
+                    </td>
 
-
-                    {{-- 🌿 Hiển thị tiện ích --}}
+                    {{-- Hiển thị tiện ích --}}
                     <td>
                         @if($room->amenities && $room->amenities->count() > 0)
                             <div class="d-flex flex-wrap" style="gap: 4px;">
@@ -67,18 +66,18 @@
                         @endif
                     </td>
 
-                    {{-- 🧰 Hành động --}}
+                    {{-- Hành động --}}
                     <td class="text-center">
-                        <a href="{{ route('web.rooms.show', $room->room_id) }}" class="btn btn-info btn-sm">👁️ Xem</a>
-                        <a href="{{ route('web.rooms.edit', $room->room_id) }}" class="btn btn-warning btn-sm">✏️ Sửa</a>
-                       <form action="{{ route('web.rooms.destroy', $room->room_id) }}" method="POST" style="display: inline;">
-    @csrf
-    @method('DELETE')
-    <button type="submit" class="btn btn-danger btn-sm" 
-            onclick="return confirm('Bạn có chắc muốn xóa phòng này không?')">
-        Xóa
-    </button>
-</form>
+                        <a href="{{ route('web.rooms.show', $room->room_id) }}" class="btn btn-info btn-sm">Xem</a>
+                        <a href="{{ route('web.rooms.edit', $room->room_id) }}" class="btn btn-warning btn-sm">Sửa</a>
+                        <form action="{{ route('web.rooms.destroy', $room->room_id) }}" method="POST" style="display: inline;">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger btn-sm" 
+                                    onclick="return confirm('Bạn có chắc muốn xóa phòng này không?')">
+                                Xóa
+                            </button>
+                        </form>
                     </td>
                 </tr>
             @endforeach

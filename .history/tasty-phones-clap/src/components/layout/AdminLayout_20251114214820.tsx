@@ -26,6 +26,7 @@ import {
   BellOutlined,
   ToolOutlined,
   CustomerServiceOutlined,
+  ToolOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import { useGetIdentity, useLogout } from "@refinedev/core";

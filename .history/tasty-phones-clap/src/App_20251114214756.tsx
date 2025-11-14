@@ -26,8 +26,11 @@ import { ServiceList } from "./components/pages/admin/services/list";
 import { ClientGallery } from "./components/pages/client/Gallery";
 import { RoomDetail } from "./components/pages/client/rooms/roomDetail";
 import ServicesDetail from "./components/pages/client/services/ServicesDetail";
+import Services from "./../client/src/pages/Services";
 import { ServicesCreate } from "./components/pages/admin/services/create";
 import { ServicesEdit } from "./components/pages/admin/services/edit";
+import { RoomCreate } from "./components/pages/admin/rooms/create";
+
 import { RoomCreate } from "./components/pages/admin/rooms/create";
 import { RoomEdit } from "./components/pages/admin/rooms/edit";
 

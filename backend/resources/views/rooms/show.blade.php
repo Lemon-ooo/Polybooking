@@ -15,7 +15,7 @@
             <div class="row mb-3">
                 <div class="col-md-6">
                     <p><strong>Mã phòng:</strong> {{ $room->room_number }}</p>
-                    <p><strong>Loại phòng:</strong> {{ $room->roomType->name }}</p>
+                    <p><strong>Loại phòng:</strong> {{ $room->roomType->name ?? '—' }}</p>
                     <p><strong>Trạng thái:</strong> 
                         <span class="badge 
                             {{ $room->status == 'trống' ? 'bg-success' : 
@@ -30,13 +30,34 @@
                 </div>
             </div>
 
-            @if($room->image)
-                <div class="text-center">
-                    <img src="{{ asset('storage/' . $room->image) }}" alt="Ảnh phòng" class="img-fluid rounded shadow-sm" style="max-height: 300px;">
-                </div>
-            @else
-                <p class="text-muted text-center">Chưa có ảnh cho phòng này</p>
-            @endif
+            {{-- HIỂN THỊ 1 ẢNH ĐẦU TIÊN TỪ BẢNG room_images --}}
+            <div class="mt-4 text-center">
+                <h5>Ảnh phòng</h5>
+                @php
+                    $firstImage = $room->images->first();
+                @endphp
+
+                @if ($firstImage && $firstImage->image_path)
+                    <img src="{{ asset('storage/' . $firstImage->image_path) }}"
+                         alt="Phòng {{ $room->room_number }}"
+                         class="img-fluid rounded shadow-sm"
+                         style="max-height: 350px; object-fit: cover; border: 3px solid #e9ecef;">
+                    <p class="mt-2 text-muted small">
+                        <a href="{{ route('room.images.index', $room->room_id) }}" class="text-decoration-none">
+                            Quản lý ảnh ({{ $room->images->count() }} ảnh)
+                        </a>
+                    </p>
+                @else
+                    <div class="py-5 bg-light rounded">
+                        <img src="{{ asset('images/no-image.png') }}" alt="Chưa có ảnh" width="120" class="mb-3 opacity-50">
+                        <p class="text-muted">Chưa có ảnh cho phòng này</p>
+                        <a href="{{ route('room.images.index', $room->room_id) }}" class="btn btn-primary btn-sm">
+                            Thêm ảnh ngay
+                        </a>
+                    </div>
+                @endif
+            </div>
+            {{-- KẾT THÚC PHẦN ẢNH --}}
         </div>
     </div>
 </div>

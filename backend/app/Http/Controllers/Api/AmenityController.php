@@ -10,11 +10,16 @@ use Illuminate\Http\JsonResponse;
 class AmenityController extends Controller
 {
     /**
-     * 🟢 Lấy danh sách tất cả tiện ích (JSON)
+     * 🟢 Lấy danh sách tiện ích
      */
     public function index(): JsonResponse
     {
         $amenities = Amenity::latest()->get();
+
+        // Tạo icon_url để FE load ảnh
+        $amenities->each(function ($item) {
+            $item->icon_url = $item->icon_path ? asset($item->icon_path) : null;
+        });
 
         return response()->json([
             'success' => true,
@@ -24,7 +29,7 @@ class AmenityController extends Controller
     }
 
     /**
-     * 🟢 Lấy chi tiết 1 tiện ích
+     * 🟢 Lấy chi tiết tiện ích
      */
     public function show($id): JsonResponse
     {
@@ -37,6 +42,8 @@ class AmenityController extends Controller
             ], 404);
         }
 
+        $amenity->icon_url = $amenity->icon_path ? asset($amenity->icon_path) : null;
+
         return response()->json([
             'success' => true,
             'message' => 'Chi tiết tiện ích',
@@ -45,18 +52,27 @@ class AmenityController extends Controller
     }
 
     /**
-     * 🟢 Tạo mới tiện ích
+     * 🟢 Tạo mới tiện ích (upload ảnh icon)
      */
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'category' => 'nullable|string|max:255',
-            'icon_url' => 'nullable|string|max:255',
+            'icon' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:2048',
             'description' => 'nullable|string',
         ]);
 
-        $amenity = Amenity::create($validated);
+        $data = $request->only(['name', 'category', 'description']);
+
+        // Upload icon
+        if ($request->hasFile('icon')) {
+            $path = $request->file('icon')->store('amenities', 'public_uploads');
+            $data['icon_path'] = $path;
+        }
+
+        $amenity = Amenity::create($data);
+        $amenity->icon_url = $amenity->icon_path ? asset($amenity->icon_path) : null;
 
         return response()->json([
             'success' => true,
@@ -82,11 +98,27 @@ class AmenityController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'category' => 'nullable|string|max:255',
-            'icon_url' => 'nullable|string|max:255',
+            'icon' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:2048',
             'description' => 'nullable|string',
         ]);
 
-        $amenity->update($validated);
+        $data = $request->only(['name', 'category', 'description']);
+
+        // Upload icon mới nếu có
+        if ($request->hasFile('icon')) {
+
+            // Xóa ảnh cũ
+            if ($amenity->icon_path && file_exists(public_path($amenity->icon_path))) {
+                unlink(public_path($amenity->icon_path));
+            }
+
+            $path = $request->file('icon')->store('amenities', 'public_uploads');
+            $data['icon_path'] = $path;
+        }
+
+        $amenity->update($data);
+
+        $amenity->icon_url = $amenity->icon_path ? asset($amenity->icon_path) : null;
 
         return response()->json([
             'success' => true,
@@ -107,6 +139,11 @@ class AmenityController extends Controller
                 'success' => false,
                 'message' => 'Không tìm thấy tiện ích',
             ], 404);
+        }
+
+        // Xóa ảnh trên server
+        if ($amenity->icon_path && file_exists(public_path($amenity->icon_path))) {
+            unlink(public_path($amenity->icon_path));
         }
 
         $amenity->delete();

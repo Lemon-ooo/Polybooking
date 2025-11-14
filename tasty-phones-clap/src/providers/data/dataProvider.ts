@@ -3,7 +3,7 @@ import { DataProvider } from "@refinedev/core";
 import { axiosInstance } from "./axiosConfig";
 
 export const dataProvider: DataProvider = {
-  // ✅ Sửa getList với types đúng
+  // getList giữ nguyên
   getList: async ({ resource, pagination, sorters, filters, meta }) => {
     const { current = 1, pageSize = 10 } = pagination || {};
 
@@ -12,7 +12,6 @@ export const dataProvider: DataProvider = {
       per_page: pageSize,
     };
 
-    // Xử lý filters
     if (filters && filters.length > 0) {
       filters.forEach((filter) => {
         if ("field" in filter) {
@@ -25,9 +24,8 @@ export const dataProvider: DataProvider = {
       const response = await axiosInstance.get(`/${resource}`, { params });
       const responseData = response.data;
 
-      // ✅ Map data với type an toàn
       const mappedData = responseData.data.map((room: any) => ({
-        id: room.room_id, // Refine bắt buộc có field 'id'
+        id: room.room_id,
         ...room,
       }));
 
@@ -41,7 +39,7 @@ export const dataProvider: DataProvider = {
     }
   },
 
-  // ✅ Sửa getOne
+  // getOne giữ nguyên
   getOne: async ({ resource, id, meta }) => {
     try {
       const response = await axiosInstance.get(`/${resource}/${id}`);
@@ -52,69 +50,65 @@ export const dataProvider: DataProvider = {
         ...responseData.data,
       };
 
-      return {
-        data: mappedData,
-      };
+      return { data: mappedData };
     } catch (error) {
       console.error("Error in getOne:", error);
       throw error;
     }
   },
 
-  // ✅ Sửa create
+  // SỬA create: HỖ TRỢ FormData
   create: async ({ resource, variables, meta }) => {
     try {
-      const response = await axiosInstance.post(`/${resource}`, variables);
+      const isFormData = variables instanceof FormData;
+
+      const response = await axiosInstance.post(`/${resource}`, variables, {
+        // TẮT Content-Type nếu là FormData → trình duyệt tự set multipart/form-data
+        headers: isFormData ? {} : { "Content-Type": "application/json" },
+      });
+
       const responseData = response.data;
 
       const mappedData = {
-        id: responseData.data.room_id,
+        id: responseData.data.id || responseData.data.room_id,
         ...responseData.data,
       };
 
-      return {
-        data: mappedData,
-      };
+      return { data: mappedData };
     } catch (error) {
       console.error("Error in create:", error);
       throw error;
     }
   },
 
-  // ✅ Sửa update
-  update: async ({ resource, id, variables, meta }) => {
-    try {
-      const response = await axiosInstance.put(`/${resource}/${id}`, variables);
-      const responseData = response.data;
+// providers/dataProvider.ts
+update: async ({ resource, id, variables }) => {
+  try {
+    const isFormData = variables instanceof FormData;
 
-      const mappedData = {
-        id: responseData.data.room_id,
-        ...responseData.data,
-      };
+    const response = await axiosInstance.patch(`/${resource}/${id}`, variables, {
+      headers: isFormData ? {} : { "Content-Type": "application/json" },
+    });
 
-      return {
-        data: mappedData,
-      };
-    } catch (error) {
-      console.error("Error in update:", error);
-      throw error;
-    }
-  },
+    return { data: response.data.data };
+  } catch (error) {
+    console.error("Error in update:", error);
+    throw error;
+  }
+},
 
-  // ✅ Sửa deleteOne
+  // deleteOne giữ nguyên
   deleteOne: async ({ resource, id, meta }) => {
     try {
       await axiosInstance.delete(`/${resource}/${id}`);
-      return {
-        data: { id },
-      };
+      return { data: { id } };
     } catch (error) {
       console.error("Error in deleteOne:", error);
       throw error;
     }
   },
 
-  // ✅ Sửa getMany
+  // getMany giữ nguyên
   getMany: async ({ resource, ids, meta }) => {
     try {
       const response = await axiosInstance.get(`/${resource}`, {
@@ -127,16 +121,14 @@ export const dataProvider: DataProvider = {
         ...room,
       }));
 
-      return {
-        data: mappedData,
-      };
+      return { data: mappedData };
     } catch (error) {
       console.error("Error in getMany:", error);
       throw error;
     }
   },
 
-  // ✅ Sửa createMany
+  // createMany giữ nguyên
   createMany: async ({ resource, variables, meta }) => {
     try {
       const response = await axiosInstance.post(`/${resource}/batch`, {
@@ -149,16 +141,14 @@ export const dataProvider: DataProvider = {
         ...room,
       }));
 
-      return {
-        data: mappedData,
-      };
+      return { data: mappedData };
     } catch (error) {
       console.error("Error in createMany:", error);
       throw error;
     }
   },
 
-  // ✅ Sửa updateMany
+  // updateMany giữ nguyên
   updateMany: async ({ resource, ids, variables, meta }) => {
     try {
       const response = await axiosInstance.patch(`/${resource}/batch`, {
@@ -172,24 +162,20 @@ export const dataProvider: DataProvider = {
         ...room,
       }));
 
-      return {
-        data: mappedData,
-      };
+      return { data: mappedData };
     } catch (error) {
       console.error("Error in updateMany:", error);
       throw error;
     }
   },
 
-  // ✅ Sửa deleteMany
+  // deleteMany giữ nguyên
   deleteMany: async ({ resource, ids, meta }) => {
     try {
       await axiosInstance.delete(`/${resource}/batch`, {
         data: { ids },
       });
-      return {
-        data: ids.map((id) => ({ id })),
-      };
+      return { data: ids.map((id) => ({ id })) };
     } catch (error) {
       console.error("Error in deleteMany:", error);
       throw error;
@@ -198,7 +184,7 @@ export const dataProvider: DataProvider = {
 
   getApiUrl: () => "http://localhost:8000/api",
 
-  // ✅ Sửa custom
+  // custom giữ nguyên
   custom: async ({
     url,
     method,
