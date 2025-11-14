@@ -164,7 +164,7 @@ export const RoomList: React.FC = () => {
                 okText="Xóa"
                 cancelText="Hủy"
               >
-                <Button danger>Sửa</Button>
+                <Button danger>Xóa</Button>
               </Popconfirm>
             </Space>
           )}

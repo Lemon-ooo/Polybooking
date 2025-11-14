@@ -106,42 +106,44 @@ class RoomController extends Controller
     /**
      * Cập nhật phòng (API)
      */
-    public function update(Request $request, Room $room): JsonResponse
-    {
-        try {
-            $validated = $request->validate([
-                'room_number' => 'required|string|max:50|unique:rooms,room_number,' . $room->id,
-                'room_type_id' => 'required|exists:room_types,id',
-                'description' => 'nullable|string',
-                'price' => 'required|numeric|min:0',
-                'status' => 'required|string|in:available,occupied,maintenance',
-                'amenities' => 'nullable|array',
-                'amenities.*' => 'exists:amenities,amenity_id',
-            ]);
+    public function update(Request $request, $id): JsonResponse
+{
+    try {
+        $room = Room::findOrFail($id);
 
-            $room->update($validated);
-            $room->amenities()->sync($request->amenities ?? []);
+        $validated = $request->validate([
+            'room_number' => 'required|string|max:50|unique:rooms,room_number,' . $room->room_id . ',room_id',
+            'room_type_id' => 'required|exists:room_types,id',
+            'description' => 'nullable|string',
+            'price' => 'required|numeric|min:0',
+            'status' => 'required|string|in:trống,đang sử dụng,bảo trì',
+            'amenities' => 'nullable|array',
+            'amenities.*' => 'exists:amenities,amenity_id',
+        ]);
 
-            return response()->json([
-                'success' => true,
-                'data' => $room->load(['roomType', 'amenities']),
-                'message' => 'Room updated successfully'
-            ]);
+        $room->update($validated);
+        $room->amenities()->sync($request->amenities ?? []);
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation error',
-                'errors' => $e->errors()
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to update room',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'success' => true,
+            'data' => $room->load(['roomType', 'amenities']),
+            'message' => 'Room updated successfully'
+        ]);
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Validation error',
+            'errors' => $e->errors()
+        ], 422);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to update room',
+            'error' => $e->getMessage()
+        ], 500);
     }
+}
+
 
     /**
      * Xóa phòng (API)
