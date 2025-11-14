@@ -4,7 +4,7 @@
 <div class="page-container">
     <div class="header-row">
         <h2 class="page-title">➕ Thêm Dịch vụ Mới</h2>
-        <a href="{{ route('services.index') }}" class="btn btn-secondary">↩ Quay lại</a>
+        <a href="{{ route('web.services.index') }}" class="btn btn-secondary">↩ Quay lại</a>
     </div>
 
     @if($errors->any())
@@ -18,7 +18,7 @@
     @endif
 
     <div class="card">
-        <form action="{{ route('services.store') }}" method="POST" class="form-grid">
+        <form action="{{ route('web.services.store') }}" method="POST" class="form-grid">
             @csrf
             <div class="form-group">
                 <label for="name">Tên dịch vụ <span class="text-danger">*</span></label>
@@ -38,7 +38,7 @@
             </div>
             <div class="button-group">
                 <button type="submit" class="btn btn-primary">💾 Thêm</button>
-                <a href="{{ route('services.index') }}" class="btn btn-secondary">Hủy</a>
+                <a href="{{ route('web.services.index') }}" class="btn btn-secondary">Hủy</a>
             </div>
         </form>
     </div>

@@ -1,109 +1,192 @@
-import React from "react";
-import { Layout, Menu, Button, Dropdown, Avatar, theme } from "antd";
-import { useLogout, useGetIdentity, useMenu } from "@refinedev/core";
-import { UserOutlined, LogoutOutlined, ToolOutlined } from "@ant-design/icons";
-import { ThemedTitle } from "@refinedev/antd";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import {
+  Layout,
+  Menu,
+  Avatar,
+  Button,
+  Space,
+  Badge,
+  message,
+  Dropdown,
+  MenuProps,
+} from "antd";
+import {
+  HomeOutlined,
+  ApartmentOutlined,
+  BookOutlined,
+  TeamOutlined,
+  DollarOutlined,
+  CalendarOutlined,
+  SettingOutlined,
+  UserOutlined,
+  LogoutOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  CommentOutlined,
+  BellOutlined,
+} from "@ant-design/icons";
+import { useNavigate, useLocation, Outlet } from "react-router-dom";
+import { useGetIdentity, useLogout } from "@refinedev/core";
 
 const { Header, Sider, Content } = Layout;
 
-export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  const { mutate: logout } = useLogout();
-  const { data: identity } = useGetIdentity();
-  const { token } = theme.useToken();
-  const { menuItems } = useMenu();
+export const AdminLayout: React.FC = () => {
+  const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const { data: user, isLoading } = useGetIdentity<{
+    id: number;
+    name: string;
+    email: string;
+    avatar: string;
+    role: string;
+  }>();
+  const { mutate: logout } = useLogout();
 
-  const handleLogout = async () => {
-    await logout();
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+  // kiểm tra quyền truy cập
+  useEffect(() => {
+    if (isLoading) return;
+    if (!user) {
+      message.error("Vui lòng đăng nhập!");
+      navigate("/login");
+      return;
+    }
+    if (user.role !== "admin") {
+      message.error("Bạn không có quyền truy cập trang admin!");
+      navigate("/");
+    }
+  }, [user, isLoading, navigate]);
 
-    navigate("/", { replace: true });
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
   };
+
+  // Menu sidebar
+  const menuItems = [
+    { key: "dashboard", icon: <HomeOutlined />, label: "Dashboard" },
+    { key: "rooms", icon: <ApartmentOutlined />, label: "Phòng" },
+    { key: "bookings", icon: <BookOutlined />, label: "Đặt Phòng" },
+    { key: "customers", icon: <TeamOutlined />, label: "Khách Hàng" },
+    { key: "revenue", icon: <DollarOutlined />, label: "Doanh Thu" },
+    { key: "calendar", icon: <CalendarOutlined />, label: "Lịch Làm Việc" },
+    { key: "settings", icon: <SettingOutlined />, label: "Cài Đặt" },
+  ];
+
+  // Menu dropdown avatar
+  const userMenuItems = [
+    { key: "profile", icon: <UserOutlined />, label: "Hồ sơ" },
+    { type: "divider", key: "divider" },
+    {
+      key: "logout",
+      icon: <LogoutOutlined />,
+      label: "Đăng xuất",
+      onClick: handleLogout,
+    },
+  ];
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Sider theme="dark" breakpoint="lg" collapsedWidth="0">
+      {/* Sidebar */}
+      <Sider
+        collapsible
+        collapsed={collapsed}
+        onCollapse={setCollapsed}
+        width={240}
+        style={{ position: "fixed", left: 0, top: 0, bottom: 0 }}
+      >
         <div
           style={{
-            height: "64px",
+            height: 64,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            borderBottom: "1px solid #303030",
+            color: "#fff",
+            fontWeight: "bold",
+            fontSize: 18,
+            background: "#001529",
           }}
         >
-          <ThemedTitle
-            collapsed={false}
-            text="Admin Panel"
-            icon={<ToolOutlined />}
-          />
+          {!collapsed && "PolyStay Admin"}
         </div>
-
+        {user && !collapsed && (
+          <div
+            style={{
+              padding: 16,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            <Avatar size={40} src={user.avatar} icon={<UserOutlined />} />
+            <div>
+              <div>{user.name}</div>
+              <div style={{ fontSize: 12, color: "#aaa" }}>{user.role}</div>
+            </div>
+          </div>
+        )}
         <Menu
           theme="dark"
           mode="inline"
-          defaultSelectedKeys={["1"]}
-          items={menuItems}
+          selectedKeys={[location.pathname.split("/")[2] || "dashboard"]}
+          items={menuItems.map((item) => ({
+            ...item,
+            onClick: () => navigate(`/admin/${item.key}`),
+          }))}
         />
       </Sider>
 
-      <Layout>
+      {/* Main layout */}
+      <Layout
+        style={{ marginLeft: collapsed ? 80 : 240, transition: "all 0.2s" }}
+      >
         <Header
           style={{
-            padding: "0 16px",
-            background: token.colorBgContainer,
+            padding: "0 20px",
+            background: "#1890ff",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            boxShadow: "0 1px 4px rgba(0,21,41,.08)",
+            color: "#fff",
           }}
         >
-          <div></div> {/* Spacer */}
-          <Dropdown
-            menu={{
-              items: [
-                {
-                  key: "profile",
-                  icon: <UserOutlined />,
-                  label: "Hồ sơ",
-                },
-                {
-                  type: "divider",
-                },
-                {
-                  key: "logout",
-                  icon: <LogoutOutlined />,
-                  label: "Đăng xuất",
-                  onClick: handleLogout, // ✅ Gọi hàm logout mới
-                },
-              ],
-            }}
-            placement="bottomRight"
-          >
+          <Space>
             <Button
               type="text"
-              style={{ display: "flex", alignItems: "center", gap: 8 }}
-            >
-              <Avatar icon={<UserOutlined />} />
-              <span>{identity?.name}</span>
-            </Button>
-          </Dropdown>
+              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              onClick={() => setCollapsed(!collapsed)}
+              style={{ color: "#fff", fontSize: 18 }}
+            />
+            <span style={{ fontSize: 18, fontWeight: "bold" }}>
+              Admin Dashboard
+            </span>
+          </Space>
+
+          <Space size="large">
+            <Badge count={4}>
+              <CommentOutlined style={{ fontSize: 18, color: "#fff" }} />
+            </Badge>
+            <Badge count={7}>
+              <BellOutlined style={{ fontSize: 18, color: "#fff" }} />
+            </Badge>
+            <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+              <Avatar
+                src={user?.avatar}
+                icon={<UserOutlined />}
+                style={{ cursor: "pointer" }}
+              />
+            </Dropdown>
+          </Space>
         </Header>
 
         <Content
           style={{
-            margin: "24px 16px",
-            padding: 24,
-            background: token.colorBgContainer,
-            borderRadius: token.borderRadiusLG,
-            minHeight: 280,
+            padding: 20,
+            background: "#f5f6fa",
+            minHeight: "calc(100vh - 64px)",
           }}
         >
-          {children}
+          <Outlet /> {/* Content dynamic theo route */}
         </Content>
       </Layout>
     </Layout>

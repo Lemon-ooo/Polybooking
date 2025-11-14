@@ -4,7 +4,7 @@
 <div class="gallery-container">
     <div class="header-row">
         <h2 class="page-title">🖼️ Thêm ảnh vào Gallery</h2>
-        <a href="{{ route('galleries.index') }}" class="btn btn-secondary">↩ Quay lại</a>
+        <a href="{{ route('web.galleries.index') }}" class="btn btn-secondary">↩ Quay lại</a>
     </div>
 
     @if($errors->any())
@@ -18,7 +18,7 @@
     @endif
 
     <div class="card">
-        <form action="{{ route('galleries.store') }}" method="POST" enctype="multipart/form-data" class="form-grid">
+        <form action="{{ route('web.galleries.store') }}" method="POST" enctype="multipart/form-data" class="form-grid">
             @csrf
 
             {{-- Danh mục --}}
@@ -51,7 +51,7 @@
             {{-- Nút --}}
             <div class="button-group">
                 <button type="submit" class="btn btn-primary">💾 Lưu ảnh</button>
-                <a href="{{ route('galleries.index') }}" class="btn btn-secondary">Hủy</a>
+                <a href="{{ route('web.galleries.index') }}" class="btn btn-secondary">Hủy</a>
             </div>
         </form>
     </div>

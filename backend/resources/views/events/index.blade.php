@@ -48,7 +48,7 @@
                         <td>
                             <a href="{{ route('web.events.show', $event->id) }}" class="btn btn-sm btn-info">Xem</a>
                             <a href="{{ route('web.events.edit', $event->id) }}" class="btn btn-sm btn-warning">Sửa</a>
-                            <form action="{{ route('events.destroy', $event->id) }}" method="POST" style="display:inline;">
+                            <form action="{{ route('web.events.destroy', $event->id) }}" method="POST" style="display:inline;">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Bạn chắc chắn muốn xóa?')">Xóa</button>

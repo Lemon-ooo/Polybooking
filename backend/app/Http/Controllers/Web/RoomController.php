@@ -52,7 +52,7 @@ class RoomController extends Controller
             $room->amenities()->sync($request->amenities);
         }
 
-        return redirect()->route('rooms.index')->with('success', 'Thêm phòng thành công!');
+        return redirect()->route('web.rooms.index')->with('success', 'Thêm phòng thành công!');
     }
 
     /**
@@ -84,7 +84,7 @@ class RoomController extends Controller
         $room->update($validated);
         $room->amenities()->sync($request->amenities ?? []);
 
-        return redirect()->route('rooms.index')->with('success', 'Cập nhật phòng thành công!');
+        return redirect()->route('web.rooms.index')->with('success', 'Cập nhật phòng thành công!');
     }
         public function show(string $id)
     {
@@ -98,6 +98,6 @@ class RoomController extends Controller
     public function destroy(Room $room)
     {
         $room->delete();
-        return redirect()->route('rooms.index')->with('success', 'Xóa phòng thành công!');
+        return redirect()->route('web.rooms.index')->with('success', 'Xóa phòng thành công!');
     }
 }

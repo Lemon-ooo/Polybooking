@@ -38,7 +38,7 @@ class GalleryController extends Controller
             'caption' => $validated['caption'] ?? null,
         ]);
 
-        return redirect()->route('galleries.index')->with('success', 'Thêm ảnh thành công!');
+        return redirect()->route('web.galleries.index')->with('success', 'Thêm ảnh thành công!');
     }
 
     public function destroy(Gallery $gallery)

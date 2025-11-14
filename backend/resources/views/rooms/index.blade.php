@@ -3,7 +3,7 @@
 @section('content')
 <div class="container">
     <h1>Danh sách phòng</h1>
-    <a href="{{ route('rooms.create') }}" class="btn btn-primary mb-3">+ Thêm phòng mới</a>
+    <a href="{{ route('web.rooms.create') }}" class="btn btn-primary mb-3">+ Thêm phòng mới</a>
 
     <table class="table table-bordered table-striped align-middle">
         <thead class="table-light">
@@ -69,13 +69,16 @@
 
                     {{-- 🧰 Hành động --}}
                     <td class="text-center">
-                        <a href="{{ route('rooms.show', $room->room_id) }}" class="btn btn-info btn-sm">👁️ Xem</a>
-                        <a href="{{ route('rooms.edit', $room->room_id) }}" class="btn btn-warning btn-sm">✏️ Sửa</a>
-                        <a href="{{ route('room.images.index', $room->room_id) }}" class="btn btn-secondary btn-sm">🖼️ Ảnh</a>
-                        <form action="{{ route('room.images.store', $room->room_id) }}" method="POST" enctype="multipart/form-data">
-                            @csrf @method('DELETE')
-                            <button class="btn btn-danger btn-sm" onclick="return confirm('Xóa phòng này?')">🗑️ Xóa</button>
-                        </form>
+                        <a href="{{ route('web.rooms.show', $room->room_id) }}" class="btn btn-info btn-sm">👁️ Xem</a>
+                        <a href="{{ route('web.rooms.edit', $room->room_id) }}" class="btn btn-warning btn-sm">✏️ Sửa</a>
+                       <form action="{{ route('web.rooms.destroy', $room->room_id) }}" method="POST" style="display: inline;">
+    @csrf
+    @method('DELETE')
+    <button type="submit" class="btn btn-danger btn-sm" 
+            onclick="return confirm('Bạn có chắc muốn xóa phòng này không?')">
+        Xóa
+    </button>
+</form>
                     </td>
                 </tr>
             @endforeach

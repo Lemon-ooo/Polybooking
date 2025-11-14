@@ -1,54 +1,54 @@
+import React from "react";
 import { Edit, useForm } from "@refinedev/antd";
 import { Form, Input, Select, InputNumber } from "antd";
 
-// ✅ Export đúng tên
-export const RoomEdit = () => {
+export const RoomEdit: React.FC = () => {
   const { formProps, saveButtonProps } = useForm();
 
   return (
     <Edit saveButtonProps={saveButtonProps}>
       <Form {...formProps} layout="vertical">
         <Form.Item
-          label="Số phòng"
-          name="room_number"
-          rules={[{ required: true, message: "Vui lòng nhập số phòng" }]}
+          label="Tên phòng"
+          name="name"
+          rules={[{ required: true, message: "Vui lòng nhập tên phòng!" }]}
         >
           <Input />
         </Form.Item>
         <Form.Item
           label="Loại phòng"
-          name="room_type_id"
-          rules={[{ required: true, message: "Vui lòng chọn loại phòng" }]}
+          name="type"
+          rules={[{ required: true, message: "Vui lòng chọn loại phòng!" }]}
         >
-          <Select
-            options={[
-              { label: "Phòng đơn", value: 1 },
-              { label: "Phòng đôi", value: 2 },
-              { label: "Suite", value: 3 },
-            ]}
-          />
+          <Select>
+            <Select.Option value="standard">Standard</Select.Option>
+            <Select.Option value="deluxe">Deluxe</Select.Option>
+            <Select.Option value="suite">Suite</Select.Option>
+          </Select>
         </Form.Item>
-        <Form.Item label="Giá" name="price">
+        <Form.Item
+          label="Giá"
+          name="price"
+          rules={[{ required: true, message: "Vui lòng nhập giá!" }]}
+        >
           <InputNumber
             style={{ width: "100%" }}
-            min={0}
             formatter={(value) =>
-              `₫${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
             }
+            parser={(value) => value?.replace(/\$\s?|(,*)/g, "") as any}
           />
         </Form.Item>
         <Form.Item
           label="Trạng thái"
           name="status"
-          rules={[{ required: true, message: "Vui lòng chọn trạng thái" }]}
+          rules={[{ required: true, message: "Vui lòng chọn trạng thái!" }]}
         >
-          <Select
-            options={[
-              { label: "Có sẵn", value: "available" },
-              { label: "Đã thuê", value: "occupied" },
-              { label: "Bảo trì", value: "maintenance" },
-            ]}
-          />
+          <Select>
+            <Select.Option value="available">Có sẵn</Select.Option>
+            <Select.Option value="occupied">Đã đặt</Select.Option>
+            <Select.Option value="maintenance">Bảo trì</Select.Option>
+          </Select>
         </Form.Item>
         <Form.Item label="Mô tả" name="description">
           <Input.TextArea rows={4} />
