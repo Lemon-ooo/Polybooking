@@ -1,0 +1,129 @@
+/* ClientServices.css */
+
+.client-services-container {
+  background-color: #f8f5f2; /* tông nền mềm tương tự Rue de L’amour */
+  padding: 0;
+  margin: 0;
+  font-family: "Playfair Display", serif;
+}
+
+/* Hero / Banner nếu muốn thêm */
+.services-hero-banner {
+  position: relative;
+  height: 60vh; /* cao bằng khoảng banner facility */
+  background-image: url("/path/to/your-facility-banner.jpg"); /* bạn cần thay ảnh */
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.hero-content h1 {
+  color: #fff;
+  font-size: 48px;
+  z-index: 2;
+  margin: 0;
+}
+
+/* Section chính các mục Services */
+.services-grid-section {
+  padding: 80px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.services-grid-section .container {
+  display: flex;
+  flex-direction: column;
+  gap: 64px; /* khoảng cách giữa mỗi mục facility/service */
+}
+
+/* Style mỗi mục service giống facility */
+.service-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 32px;
+  padding: 40px 0;
+  border-bottom: 1px solid #ddd; /* đường phân cách giữa mục */
+}
+
+.service-item:last-child {
+  border-bottom: none;
+}
+
+.service-image-wrapper {
+  flex: 1;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.service-thumbnail {
+  width: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.service-item:hover .service-thumbnail {
+  transform: scale(1.05);
+}
+
+.service-content {
+  flex: 2;
+}
+
+.service-title {
+  font-size: 32px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 16px;
+}
+
+.service-desc {
+  font-size: 16px;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+.service-meta {
+  font-size: 14px;
+  color: #555;
+  margin-top: 8px;
+}
+
+/* Button “Discover” / Learn More giống Facilities page */
+.service-button {
+  margin-top: 16px;
+  display: inline-block;
+  padding: 8px 20px;
+  border: 1px solid #1f2937;
+  color: #1f2937;
+  background: transparent;
+  text-decoration: none;
+  transition: background 0.3s, color 0.3s;
+  border-radius: 4px;
+}
+
+.service-button:hover {
+  background: #1f2937;
+  color: #fff;
+}
+
+/* Responsive mobile */
+@media (max-width: 768px) {
+  .service-item {
+    flex-direction: column;
+  }
+
+  .service-image-wrapper {
+    width: 100%;
+    margin-bottom: 24px;
+  }
+}

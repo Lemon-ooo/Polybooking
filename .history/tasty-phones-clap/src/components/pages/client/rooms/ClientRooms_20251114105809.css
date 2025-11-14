@@ -1,0 +1,150 @@
+/* src/components/pages/client/rooms/ClientRooms.css */
+
+.rue-client-rooms {
+  background: #fff;
+  font-family: "Playfair Display", serif;
+}
+
+/* BANNER - TO HƠN, DÀI HƠN */
+.rue-hero-banner {
+  height: 70vh;
+  min-height: 600px;
+  background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.5)),
+    url("https://ruedelamourhotel.com/wp-content/uploads/2024/08/accommodations-hero.jpg")
+      center/cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.rue-hero-content {
+  text-align: center;
+  color: white;
+}
+
+.rue-page-title {
+  font-size: 4.5rem !important;
+  font-weight: 300 !important;
+  letter-spacing: 3px;
+  color: #fff !important;
+  text-transform: uppercase;
+  margin: 0 !important;
+  font-family: "Great Vibes", cursive !important;
+}
+
+/* Container */
+.rue-rooms-container {
+  padding: 80px 0;
+  background: #fff;
+}
+
+.rue-room-card {
+  border: 1px solid #eee !important;
+  border-radius: 0 !important;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.rue-room-card:hover {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  transform: translateY(-5px);
+}
+
+.rue-room-img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  display: block;
+}
+
+.rue-room-content {
+  padding: 24px;
+}
+
+.rue-room-name {
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #333 !important;
+  margin-bottom: 12px !important;
+}
+
+.rue-room-desc {
+  font-size: 0.9375rem !important;
+  line-height: 1.7 !important;
+  color: #666 !important;
+  margin-bottom: 16px !important;
+  font-style: italic;
+}
+
+.rue-room-features .ant-space-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: #777;
+}
+
+.rue-room-features svg {
+  color: #c9a96e;
+  font-size: 1rem;
+}
+
+.rue-details-btn {
+  margin-top: 20px;
+  text-transform: uppercase;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  color: #c9a96e !important;
+  padding: 0 !important;
+  height: auto !important;
+  border: none !important;
+}
+
+.rue-details-btn:hover {
+  color: #333 !important;
+}
+
+/* CONNECTING ROOMS */
+.rue-connecting {
+  text-align: center;
+  margin-top: 80px;
+  padding: 40px 20px;
+  border-top: 1px solid #eee;
+}
+
+.rue-connecting-title {
+  font-size: 1.5rem !important;
+  margin-bottom: 16px !important;
+  color: #333 !important;
+}
+
+.rue-connecting-desc {
+  font-size: 1rem !important;
+  color: #666 !important;
+  max-width: 800px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .rue-page-title {
+    font-size: 3rem !important;
+  }
+
+  .rue-hero-banner {
+    height: 50vh;
+    min-height: 400px;
+  }
+
+  .rue-room-img {
+    height: 150px;
+  }
+
+  .rue-room-content {
+    padding: 16px;
+  }
+}

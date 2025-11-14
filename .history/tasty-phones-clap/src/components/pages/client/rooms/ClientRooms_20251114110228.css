@@ -1,0 +1,53 @@
+.client-rooms-container {
+  color: #333;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.luxury-title {
+  color: #1a1a1a;
+}
+
+.luxury-description {
+  color: #555;
+  font-size: 1rem;
+}
+
+.luxury-room-card:hover {
+  transform: translateY(-4px);
+  transition: transform 0.3s ease;
+}
+
+.luxury-room-image {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.luxury-tag {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  font-size: 0.9rem;
+  padding: 4px 8px;
+}
+
+.luxury-price-amount {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #c9a96e;
+}
+
+.view-details-btn {
+  color: #1a1a1a;
+}
+
+.book-now-btn {
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .luxury-room-card {
+    /* ảnh trên, text dưới */
+  }
+}
