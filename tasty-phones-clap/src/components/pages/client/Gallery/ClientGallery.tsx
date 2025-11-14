@@ -1,217 +1,137 @@
+// src/components/pages/client/gallery/ClientGallery.tsx
 import React, { useState } from "react";
-import { Modal, Row, Col } from "antd";
+import { useList } from "@refinedev/core";
+import {
+  Card,
+  Row,
+  Col,
+  Typography,
+  Spin,
+  Alert,
+  Pagination,
+  Modal,
+} from "antd";
 import { CloseOutlined } from "@ant-design/icons";
-import { roomsDummyData } from "../../../../assets/assets";
-import heroImage from "../../../../assets/heroImage.png";
+import "./ClientGallery.css";
+import { IGallery, GalleryListResponse } from "../../../../interfaces/rooms";
 
-// Dữ liệu ảnh mẫu
-const allImages: string[] = roomsDummyData.flatMap((room) => room.images);
-
-const rowLayouts = [
-  [12, 12],
-  [8, 8, 8],
-  [6, 6, 6, 6],
-];
+const { Title, Text } = Typography;
 
 export const ClientGallery: React.FC = () => {
   const [visible, setVisible] = useState(false);
-  const [currentImg, setCurrentImg] = useState("");
+  const [currentImg, setCurrentImg] = useState<string>("");
+
+  // Lấy dữ liệu gallery từ API
+  const { data, isLoading, isError } = useList<GalleryListResponse>({
+    resource: "galleries",
+    pagination: { pageSize: 8 },
+  });
+
+  // Flatten tất cả category thành 1 mảng duy nhất
+  const galleries: IGallery[] = [];
+  if (data?.data) {
+    Object.values(data.data).forEach((arr) => {
+      galleries.push(...arr);
+    });
+  }
+  const total = galleries.length;
 
   const openModal = (img: string) => {
     setCurrentImg(img);
     setVisible(true);
   };
-
   const closeModal = () => setVisible(false);
 
-  const groupedImages: (number[] | string[])[][] = [];
-  let currentImageIndex = 0;
+  const getImageUrl = (path: string | undefined) => {
+    if (!path) return "https://via.placeholder.com/400x300?text=No+Image";
+    return `${window.location.origin}/storage/${path}`;
+  };
 
-  while (currentImageIndex < allImages.length) {
-    const layoutIndex = groupedImages.length % rowLayouts.length;
-    const currentLayout = rowLayouts[layoutIndex];
-    const rowImages = [];
+  if (isLoading) {
+    return (
+      <div className="client-gallery-loading">
+        <Spin size="large" />
+        <Text>Đang tải thư viện ảnh...</Text>
+      </div>
+    );
+  }
 
-    for (let i = 0; i < currentLayout.length; i++) {
-      if (currentImageIndex < allImages.length) {
-        rowImages.push(allImages[currentImageIndex]);
-        currentImageIndex++;
-      }
-    }
-
-    if (rowImages.length > 0) {
-      groupedImages.push([currentLayout as any, rowImages]);
-    }
+  if (isError) {
+    return (
+      <Alert
+        message="Lỗi"
+        description="Không thể tải dữ liệu thư viện ảnh."
+        type="error"
+        showIcon
+        style={{ margin: 20 }}
+      />
+    );
   }
 
   return (
-    <div style={{ padding: "0" }}>
-      {/* BANNER LỚN  */}
-      <div
-        style={{
-          width: "100%",
-          height: "70vh",
-          minHeight: "250px",
-          maxHeight: "400px",
-          // 👈 Đã thay đổi đường dẫn ảnh banner ở đây
-          backgroundImage: `url(${heroImage})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center center",
-          backgroundRepeat: "no-repeat",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        {/* Overlay tối màu */}
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            backgroundColor: "rgba(0, 0, 0, 0.4)",
-          }}
-        ></div>
-      </div>
-      {/* ------------------------------------- */}
-
-      {/* TIÊU ĐỀ "Gallery" */}
-      <div
-        style={{
-          textAlign: "center",
-          padding: "40px 32px 60px 32px",
-          display: "flex",
-          flexDirection: "column", // 👈 QUAN TRỌNG: Đổi sang cột dọc để căn giữa subtitle
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: "#FAFAFA",
-        }}
-      >
-        {/* Hàng chứa Dấu sao và Chữ Gallery */}
-        <div style={{ display: "flex", alignItems: "center", marginBottom: 5 }}>
-          <span
-            style={{
-              fontSize: "1.5rem",
-              color: "#C4C1D9",
-              marginRight: 15,
-              lineHeight: 1,
-            }}
-          >
-            ✦
-          </span>
-          <h2
-            style={{
-              fontFamily: "'Playfair Display', serif",
-              fontSize: "3.5rem",
-              color: "#5c4bff",
-              fontWeight: 400,
-              fontStyle: "italic",
-              margin: 0,
-              lineHeight: 1,
-            }}
-          >
-            Gallery
-          </h2>
-          <span
-            style={{
-              fontSize: "1.5rem",
-              color: "#C4C1D9",
-              marginLeft: 15,
-              lineHeight: 1,
-            }}
-          >
-            ✦
-          </span>
+    <div className="client-gallery-container">
+      {/* Banner */}
+      <div className="gallery-hero-banner">
+        <div>
+          <Title level={2} style={{ color: "white" }}>
+            🌟 Thư viện ảnh 🌟
+          </Title>
+          <Text style={{ color: "white", opacity: 0.9 }}>
+            Những khoảnh khắc đáng nhớ từ Homestay Poly
+          </Text>
         </div>
-        {/*  SUBTITLE  */}
-        <p
-          style={{
-            fontFamily: "'Playfair Display', serif",
-            fontSize: "1.5rem",
-            color: "#5c4bff",
-            opacity: 0.7, // Làm nhạt hơn màu chính
-            fontWeight: 500,
-            letterSpacing: "0.09em",
-            marginTop: 0,
-            marginBottom: 0,
-          }}
-        >
-          Welcome to Our Visual Journey, Where Every Frame Tells a Story.
-        </p>
-             {" "}
       </div>
-      {/* ----------------------------------------------------------- */}
 
-      {/* Padding cho phần ảnh lưới Gallery */}
-      <div style={{ padding: "0px 32px 60px 32px" }}>
-        {/* Grid xen kẽ  */}
-        {groupedImages.map((group, groupIndex) => {
-          const layout: number[] = group[0] as number[];
-          const images: string[] = group[1] as string[];
-
-          return (
-            <Row
-              gutter={[16, 16]}
-              key={groupIndex}
-              style={{ marginBottom: 16 }}
-            >
-              {images.map((img, imgIndex) => (
-                <Col
-                  span={layout[imgIndex]}
-                  key={imgIndex}
-                  onClick={() => openModal(img)}
-                  style={{ cursor: "pointer" }}
-                >
-                  <div
-                    style={{
-                      borderRadius: 8,
-                      overflow: "hidden",
-                      paddingTop: "75%",
-                      position: "relative",
-                    }}
-                  >
+      {total === 0 ? (
+        <Alert
+          message="Chưa có ảnh"
+          description="Hiện tại chưa có ảnh nào được thêm từ Admin Panel."
+          type="info"
+          showIcon
+          style={{ marginBottom: 20 }}
+        />
+      ) : (
+        <>
+          <Row gutter={[32, 32]}>
+            {galleries.map((gallery) => (
+              <Col xs={24} sm={12} lg={8} key={gallery.gallery_id}>
+                <Card
+                  hoverable
+                  cover={
                     <img
-                      src={img}
-                      alt={`gallery-${groupIndex}-${imgIndex}`}
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        display: "block",
-                        transition: "transform 0.3s ease",
-                      }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.transform = "scale(1.05)")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.transform = "scale(1)")
-                      }
+                      alt={gallery.caption || `Ảnh ${gallery.gallery_id}`}
+                      src={getImageUrl(gallery.image_path)}
+                      style={{ height: 200, objectFit: "cover" }}
+                      onClick={() => openModal(getImageUrl(gallery.image_path))}
                     />
-                  </div>
-                </Col>
-              ))}
-            </Row>
-          );
-        })}
-      </div>
+                  }
+                >
+                  <Card.Meta title={gallery.caption || "Không có mô tả"} />
+                </Card>
+              </Col>
+            ))}
+          </Row>
 
-      {/* MODAL ẢNH LỚN */}
+          {total > 8 && (
+            <div className="client-gallery-pagination">
+              <Pagination
+                defaultPageSize={8}
+                total={total}
+                showSizeChanger={false}
+              />
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Modal xem ảnh lớn */}
       <Modal
         open={visible}
         footer={null}
         onCancel={closeModal}
         centered
         closable={true}
-        maskStyle={{ backgroundColor: "rgba(0,0,0,0.85)" }} // nền tối
-        bodyStyle={{ padding: 0, background: "transparent", height: "100vh" }}
-        style={{ top: 0, padding: 0, margin: 0 }}
+        maskStyle={{ backgroundColor: "rgba(0,0,0,0.85)" }}
         closeIcon={
           <CloseOutlined
             style={{
@@ -220,31 +140,22 @@ export const ClientGallery: React.FC = () => {
               fontWeight: "bold",
               background: "rgba(0,0,0,0.3)",
               borderRadius: "50%",
-              padding: "4px",
+              padding: 4,
             }}
           />
         }
+        bodyStyle={{
+          padding: 0,
+          background: "transparent",
+          display: "flex",
+          justifyContent: "center",
+        }}
       >
-        <div
-          style={{
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <img
-            src={currentImg}
-            alt="large"
-            style={{
-              maxWidth: "100%",
-              maxHeight: "100%",
-              objectFit: "contain",
-              display: "block",
-            }}
-          />
-        </div>
+        <img
+          src={currentImg}
+          alt="large"
+          style={{ maxWidth: "100%", maxHeight: "80vh", objectFit: "contain" }}
+        />
       </Modal>
     </div>
   );

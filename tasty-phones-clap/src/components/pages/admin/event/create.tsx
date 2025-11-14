@@ -1,14 +1,23 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Create } from "@refinedev/antd";
 import {
   useForm,
   useApiUrl,
   useNotification,
-  useList,
   useNavigation,
 } from "@refinedev/core";
-import { Form, Input, Select, Upload, Button, Row, Col, message } from "antd";
+import {
+  Form,
+  Input,
+  DatePicker,
+  Upload,
+  Button,
+  Row,
+  Col,
+  message,
+} from "antd";
 import { UploadOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
 import {
   RcFile,
   UploadFile,
@@ -17,6 +26,7 @@ import {
 
 const { TextArea } = Input;
 
+// Validate file upload
 const beforeUpload = (file: RcFile) => {
   const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
   if (!isJpgOrPng) message.error("Chỉ được upload JPG/PNG!");
@@ -25,56 +35,45 @@ const beforeUpload = (file: RcFile) => {
   return isJpgOrPng && isLt5M;
 };
 
+// Lấy fileList từ event
 const normFile = (e: any) => (Array.isArray(e) ? e : e?.fileList);
 
-export const GalleryCreate: React.FC = () => {
+export const EventCreate: React.FC = () => {
   const apiUrl = useApiUrl();
   const { open } = useNotification();
   const { list } = useNavigation();
 
   const [form] = Form.useForm();
   const [previewImage, setPreviewImage] = useState<string>("");
-  const [categories, setCategories] = useState<string[]>([]);
 
   const { formProps, saveButtonProps, onFinish } = useForm({
-    resource: "galleries",
+    resource: "events",
     action: "create",
     form,
     onMutationSuccess: () => {
-      message.success("Tạo ảnh mới thành công!");
-      list("galleries");
+      message.success("Tạo sự kiện thành công!");
+      list("events");
     },
   });
 
-  // Lấy category từ API
-  const { data } = useList({
-    resource: "galleries",
-    pagination: { pageSize: 1 }, // chỉ cần 1 record để lấy category
-  });
-
-  useEffect(() => {
-    if (data?.data) {
-      setCategories(Object.keys(data.data)); // Lấy các key từ data
-    }
-  }, [data]);
-
+  // Upload ảnh trước, trả về image_path
   const uploadImage = async (file: RcFile) => {
     const formData = new FormData();
     formData.append("image", file);
 
     try {
-      const res = await fetch(`${apiUrl}/galleries/upload`, {
+      const res = await fetch(`${apiUrl}/events/upload`, {
         method: "POST",
         body: formData,
       });
-      const result = await res.json();
-      return result.path || "";
+      const data = await res.json();
+      return data.path || ""; // backend trả về path hoặc URL
     } catch (err) {
       console.error(err);
       open({
         type: "error",
         message: "Lỗi upload ảnh",
-        description: "Không thể upload ảnh.",
+        description: "Không thể upload ảnh bìa.",
       });
       return "";
     }
@@ -87,16 +86,18 @@ export const GalleryCreate: React.FC = () => {
       imagePath = await uploadImage(values.file[0].originFileObj);
     }
 
-    // Gửi dữ liệu lên Refine
+    // Submit object chuẩn cho Refine
     onFinish?.({
-      gallery_category: values.gallery_category,
-      caption: values.caption || "",
-      image_path: imagePath,
+      name: values.name,
+      location: values.location,
+      description: values.description || "",
+      date: dayjs(values.date).format("YYYY-MM-DD"),
+      image: imagePath,
     });
   };
 
   return (
-    <Create title="Tạo ảnh mới" saveButtonProps={saveButtonProps}>
+    <Create title="Tạo sự kiện mới" saveButtonProps={saveButtonProps}>
       <Form
         {...formProps}
         form={form}
@@ -106,31 +107,42 @@ export const GalleryCreate: React.FC = () => {
         <Row gutter={16}>
           <Col xs={24} lg={12}>
             <Form.Item
-              label="Danh mục ảnh"
-              name="gallery_category"
-              rules={[{ required: true, message: "Vui lòng chọn danh mục!" }]}
+              label="Tên sự kiện"
+              name="name"
+              rules={[
+                { required: true, message: "Vui lòng nhập tên sự kiện!" },
+              ]}
             >
-              <Select placeholder="Chọn danh mục">
-                {categories.map((cat) => (
-                  <Select.Option key={cat} value={cat}>
-                    {cat}
-                  </Select.Option>
-                ))}
-              </Select>
+              <Input placeholder="Ví dụ: Hội nghị khách hàng 2025" />
             </Form.Item>
 
-            <Form.Item label="Mô tả (Caption)" name="caption">
-              <TextArea rows={4} placeholder="Nhập mô tả ảnh (tùy chọn)" />
+            <Form.Item
+              label="Địa điểm"
+              name="location"
+              rules={[{ required: true, message: "Vui lòng nhập địa điểm!" }]}
+            >
+              <Input placeholder="Ví dụ: Khách sạn Mường Thanh" />
+            </Form.Item>
+
+            <Form.Item
+              label="Ngày diễn ra"
+              name="date"
+              rules={[{ required: true, message: "Vui lòng chọn ngày!" }]}
+            >
+              <DatePicker format="DD/MM/YYYY" style={{ width: "100%" }} />
+            </Form.Item>
+
+            <Form.Item label="Mô tả" name="description">
+              <TextArea rows={4} placeholder="Nhập mô tả chi tiết" />
             </Form.Item>
           </Col>
 
           <Col xs={24} lg={12}>
             <Form.Item
-              label="Ảnh"
+              label="Ảnh bìa"
               name="file"
               valuePropName="fileList"
               getValueFromEvent={normFile}
-              rules={[{ required: true, message: "Vui lòng chọn ảnh!" }]}
             >
               <Upload
                 listType="picture"

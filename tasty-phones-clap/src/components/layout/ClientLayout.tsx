@@ -53,7 +53,7 @@ export const ClientLayout: React.FC = () => {
   const navLinks = [
     { name: "Home", path: "/client", key: "/client" },
     { name: "Rooms", path: "/client/rooms", key: "/client/rooms" },
-    { name: "Services", path: "/client/services", key: "/client/services" },
+    { name: "Events", path: "/client/events", key: "/client/events" },
     {
       name: "Experience",
       path: "/client/experience",

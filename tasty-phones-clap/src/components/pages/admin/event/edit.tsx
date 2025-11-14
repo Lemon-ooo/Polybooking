@@ -1,14 +1,23 @@
 import React, { useState, useEffect } from "react";
-import { Create } from "@refinedev/antd";
+import { Edit } from "@refinedev/antd";
 import {
   useForm,
   useApiUrl,
   useNotification,
-  useList,
   useNavigation,
 } from "@refinedev/core";
-import { Form, Input, Select, Upload, Button, Row, Col, message } from "antd";
+import {
+  Form,
+  Input,
+  DatePicker,
+  Upload,
+  Button,
+  message,
+  Row,
+  Col,
+} from "antd";
 import { UploadOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
 import {
   RcFile,
   UploadFile,
@@ -27,76 +36,48 @@ const beforeUpload = (file: RcFile) => {
 
 const normFile = (e: any) => (Array.isArray(e) ? e : e?.fileList);
 
-export const GalleryCreate: React.FC = () => {
+export const EventEdit: React.FC = () => {
   const apiUrl = useApiUrl();
   const { open } = useNotification();
   const { list } = useNavigation();
 
   const [form] = Form.useForm();
   const [previewImage, setPreviewImage] = useState<string>("");
-  const [categories, setCategories] = useState<string[]>([]);
 
-  const { formProps, saveButtonProps, onFinish } = useForm({
-    resource: "galleries",
-    action: "create",
+  const { formProps, saveButtonProps, queryResult, onFinish } = useForm({
+    resource: "events",
+    action: "edit",
     form,
     onMutationSuccess: () => {
-      message.success("Tạo ảnh mới thành công!");
-      list("galleries");
+      message.success("Cập nhật sự kiện thành công!");
+      list("events");
     },
   });
 
-  // Lấy category từ API
-  const { data } = useList({
-    resource: "galleries",
-    pagination: { pageSize: 1 }, // chỉ cần 1 record để lấy category
-  });
-
+  // Set preview ảnh nếu có
   useEffect(() => {
-    if (data?.data) {
-      setCategories(Object.keys(data.data)); // Lấy các key từ data
+    const data = queryResult?.data?.data;
+    if (data?.image) {
+      setPreviewImage(`${window.location.origin}/storage/${data.image}`);
     }
-  }, [data]);
-
-  const uploadImage = async (file: RcFile) => {
-    const formData = new FormData();
-    formData.append("image", file);
-
-    try {
-      const res = await fetch(`${apiUrl}/galleries/upload`, {
-        method: "POST",
-        body: formData,
-      });
-      const result = await res.json();
-      return result.path || "";
-    } catch (err) {
-      console.error(err);
-      open({
-        type: "error",
-        message: "Lỗi upload ảnh",
-        description: "Không thể upload ảnh.",
-      });
-      return "";
-    }
-  };
+  }, [queryResult]);
 
   const handleFormSubmit = async (values: any) => {
-    let imagePath = "";
-
-    if (values.file?.length > 0 && values.file[0].originFileObj) {
-      imagePath = await uploadImage(values.file[0].originFileObj);
+    const formData = new FormData();
+    if (values.file && values.file.length > 0 && values.file[0].originFileObj) {
+      formData.append("image", values.file[0].originFileObj);
     }
 
-    // Gửi dữ liệu lên Refine
-    onFinish?.({
-      gallery_category: values.gallery_category,
-      caption: values.caption || "",
-      image_path: imagePath,
-    });
+    formData.append("name", values.name);
+    formData.append("description", values.description || "");
+    formData.append("location", values.location);
+    formData.append("date", dayjs(values.date).format("YYYY-MM-DD"));
+
+    onFinish?.(formData);
   };
 
   return (
-    <Create title="Tạo ảnh mới" saveButtonProps={saveButtonProps}>
+    <Edit saveButtonProps={saveButtonProps}>
       <Form
         {...formProps}
         form={form}
@@ -106,31 +87,42 @@ export const GalleryCreate: React.FC = () => {
         <Row gutter={16}>
           <Col xs={24} lg={12}>
             <Form.Item
-              label="Danh mục ảnh"
-              name="gallery_category"
-              rules={[{ required: true, message: "Vui lòng chọn danh mục!" }]}
+              label="Tên sự kiện"
+              name="name"
+              rules={[
+                { required: true, message: "Vui lòng nhập tên sự kiện!" },
+              ]}
             >
-              <Select placeholder="Chọn danh mục">
-                {categories.map((cat) => (
-                  <Select.Option key={cat} value={cat}>
-                    {cat}
-                  </Select.Option>
-                ))}
-              </Select>
+              <Input placeholder="Ví dụ: Hội nghị khách hàng 2025" />
             </Form.Item>
 
-            <Form.Item label="Mô tả (Caption)" name="caption">
-              <TextArea rows={4} placeholder="Nhập mô tả ảnh (tùy chọn)" />
+            <Form.Item
+              label="Địa điểm"
+              name="location"
+              rules={[{ required: true, message: "Vui lòng nhập địa điểm!" }]}
+            >
+              <Input placeholder="Ví dụ: Khách sạn Mường Thanh" />
+            </Form.Item>
+
+            <Form.Item
+              label="Ngày diễn ra"
+              name="date"
+              rules={[{ required: true, message: "Vui lòng chọn ngày!" }]}
+            >
+              <DatePicker format="DD/MM/YYYY" style={{ width: "100%" }} />
+            </Form.Item>
+
+            <Form.Item label="Mô tả" name="description">
+              <TextArea rows={4} placeholder="Nhập mô tả chi tiết" />
             </Form.Item>
           </Col>
 
           <Col xs={24} lg={12}>
             <Form.Item
-              label="Ảnh"
+              label="Ảnh bìa"
               name="file"
               valuePropName="fileList"
               getValueFromEvent={normFile}
-              rules={[{ required: true, message: "Vui lòng chọn ảnh!" }]}
             >
               <Upload
                 listType="picture"
@@ -147,7 +139,7 @@ export const GalleryCreate: React.FC = () => {
                 }}
               >
                 <Button icon={<UploadOutlined />}>
-                  Chọn ảnh (JPG/PNG, max 5MB)
+                  Chọn ảnh mới (JPG/PNG)
                 </Button>
               </Upload>
             </Form.Item>
@@ -161,6 +153,6 @@ export const GalleryCreate: React.FC = () => {
           </Col>
         </Row>
       </Form>
-    </Create>
+    </Edit>
   );
 };

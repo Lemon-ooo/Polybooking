@@ -22,9 +22,9 @@ interface GalleryImage extends BaseRecord {
 const { Title, Text } = Typography;
 
 export const GalleryShow: React.FC = () => {
-  /
+  
   const { queryResult } = useShow<GalleryImage>({
-    resource: "images", /
+    resource: "images", 
   });
 
   const { data, isLoading, isError, error } = queryResult;

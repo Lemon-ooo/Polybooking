@@ -25,6 +25,16 @@ import { RoomList } from "./components/pages/admin/rooms/list";
 import { ClientGallery } from "./components/pages/client/Gallery";
 import { RoomDetail } from "./components/pages/client/rooms/roomDetail";
 import ServicesDetail from "./components/pages/client/services/ServicesDetail";
+import { GalleryList } from "./components/pages/admin/Gallery/list";
+import { GalleryCreate } from "./components/pages/admin/Gallery/create";
+import { GalleryEdit } from "./components/pages/admin/Gallery/edit";
+import { ClientEvent } from "./components/pages/client/events/ClientEvent";
+import { EventList } from "./components/pages/admin/event/list";
+import { EventCreate } from "./components/pages/admin/event/create";
+
+import { GalleryShow } from "./components/pages/admin/Gallery/show";
+import { EventShow } from "./components/pages/admin/event/show";
+import { EventEdit } from "./components/pages/admin/event/edit";
 
 export default function App() {
   return (
@@ -60,10 +70,13 @@ export default function App() {
             <Route path="client/rooms" element={<ClientRooms />} />
             <Route path="client/rooms/:id" element={<RoomDetail />} />
             <Route path="client/services" element={<ClientServices />} />
+            <Route path="client/gallery" element={<ClientGallery />} />
+            <Route path="client/events" element={<ClientEvent />} />
 
             {/* ⚙️ Sửa ở đây: dùng ServicesDetail.tsx (mới) */}
             <Route path="client/services/:id" element={<ServicesDetail />} />
             <Route path="client/galleries" element={<ClientGallery />} />
+            <Route path="client/events" element={<ClientEvent />} />
           </Route>
 
           {/* 🚀 Admin routes */}
@@ -78,6 +91,17 @@ export default function App() {
             <Route index element={<AdminDashboard />} />
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="rooms" element={<RoomList />} />
+            {/* Gallery */}
+            <Route path="gallery" element={<GalleryList />} />
+            <Route path="gallery/create" element={<GalleryCreate />} />
+            <Route path="gallery/edit/:id" element={<GalleryEdit />} />
+            <Route path="gallery/show/:id" element={<GalleryShow />} />
+            {/* Event */}
+            <Route path="events" element={<EventList />} />
+            <Route path="events/create" element={<EventCreate />} />
+
+            <Route path="events/show/:id" element={<EventShow />} />
+            <Route path="events/edit/:id" element={<EventEdit />} />
           </Route>
 
           {/* 🚀 Fallback */}

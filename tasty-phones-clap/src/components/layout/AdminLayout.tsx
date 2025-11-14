@@ -24,6 +24,9 @@ import {
   MenuUnfoldOutlined,
   CommentOutlined,
   BellOutlined,
+  ScheduleOutlined,
+  AppstoreOutlined,
+  FolderOpenOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import { useGetIdentity, useLogout } from "@refinedev/core";
@@ -66,7 +69,8 @@ export const AdminLayout: React.FC = () => {
   const menuItems = [
     { key: "dashboard", icon: <HomeOutlined />, label: "Dashboard" },
     { key: "rooms", icon: <ApartmentOutlined />, label: "Phòng" },
-    { key: "gallery", icon: <ApartmentOutlined />, label: "Bộ sự tập ảnh" },
+    { key: "gallery", icon: <FolderOpenOutlined />, label: "Bộ sự tập ảnh" },
+    { key: "events", icon: <ScheduleOutlined />, label: "Sự kiện " },
     { key: "bookings", icon: <BookOutlined />, label: "Đặt Phòng" },
     { key: "customers", icon: <TeamOutlined />, label: "Khách Hàng" },
     { key: "revenue", icon: <DollarOutlined />, label: "Doanh Thu" },
