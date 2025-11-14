@@ -1,159 +1,165 @@
-import React from "react";
-import { Create, Form, Input, useNotification } from "@refinedev/antd";
-import { useForm, useApiUrl, useCustomMutation } from "@refinedev/core";
-import { useQueryClient } from "@tanstack/react-query"; // 🚨 Cần thiết cho invalidateQueries
-import { Upload, Button, message, Row, Col } from "antd";
+import React, { useState, useEffect } from "react";
+import { Create } from "@refinedev/antd";
+import {
+  useForm,
+  useApiUrl,
+  useNotification,
+  useList,
+  useNavigation,
+} from "@refinedev/core";
+import { Form, Input, Select, Upload, Button, Row, Col, message } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import {
   RcFile,
-  UploadChangeParam,
   UploadFile,
+  UploadChangeParam,
 } from "antd/lib/upload/interface";
 
 const { TextArea } = Input;
 
-// Hàm kiểm tra file trước khi upload (giới hạn kích thước và định dạng)
 const beforeUpload = (file: RcFile) => {
   const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
-  if (!isJpgOrPng) {
-    message.error("Bạn chỉ có thể upload file JPG/PNG!");
-  }
-  const isLt5M = file.size / 1024 / 1024 < 5; // Giới hạn 5MB
-  if (!isLt5M) {
-    message.error("Kích thước ảnh phải nhỏ hơn 5MB!");
-  }
+  if (!isJpgOrPng) message.error("Chỉ được upload JPG/PNG!");
+  const isLt5M = file.size / 1024 / 1024 < 5;
+  if (!isLt5M) message.error("Ảnh phải nhỏ hơn 5MB!");
   return isJpgOrPng && isLt5M;
 };
 
-// Hàm xử lý khi file được thêm/xóa khỏi vùng chọn của Upload component
-const normFile = (e: any) => {
-  if (Array.isArray(e)) {
-    return e;
-  }
-  // Trả về fileList để Antd Form quản lý
-  return e?.fileList;
-};
+const normFile = (e: any) => (Array.isArray(e) ? e : e?.fileList);
 
 export const GalleryCreate: React.FC = () => {
-  const queryClient = useQueryClient(); // Khai báo QueryClient
   const apiUrl = useApiUrl();
   const { open } = useNotification();
+  const { list } = useNavigation();
 
-  const { formProps, saveButtonProps } = useForm({
-    resource: "images",
+  const [form] = Form.useForm();
+  const [previewImage, setPreviewImage] = useState<string>("");
+  const [categories, setCategories] = useState<string[]>([]);
+
+  const { formProps, saveButtonProps, onFinish } = useForm({
+    resource: "galleries",
     action: "create",
-    // Tắt tính năng tự động gửi (submit) của Refine vì chúng ta cần xử lý file thủ công
+    form,
+    onMutationSuccess: () => {
+      message.success("Tạo ảnh mới thành công!");
+      list("galleries");
+    },
   });
 
-  // Custom Mutation để xử lý FormData (không dùng formProps.onFinish mặc định)
-  const { mutate, isLoading } = useCustomMutation();
+  // Lấy category từ API
+  const { data } = useList({
+    resource: "galleries",
+    pagination: { pageSize: 1 }, // chỉ cần 1 record để lấy category
+  });
 
-  // 🚨 Logic xử lý khi Submit Form
-  const handleFormSubmit = async (values: any) => {
-    const fileList = values.file;
-    if (!fileList || fileList.length === 0 || !fileList[0].originFileObj) {
-      message.error("Vui lòng chọn một file ảnh để upload.");
-      return;
+  useEffect(() => {
+    if (data?.data) {
+      setCategories(Object.keys(data.data)); // Lấy các key từ data
     }
-    const file = fileList[0].originFileObj;
+  }, [data]);
 
-    // 1. Tạo FormData
+  const uploadImage = async (file: RcFile) => {
     const formData = new FormData();
-    // 'file' là tên trường mà Backend sẽ nhận file ảnh
-    formData.append("file", file);
-    formData.append("title", values.title);
-    formData.append("description", values.description || "");
+    formData.append("image", file);
 
-    // 2. Gọi API bằng useCustomMutation
-    mutate(
-      {
-        url: `${apiUrl}/images`, // Endpoint hoàn chỉnh
-        method: "post",
-        values: formData,
-        headers: {
-          // Cần thiết cho file upload
-          "Content-Type": "multipart/form-data",
-        },
-      },
-      {
-        onSuccess: (data) => {
-          // 🚨 BƯỚC QUAN TRỌNG: Invalidate query danh sách để FE tải lại dữ liệu
-          queryClient.invalidateQueries({
-            queryKey: ["default", "images", "list"],
-          });
+    try {
+      const res = await fetch(`${apiUrl}/galleries/upload`, {
+        method: "POST",
+        body: formData,
+      });
+      const result = await res.json();
+      return result.path || "";
+    } catch (err) {
+      console.error(err);
+      open({
+        type: "error",
+        message: "Lỗi upload ảnh",
+        description: "Không thể upload ảnh.",
+      });
+      return "";
+    }
+  };
 
-          message.success("Upload ảnh và tạo mới thành công!");
-          formProps.form?.resetFields(); // Reset form sau khi thành công
-        },
-        onError: (error) => {
-          console.error("Upload Error:", error);
-          open({
-            type: "error",
-            message: "Lỗi tạo mới",
-            description: error.message || "Không thể upload ảnh lên máy chủ.",
-          });
-        },
-      }
-    );
+  const handleFormSubmit = async (values: any) => {
+    let imagePath = "";
+
+    if (values.file?.length > 0 && values.file[0].originFileObj) {
+      imagePath = await uploadImage(values.file[0].originFileObj);
+    }
+
+    // Gửi dữ liệu lên Refine
+    onFinish?.({
+      gallery_category: values.gallery_category,
+      caption: values.caption || "",
+      image_path: imagePath,
+    });
   };
 
   return (
-    <Create saveButtonProps={{ ...saveButtonProps, loading: isLoading }}>
+    <Create title="Tạo ảnh mới" saveButtonProps={saveButtonProps}>
       <Form
         {...formProps}
+        form={form}
         layout="vertical"
-        onFinish={handleFormSubmit} // Ghi đè onFinish
+        onFinish={handleFormSubmit}
       >
         <Row gutter={16}>
           <Col xs={24} lg={12}>
-            {/* 1. Trường File Upload */}
             <Form.Item
-              label="File Ảnh (*)"
+              label="Danh mục ảnh"
+              name="gallery_category"
+              rules={[{ required: true, message: "Vui lòng chọn danh mục!" }]}
+            >
+              <Select placeholder="Chọn danh mục">
+                {categories.map((cat) => (
+                  <Select.Option key={cat} value={cat}>
+                    {cat}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+
+            <Form.Item label="Mô tả (Caption)" name="caption">
+              <TextArea rows={4} placeholder="Nhập mô tả ảnh (tùy chọn)" />
+            </Form.Item>
+          </Col>
+
+          <Col xs={24} lg={12}>
+            <Form.Item
+              label="Ảnh"
               name="file"
               valuePropName="fileList"
               getValueFromEvent={normFile}
-              rules={[
-                {
-                  required: true,
-                  message: "Vui lòng chọn file ảnh để upload!",
-                },
-              ]}
+              rules={[{ required: true, message: "Vui lòng chọn ảnh!" }]}
             >
               <Upload
-                name="file"
                 listType="picture"
                 maxCount={1}
                 beforeUpload={beforeUpload}
-                // Tắt upload mặc định của Antd
-                customRequest={({ onSuccess }) => {
-                  onSuccess?.({} as any);
-                }}
+                customRequest={({ onSuccess }) => onSuccess?.({} as any)}
                 onChange={(info: UploadChangeParam<UploadFile>) => {
-                  // Bắt sự kiện thay đổi file
-                  formProps.form?.setFieldsValue({ file: info.fileList });
+                  form.setFieldsValue({ file: info.fileList });
+                  if (info.fileList[0]?.originFileObj) {
+                    setPreviewImage(
+                      URL.createObjectURL(info.fileList[0].originFileObj)
+                    );
+                  }
                 }}
               >
                 <Button icon={<UploadOutlined />}>
-                  Chọn File Ảnh (JPG/PNG)
+                  Chọn ảnh (JPG/PNG, max 5MB)
                 </Button>
               </Upload>
             </Form.Item>
+            {previewImage && (
+              <img
+                src={previewImage}
+                alt="preview"
+                style={{ width: "100%", marginTop: 16, borderRadius: 8 }}
+              />
+            )}
           </Col>
         </Row>
-
-        {/* 2. Tiêu đề */}
-        <Form.Item
-          label="Tiêu đề Ảnh"
-          name="title"
-          rules={[{ required: true, message: "Vui lòng nhập tiêu đề ảnh!" }]}
-        >
-          <Input placeholder="Nhập tiêu đề hoặc tên file" />
-        </Form.Item>
-
-        {/* 3. Mô tả */}
-        <Form.Item label="Mô tả Chi tiết" name="description">
-          <TextArea rows={4} placeholder="Nhập mô tả chi tiết cho ảnh" />
-        </Form.Item>
       </Form>
     </Create>
   );

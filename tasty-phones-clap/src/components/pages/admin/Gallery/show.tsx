@@ -9,22 +9,22 @@ import {
 import { useShow, BaseRecord } from "@refinedev/core";
 import { Typography, Card, Row, Col, Alert } from "antd";
 
-// Định nghĩa Interface tạm thời cho Ảnh Gallery
+
 interface GalleryImage extends BaseRecord {
   id: number;
   title: string;
   url: string; // URL của ảnh để hiển thị
   description: string;
   created_at: string;
-  tags?: string[]; // Giả định có thể có tags
+  tags?: string[]; 
 }
 
 const { Title, Text } = Typography;
 
 export const GalleryShow: React.FC = () => {
-  // Lấy dữ liệu của bản ghi hiện tại dựa trên ID trong URL
+  
   const { queryResult } = useShow<GalleryImage>({
-    resource: "images", // Đảm bảo resource name khớp với Refine config
+    resource: "images", 
   });
 
   const { data, isLoading, isError, error } = queryResult;
@@ -48,7 +48,7 @@ export const GalleryShow: React.FC = () => {
   }
 
   return (
-    // Show component của Refine cung cấp tiêu đề và các nút Action
+   
     <Show title={`Chi tiết Ảnh ID: ${record.id}`}>
       <Row gutter={[16, 16]}>
         {/* Cột trái: Ảnh chính */}
@@ -90,7 +90,7 @@ export const GalleryShow: React.FC = () => {
             <DateField value={record.created_at} format="DD/MM/YYYY HH:mm" />
             <hr style={{ margin: "16px 0" }} />
 
-            {/* 4. Tags (Tùy chọn) */}
+            {/* Tags (Tùy chọn) */}
             {record.tags && record.tags.length > 0 && (
               <>
                 <Title level={5} style={{ marginBottom: 4 }}>
@@ -103,7 +103,7 @@ export const GalleryShow: React.FC = () => {
               </>
             )}
 
-            {/* 5. ID */}
+            {/*  ID */}
             <Title level={5} style={{ marginBottom: 4 }}>
               ID
             </Title>

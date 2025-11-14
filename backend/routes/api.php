@@ -1,5 +1,6 @@
 <?php
 
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AmenityController;
@@ -7,6 +8,7 @@ use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\RoomTypeController;
 use App\Http\Controllers\Api\RoomController;
 use App\Http\Controllers\Api\GalleryController;
+use App\Http\Controllers\Api\EventController;
 
 /*
 |--------------------------------------------------------------------------
@@ -37,3 +39,5 @@ Route::apiResource('services', ServiceController::class);
 
 // Thư viện ảnh (gallery)
 Route::apiResource('galleries', GalleryController::class);
+// Sự kiện (Events)
+Route::apiResource('events', EventController::class);

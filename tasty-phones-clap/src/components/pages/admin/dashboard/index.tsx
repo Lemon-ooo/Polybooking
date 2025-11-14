@@ -1,11 +1,34 @@
 import React from "react";
 import { Card, Row, Col, Statistic } from "antd";
-import { useList } from "@refinedev/core";
+import Filters, { FilterConfig } from "../Common/Filters";
+//import { useList } from "@refinedev/core";
 
 export const AdminDashboard: React.FC = () => {
+  const testFilters: FilterConfig[] = [
+    {
+      type: "input",
+      name: "search",
+      placeholder: "moi nhap vao",
+      label: "Tim kiem",
+    },
+    {
+      type: "select",
+      name: "isActive",
+      placeholder: "moi chon",
+      options: [
+        { label: "all", value: 0 },
+        { label: "hoat dong", value: 1 },
+      ],
+      label: "Trang thai",
+    },
+  ];
+  const handleGetValueFilter = (valueFIlter) => {
+    console.log(valueFIlter);
+  };
   return (
     <div>
       <h1>Dashboard Quản Trị</h1>
+      <Filters filters={testFilters} onchange={handleGetValueFilter} />
       <Row gutter={16}>
         <Col span={6}>
           <Card>
