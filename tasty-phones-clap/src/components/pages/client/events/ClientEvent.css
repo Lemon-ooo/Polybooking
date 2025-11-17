@@ -1,34 +1,87 @@
+/* ================================================= */
+/* 1. CONTAINER & BANNER (Đã sửa lỗi trùng lặp) */
+/* ================================================= */
+
 .client-event-container {
-  padding: 40px 32px;
+  padding: 0;
   min-height: 100vh;
-  background: #f9fafb;
+  background-color: #f7f7f7;
 }
+
+/* Banner Section */
+.event-hero-banner {
+  height: 500px;
+  background: url("https://ruedelamourhotel.com/wp-content/uploads/2025/05/QTX09567-copy-scaled.jpg")
+    center/cover no-repeat;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 50px;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+}
+
+.hero-content {
+  z-index: 1;
+  color: white;
+  text-align: center;
+}
+
+.hero-title {
+  font-family: "Times New Roman", Times, serif;
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: 2px;
+}
+
+/* CONTENT SECTION */
+.event-content-section {
+  padding: 20px 32px 60px 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ================================================= */
+/* 2. HEADER & LOADING */
+/* ================================================= */
 
 .client-event-title {
   text-align: center;
-  margin-bottom: 40px;
-  color: #5c4bff;
+  margin-bottom: 50px;
+  /* Giữ 2.5rem */
+  font-size: 2.5rem !important;
+  color: #333;
+  font-weight: 700 !important;
+  text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
 }
 
-.loading-container {
-  text-align: center;
-  padding: 60px 20px;
-}
+/* ================================================= */
+/* 3. EVENT CARD */
+/* ================================================= */
 
-/* Event Card */
 .event-card {
   border-radius: 12px;
   overflow: hidden;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid #e0e0e0;
 }
 
 .event-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  transform: translateY(-6px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
 }
 
 .event-image-container {
-  height: 200px;
+  height: 220px;
   overflow: hidden;
 }
 
@@ -36,51 +89,79 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .event-card:hover .event-image {
-  transform: scale(1.05);
+  transform: scale(1.08);
+}
+
+.ant-card-meta-title {
+  font-weight: 700 !important;
+  font-size: 1.15rem !important;
 }
 
 .event-date {
-  color: #5c4bff;
+  color: #c0845a;
+  font-weight: 600;
+  display: block;
+  margin-top: 5px;
 }
 
 .event-location {
   font-size: 0.9rem;
+  color: #666;
+  display: block;
 }
 
 .event-description {
   margin-top: 10px;
   color: #4a5568;
+  line-height: 1.5;
 }
 
 .event-detail-btn {
-  margin-top: 10px;
+  margin-top: 15px;
   width: 100%;
   font-weight: 600;
+
+  background-color: #1677ff;
+  border-color: #1677ff;
 }
 
-/* Pagination */
+.event-detail-btn:hover {
+  /* MÀU HOVER*/
+  background-color: #40a9ff !important;
+  border-color: #40a9ff !important;
+}
+
+/* ================================================= */
+/* 4. PAGINATION & RESPONSIVE */
+/* ================================================= */
+
 .pagination-container {
-  margin-top: 30px;
+  margin-top: 50px;
   text-align: center;
 }
 
 /* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 992px) {
   .event-image-container {
-    height: 150px;
+    height: 180px;
   }
 }
 
-@media (max-width: 576px) {
-  .client-event-container {
-    padding: 20px 16px;
+@media (max-width: 768px) {
+  .event-hero-banner {
+    height: 250px;
   }
-
+  .hero-title {
+    font-size: 2.5rem;
+  }
+  .event-content-section {
+    padding: 20px 16px 40px 16px;
+  }
   .event-image-container {
-    height: 120px;
+    height: 200px;
   }
 }

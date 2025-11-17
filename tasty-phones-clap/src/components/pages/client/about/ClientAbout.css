@@ -1,17 +1,21 @@
-/* Container chung */
+/*  CONTAINER & HERO BANNER */
+
 .client-about-container {
-  /* Tùy chỉnh khoảng cách và font */
+  min-height: 100vh;
+  background-color: #f7f7f7; /* Nền nhẹ nhàng */
 }
 
 /* HERO BANNER */
 .about-hero-banner {
-  height: 400px; /* Chiều cao banner */
-  background: url("path/to/your/background-image.jpg") center/cover no-repeat;
+  height: 400px;
+  /* Thay thế bằng ảnh nền thực tế của bạn */
+  background: url("https://ruedelamourhotel.com/wp-content/uploads/2025/05/QTX09567-copy-scaled.jpg")
+    center/cover no-repeat;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 40px;
+  margin-bottom: 60px;
 }
 
 .hero-overlay {
@@ -20,7 +24,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.4); /* Lớp phủ tối */
+  background-color: rgba(0, 0, 0, 0.4);
 }
 
 .hero-content {
@@ -30,46 +34,131 @@
 }
 
 .hero-title {
-  font-size: 3rem;
-  font-weight: bold;
+  font-size: 3.5rem;
+  font-weight: 700;
   margin: 0;
+  letter-spacing: 2px;
 }
 
 /* CONTENT SECTION */
 .about-grid-section .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 15px;
+  padding: 0 15px 80px 15px;
 }
 
 .about-row {
-  margin-bottom: 60px;
-  align-items: center; /* Căn giữa dọc các cột */
+  margin-bottom: 80px;
+  align-items: center;
 }
 
+/* 1. ANIMATION KEYFRAMES */
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 2. IMAGE & TEXT STYLES (Cố định Layout) */
+
+.about-image-wrapper,
+.about-text-content,
+.team-row .about-title,
+.team-row .max-width-para,
+.full-image-wrapper {
+  opacity: 0;
+
+  transform: translateY(10px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+/* Khung ảnh */
 .about-image-wrapper {
   overflow: hidden;
   border-radius: 8px;
+  height: 350px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .about-image {
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
   display: block;
-  transition: transform 0.3s ease;
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .about-image:hover {
-  transform: scale(1.05);
+  transform: scale(1.08);
 }
 
 .about-title {
   margin-top: 0;
   color: #333;
+  font-weight: 700;
 }
 
 .about-text-content {
   padding: 20px;
+}
+
+/* 3. IS-VISIBLE: Áp dụng Animation khi cuộn */
+
+/* --- HÀNG 1: Sứ Mệnh (Mission Row) --- */
+.mission-row.is-visible .about-image-wrapper {
+  animation: slideInLeft 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+.mission-row.is-visible .about-text-content {
+  animation: fadeInUp 1s ease-out 0.2s forwards;
+}
+
+/* --- HÀNG 2: Tầm Nhìn (Vision Row) --- */
+.vision-row.is-visible .about-text-content {
+  animation: fadeInUp 1s ease-out forwards;
+}
+.vision-row.is-visible .about-image-wrapper {
+  animation: slideInRight 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.2s forwards;
+}
+
+/* --- HÀNG 3: Đội Ngũ (Team Row) --- */
+.team-row.is-visible .about-title,
+.team-row.is-visible .max-width-para {
+  animation: fadeInUp 1s ease-out forwards;
+}
+
+.team-row.is-visible .full-image-wrapper {
+  animation: fadeInUp 1s ease-out 0.5s forwards;
 }
 
 /* HÀNG 3 - Full Width */
@@ -88,23 +177,31 @@
 }
 
 .full-image-wrapper {
-  max-height: 500px; /* Giới hạn chiều cao cho ảnh full width */
-  /* <--- GIỚI HẠN CHIỀU CAO CHÍNH LÀ Ở ĐÂY */
-  overflow: hidden; /* <--- Đảm bảo nó cắt phần bị tràn */
+  height: 450px;
+  overflow: hidden;
 }
 
-/* Media Query cho Mobile */
-@media (max-width: 768px) {
-  .hero-title {
-    font-size: 2rem;
+/* 4. RESPONSIVE */
+
+@media (max-width: 992px) {
+  .about-image-wrapper,
+  .full-image-wrapper {
+    height: 300px;
   }
   .about-text-content {
-    order: 1; /* Đảm bảo văn bản đứng trước ảnh trên mobile cho hàng 2 */
+    padding: 0 10px;
   }
-  .vision-row .about-text-content {
-    order: 1;
+}
+
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 2.5rem;
   }
-  .vision-row .about-image-wrapper {
-    order: 2;
+  .about-row {
+    margin-bottom: 50px;
+  }
+  .about-image-wrapper,
+  .full-image-wrapper {
+    height: 250px;
   }
 }
