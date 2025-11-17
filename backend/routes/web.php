@@ -3,16 +3,17 @@
 use Illuminate\Support\Facades\Route;
 
 // Admin
-use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Web\RoomController;
 
 // Web Controllers
-use App\Http\Controllers\Web\RoomController;
-use App\Http\Controllers\Web\RoomTypeController;
+use App\Http\Controllers\web\EventController;
+use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Web\AmenityController;
 use App\Http\Controllers\Web\GalleryController;
+use App\Http\Controllers\Web\PaymentController;
 use App\Http\Controllers\Web\ServiceController;
+use App\Http\Controllers\Web\RoomTypeController;
 use App\Http\Controllers\Web\RoomImageController;
-use App\Http\Controllers\web\EventController;
 
 Route::get('/', fn() => view('welcome'))->name('home');
 
@@ -118,3 +119,10 @@ Route::get('/events/{event}/edit', [EventController::class, 'edit'])->name('web.
 Route::put('/events/{event}', [EventController::class, 'update'])->name('web.events.update');
 Route::patch('/events/{event}', [EventController::class, 'update'])->name('web.events.update.patch');
 Route::delete('/events/{event}', [EventController::class, 'destroy'])->name('web.events.destroy');
+
+
+// Checkout page
+Route::get('/payment/{booking_id}', [PaymentController::class, 'checkout'])->name('payment.checkout');
+
+// Process payment
+Route::post('/payment/{booking_id}/process', [PaymentController::class, 'process'])->name('payment.process');
