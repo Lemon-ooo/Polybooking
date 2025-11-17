@@ -27,6 +27,9 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Illuminate\Http\Middleware\SetCacheHeaders;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 use App\Http\Middleware\RoleMiddleware;
+use Illuminate\Console\Scheduling\Schedule;
+use App\Console\Commands\AutoUpdateBookingStatus;
+
 
 class Kernel extends HttpKernel
 {

@@ -137,7 +137,7 @@
         <a href="{{ route('web.rooms.index') }}">Quản lý phòng</a>
         <a href="{{ route('amenities.index') }}">Quản lý tiện ích</a>
         <a href="{{ route('galleries.index') }}">🖼️ Quản lý Gallery</a>
-        <a href="#">Quản lý booking</a>
+        <a href="{{ route('admin.bookings.index') }}">Quản lý booking</a>
         <a href="#">Báo cáo</a>
     </div>
 

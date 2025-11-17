@@ -39,7 +39,7 @@ class RoomController extends Controller
             'room_type_id' => 'required|exists:room_types,id',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
-            'status' => 'required|string|in:trống',
+            'status' => 'required|string|in:pending',
             'amenities' => 'nullable|array',
             'amenities.*' => 'exists:amenities,amenity_id',
 
@@ -52,7 +52,7 @@ class RoomController extends Controller
             $room->amenities()->sync($request->amenities);
         }
 
-        return redirect()->route('rooms.index')->with('success', 'Thêm phòng thành công!');
+        return redirect()->route('web.rooms.index')->with('success', 'Thêm phòng thành công!');
     }
 
     /**
@@ -76,7 +76,7 @@ class RoomController extends Controller
             'room_type_id' => 'required|exists:room_types,id',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
-            'status' => 'required|string|in:trống,đang sử dụng,bảo trì',
+            'status' => 'required|string|in:pending,confirmed,checked_in,checked_out,cancelled',
             'amenities' => 'nullable|array',
             'amenities.*' => 'exists:amenities,amenity_id',
         ]);

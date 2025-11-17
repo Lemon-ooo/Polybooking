@@ -12,6 +12,8 @@ use App\Http\Controllers\Web\AmenityController;
 use App\Http\Controllers\Web\GalleryController;
 use App\Http\Controllers\Web\ServiceController;
 use App\Http\Controllers\Web\RoomImageController;
+use App\Http\Controllers\Admin\BookingController;
+
 
 Route::get('/', fn() => view('welcome'))->name('home');
 
@@ -102,3 +104,29 @@ Route::prefix('rooms/{room}')->name('room.images.')->group(function () {
     Route::post  ('/images',               [RoomImageController::class, 'store'])->name('store');
     Route::delete('/images/{image}',       [RoomImageController::class, 'destroy'])->name('destroy');
 });
+
+/*
+| Booking
+*/
+
+/*
+| Booking (Admin) — tạm bỏ middleware để test
+*/
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::get   ('bookings',                              [BookingController::class, 'index'])->name('bookings.index');
+    Route::get   ('bookings/create',                       [BookingController::class, 'create'])->name('bookings.create');
+    Route::post  ('bookings',                              [BookingController::class, 'store'])->name('bookings.store');
+    Route::delete('bookings/{booking}', [BookingController::class, 'destroy'])
+    ->name('bookings.destroy');
+    // CHỈ ĐỊNH RÕ khóa route-model:
+    Route::get   ('bookings/{booking:booking_id}',         [BookingController::class, 'show'])->name('bookings.show');
+    Route::patch ('bookings/{booking:booking_id}/status',  [BookingController::class, 'setStatus'])->name('bookings.set-status');
+
+    Route::patch ('booking-rooms/{bookingRoom:booking_room_id}/assign-room',
+                  [BookingController::class, 'assignRoom'])->name('booking-rooms.assign-room');
+
+
+                });
+
+
+    

@@ -4,7 +4,7 @@
 <div class="page-container">
     <div class="header-row">
         <h2 class="page-title">➕ Thêm phòng mới</h2>
-        <a href="{{ route('rooms.index') }}" class="btn btn-secondary">↩ Quay lại danh sách</a>
+        <a href="{{ route('web.rooms.index') }}" class="btn btn-secondary">↩ Quay lại danh sách</a>
     </div>
 
     @if($errors->any())
@@ -59,9 +59,9 @@
             <div class="form-group">
                 <label for="status">Trạng thái <span class="text-danger">*</span></label>
                 <select name="status" id="status" class="input-field">
-                    <option value="trống" {{ old('status') == 'trống' ? 'selected' : '' }}>Trống</option>
-                    <option value="đang sử dụng" {{ old('status') == 'đang sử dụng' ? 'selected' : '' }}>Đang sử dụng</option>
-                    <option value="bảo trì" {{ old('status') == 'bảo trì' ? 'selected' : '' }}>Bảo trì</option>
+                    <option value="pending" {{ old('status') == 'pending' ? 'selected' : '' }}>Trống</option>
+                    {{-- <option value="đang sử dụng" {{ old('status') == 'đang sử dụng' ? 'selected' : '' }}>Đang sử dụng</option>
+                    <option value="bảo trì" {{ old('status') == 'bảo trì' ? 'selected' : '' }}>Bảo trì</option> --}}
                 </select>
             </div>
 
@@ -89,7 +89,7 @@
             {{-- 🔹 Nút lưu --}}
             <div class="button-group">
                 <button type="submit" class="btn btn-primary">💾 Lưu phòng</button>
-                <a href="{{ route('rooms.index') }}" class="btn btn-secondary">Hủy</a>
+                <a href="{{ route('web.rooms.index') }}" class="btn btn-secondary">Hủy</a>
             </div>
         </form>
     </div>
