@@ -28,6 +28,7 @@ export const ClientLayout: React.FC = () => {
     { name: "Rooms & Suites", path: "/client/rooms", key: "/client/rooms" },
     { name: "Services", path: "/client/services", key: "/client/services" },
     { name: "Events", path: "/client/events", key: "/client/events" },
+    { name: "about", path: "/client/about", key: "/client/about" },
     {
       name: "Experience",
       path: "/client/experience",

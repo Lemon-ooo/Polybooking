@@ -43,6 +43,7 @@ import { RoomEdit } from "./components/pages/admin/rooms/edit";
 
 // ✅ Thêm import cho trang Tiện Ích (admin)
 import Amenities from "./components/pages/admin/amenities";
+import { ClientAbout } from "./components/pages/client/about";
 
 export default function App() {
   return (
@@ -82,6 +83,7 @@ export default function App() {
             <Route path="client/services/:id" element={<ServicesDetail />} />
             <Route path="client/galleries" element={<ClientGallery />} />
             <Route path="client/events" element={<ClientEvent />} />
+            <Route path="client/about" element={<ClientAbout />} />
           </Route>
 
           {/* 🚀 Admin routes */}
@@ -104,10 +106,10 @@ export default function App() {
             {/* Event */}
             <Route path="events" element={<EventList />} />
             <Route path="events/create" element={<EventCreate />} />
-
             <Route path="events/show/:id" element={<EventShow />} />
             <Route path="events/edit/:id" element={<EventEdit />} />
             <Route path="rooms/create" element={<RoomCreate />} />
+            {/* Services */}
             <Route path="services" element={<ServiceList />} />
             <Route path="services/create" element={<ServicesCreate />} />
             <Route path="services/edit/:id" element={<ServicesEdit />} />

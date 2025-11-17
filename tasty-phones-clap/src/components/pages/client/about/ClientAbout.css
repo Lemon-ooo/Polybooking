@@ -1,0 +1,110 @@
+/* Container chung */
+.client-about-container {
+  /* Tùy chỉnh khoảng cách và font */
+}
+
+/* HERO BANNER */
+.about-hero-banner {
+  height: 400px; /* Chiều cao banner */
+  background: url("path/to/your/background-image.jpg") center/cover no-repeat;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4); /* Lớp phủ tối */
+}
+
+.hero-content {
+  z-index: 1;
+  color: white;
+  text-align: center;
+}
+
+.hero-title {
+  font-size: 3rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+/* CONTENT SECTION */
+.about-grid-section .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+}
+
+.about-row {
+  margin-bottom: 60px;
+  align-items: center; /* Căn giữa dọc các cột */
+}
+
+.about-image-wrapper {
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.about-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.about-image:hover {
+  transform: scale(1.05);
+}
+
+.about-title {
+  margin-top: 0;
+  color: #333;
+}
+
+.about-text-content {
+  padding: 20px;
+}
+
+/* HÀNG 3 - Full Width */
+.team-row {
+  text-align: center;
+}
+
+.full-width-section {
+  padding: 40px 0;
+}
+
+.max-width-para {
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.full-image-wrapper {
+  max-height: 500px; /* Giới hạn chiều cao cho ảnh full width */
+  /* <--- GIỚI HẠN CHIỀU CAO CHÍNH LÀ Ở ĐÂY */
+  overflow: hidden; /* <--- Đảm bảo nó cắt phần bị tràn */
+}
+
+/* Media Query cho Mobile */
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 2rem;
+  }
+  .about-text-content {
+    order: 1; /* Đảm bảo văn bản đứng trước ảnh trên mobile cho hàng 2 */
+  }
+  .vision-row .about-text-content {
+    order: 1;
+  }
+  .vision-row .about-image-wrapper {
+    order: 2;
+  }
+}
