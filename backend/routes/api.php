@@ -16,6 +16,9 @@ use App\Http\Controllers\Api\GalleryController;
 */
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+// Quên mật khẩu
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+
 
 /*
 |--------------------------------------------------------------------------
