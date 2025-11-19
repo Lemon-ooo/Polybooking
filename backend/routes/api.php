@@ -17,6 +17,9 @@ use App\Http\Controllers\Api\EventController;
 */
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+// Quên mật khẩu
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+
 
 /*
 |--------------------------------------------------------------------------
