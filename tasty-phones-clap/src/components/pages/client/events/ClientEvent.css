@@ -1,86 +1,108 @@
+/* Container chính: giới hạn chiều rộng và căn giữa */
 .client-event-container {
-  padding: 40px 32px;
-  min-height: 100vh;
-  background: #f9fafb;
+  padding: 56px 24px;
+  min-height: calc(100vh - 90px); /* trừ header nếu header fixed ~90px */
+  background: linear-gradient(180deg, #fafbff, #f3f4f8);
+  animation: fadeIn 0.5s ease;
+  max-width: 1200px;
+  margin: 0 auto;     /* <-- căn giữa trang */
+  box-sizing: border-box;
 }
 
+/* Nếu header của bạn fixed, xài thêm lớp này lên body hoặc container thay đổi top padding:
+body { padding-top: 90px; } */
+
+/* Tiêu đề */
 .client-event-title {
   text-align: center;
-  margin-bottom: 40px;
-  color: #5c4bff;
+  margin-bottom: 28px;
+  color: #4b5cff;
+  font-weight: 700;
 }
 
-.loading-container {
-  text-align: center;
-  padding: 60px 20px;
-}
-
-/* Event Card */
+/* Card */
 .event-card {
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: #fff;
+  border: 1px solid #e8e9ee;
+  transition: transform .28s ease, box-shadow .28s ease;
+  display: flex;
+  flex-direction: column; /* để nút ở đáy */
+  height: 100%;
 }
 
+/* Card hover */
 .event-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  transform: translateY(-6px);
+  box-shadow: 0 14px 36px rgba(0,0,0,0.10);
 }
 
+/* Hộp ảnh */
 .event-image-container {
-  height: 200px;
+  height: 220px;
   overflow: hidden;
+  background: #f5f6f8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+/* Ảnh cover: bắt buộc cover và không gây layout shift */
 .event-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
+  object-fit: cover;   /* giữ tỉ lệ và che đầy */
+  display: block;
+  transition: transform .4s ease;
 }
 
+/* hiệu ứng phóng to */
 .event-card:hover .event-image {
-  transform: scale(1.05);
+  transform: scale(1.06);
 }
 
-.event-date {
-  color: #5c4bff;
+/* Nội dung card */
+.ant-card-body {
+  padding: 18px 18px 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1 1 auto;
 }
 
-.event-location {
-  font-size: 0.9rem;
-}
+/* Đặt thông tin và phần mô tả */
+.event-title { font-size: 1.05rem; font-weight: 700; color:#222; }
+.event-info-row { display:flex; gap:8px; align-items:center; color:#6b7280; font-size:0.95rem; }
+.event-date { color: #4b5cff; font-weight:600; }
+.event-description { color:#4a5568; line-height:1.5; margin-top:6px; flex: 1 1 auto; }
 
-.event-description {
-  margin-top: 10px;
-  color: #4a5568;
+/* nút luôn dính đáy */
+.event-footer {
+  margin-top: 12px;
 }
-
 .event-detail-btn {
-  margin-top: 10px;
   width: 100%;
-  font-weight: 600;
+  border-radius: 12px !important;
+  padding: 10px 0;
+  font-weight: 700;
 }
 
 /* Pagination */
-.pagination-container {
-  margin-top: 30px;
-  text-align: center;
-}
+.pagination-container { margin-top: 34px; text-align:center; }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .event-image-container {
-    height: 150px;
-  }
+  .event-image-container { height: 170px; }
+  .client-event-container { padding: 40px 16px; }
+}
+@media (max-width: 576px) {
+  .event-image-container { height: 140px; }
+  .client-event-container { padding: 24px 12px; }
 }
 
-@media (max-width: 576px) {
-  .client-event-container {
-    padding: 20px 16px;
-  }
-
-  .event-image-container {
-    height: 120px;
-  }
+/* animation fade-in */
+@keyframes fadeIn {
+  from { opacity:0; transform: translateY(6px); }
+  to { opacity:1; transform: translateY(0); }
 }

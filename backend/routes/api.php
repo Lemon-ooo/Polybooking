@@ -1,6 +1,5 @@
 <?php
 
-
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AmenityController;
@@ -33,11 +32,11 @@ Route::apiResource('room-types', RoomTypeController::class);
 // Tiện nghi
 Route::apiResource('amenities', AmenityController::class);
 
-// Dịch vụ
+// Dịch vụ - DÙNG ĐẦY ĐỦ apiResource (có PUT/PATCH)
 Route::apiResource('services', ServiceController::class);
 
-
-// Thư viện ảnh (gallery)
+// Thư viện ảnh
 Route::apiResource('galleries', GalleryController::class);
-// Sự kiện (Events)
+
+// Sự kiện
 Route::apiResource('events', EventController::class);

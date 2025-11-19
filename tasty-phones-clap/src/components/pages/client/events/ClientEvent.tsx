@@ -67,49 +67,49 @@ export const ClientEvent: React.FC = () => {
       <Title level={2} className="client-event-title">
         🌟 Các Sự Kiện Sắp Diễn Ra 🌟
       </Title>
-      <Row gutter={[32, 32]}>
-        {events.map((event) => (
-          <Col xs={24} md={12} lg={8} key={event.id}>
-            <Card
-              hoverable
-              className="event-card"
-              cover={
-                <div className="event-image-container">
-                  <img
-                    src={
-                      event.image ||
-                      "https://via.placeholder.com/600x400?text=No+Image"
-                    }
-                    alt={event.name}
-                    className="event-image"
-                  />
-                </div>
-              }
-            >
-              <Card.Meta
-                title={event.name}
-                description={
-                  <>
-                    <Text strong className="event-date">
-                      Ngày: {formatDate(event.date)}
-                    </Text>
-                    <br />
-                    <Text type="secondary" className="event-location">
-                      Địa điểm: {event.location}
-                    </Text>
-                    <Paragraph className="event-description">
-                      {event.description?.substring(0, 100)}...
-                    </Paragraph>
-                  </>
-                }
-              />
-              <Button type="primary" className="event-detail-btn">
-                Xem Chi Tiết
-              </Button>
-            </Card>
-          </Col>
-        ))}
-      </Row>
+      <Row gutter={[32, 32]} justify="start"> {/* thử 'center' nếu muốn căn giữa hàng */}
+  {events.map((event) => (
+    <Col xs={24} sm={12} md={12} lg={8} key={event.id}>
+      <Card
+        hoverable
+        className="event-card"
+        cover={
+          <div className="event-image-container">
+            <img
+              src={event.image || "https://via.placeholder.com/800x450?text=No+Image"}
+              alt={event.name}
+              className="event-image"
+              onError={(e) => {
+                const target = e.currentTarget as HTMLImageElement;
+                target.onerror = null;
+                target.src = "https://via.placeholder.com/800x450?text=No+Image";
+              }}
+            />
+          </div>
+        }
+      >
+        <Card.Meta
+          title={<span className="event-title">{event.name}</span>}
+          description={
+            <>
+              <div className="event-info-row">
+                <span className="event-date">Ngày: {formatDate(event.date)}</span>
+              </div>
+              <div className="event-info-row">
+                <span className="event-location">Địa điểm: {event.location}</span>
+              </div>
+              <p className="event-description">{(event.description || '').substring(0, 140)}{(event.description && event.description.length>140) ? '...' : ''}</p>
+            </>
+          }
+        />
+        <div className="event-footer">
+          <Button type="primary" className="event-detail-btn">Xem Chi Tiết</Button>
+        </div>
+      </Card>
+    </Col>
+  ))}
+</Row>
+
 
       {total > pageSize && (
         <div className="pagination-container">

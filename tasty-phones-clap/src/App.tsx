@@ -18,7 +18,6 @@ import { Register } from "./components/pages/share/register";
 
 import { ClientDashboard } from "./components/pages/client/dashboard";
 import { ClientRooms } from "./components/pages/client/rooms";
-import { ClientServices } from "./components/pages/client/services";
 import { AdminDashboard } from "./components/pages/admin/dashboard";
 import { RoomList } from "./components/pages/admin/rooms/list";
 import { ServiceList } from "./components/pages/admin/services/list";
@@ -37,12 +36,13 @@ import { GalleryShow } from "./components/pages/admin/Gallery/show";
 import { EventShow } from "./components/pages/admin/event/show";
 import { EventEdit } from "./components/pages/admin/event/edit";
 import { ServicesCreate } from "./components/pages/admin/services/create";
-import { ServicesEdit } from "./components/pages/admin/services/edit";
 import { RoomCreate } from "./components/pages/admin/rooms/create";
 import { RoomEdit } from "./components/pages/admin/rooms/edit";
 
 // ✅ Thêm import cho trang Tiện Ích (admin)
 import Amenities from "./components/pages/admin/amenities";
+import ServicesEdit from "./components/pages/admin/services/edit";
+import ClientServices from "./components/pages/client/services/ClientServices";
 
 export default function App() {
   return (
