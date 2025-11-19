@@ -13,6 +13,7 @@ use App\Http\Controllers\Web\GalleryController;
 use App\Http\Controllers\Web\ServiceController;
 use App\Http\Controllers\Web\RoomImageController;
 use App\Http\Controllers\web\EventController;
+use App\Http\Controllers\Web\TourController;
 
 Route::get('/', fn() => view('welcome'))->name('home');
 
@@ -118,3 +119,17 @@ Route::get('/events/{event}/edit', [EventController::class, 'edit'])->name('web.
 Route::put('/events/{event}', [EventController::class, 'update'])->name('web.events.update');
 Route::patch('/events/{event}', [EventController::class, 'update'])->name('web.events.update.patch');
 Route::delete('/events/{event}', [EventController::class, 'destroy'])->name('web.events.destroy');
+
+/*
+|--------------------------------------------------------------------------
+| Tours (CRUD đầy đủ)
+|--------------------------------------------------------------------------
+*/
+Route::get('/tours', [TourController::class, 'index'])->name('web.tours.index');
+Route::get('/tours/create', [TourController::class, 'create'])->name('web.tours.create');
+Route::post('/tours', [TourController::class, 'store'])->name('web.tours.store');
+Route::get('/tours/{tour}', [TourController::class, 'show'])->name('web.tours.show');
+Route::get('/tours/{tour}/edit', [TourController::class, 'edit'])->name('web.tours.edit');
+Route::put('/tours/{tour}', [TourController::class, 'update'])->name('web.tours.update');
+Route::patch('/tours/{tour}', [TourController::class, 'update'])->name('web.tours.update.patch');
+Route::delete('/tours/{tour}', [TourController::class, 'destroy'])->name('web.tours.destroy');

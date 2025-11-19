@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\RoomTypeController;
 use App\Http\Controllers\Api\RoomController;
 use App\Http\Controllers\Api\GalleryController;
 use App\Http\Controllers\Api\EventController;
+use App\Http\Controllers\Web\TourController;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,3 +42,6 @@ Route::apiResource('services', ServiceController::class);
 Route::apiResource('galleries', GalleryController::class);
 // Sự kiện (Events)
 Route::apiResource('events', EventController::class);
+
+//Tour
+Route::apiResource('tours', TourController::class);
