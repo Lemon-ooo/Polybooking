@@ -15,4 +15,9 @@ class Service extends Model
         'price',
         'image',
     ];
+
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
 }

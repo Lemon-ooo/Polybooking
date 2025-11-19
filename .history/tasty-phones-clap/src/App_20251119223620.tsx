@@ -43,7 +43,6 @@ import { RoomEdit } from "./components/pages/admin/rooms/edit";
 import Amenities from "./components/pages/admin/amenities";
 import ServicesEdit from "./components/pages/admin/services/edit";
 import ClientServices from "./components/pages/client/services/ClientServices";
-import { ClientAbout } from "./components/pages/client/about";
 
 export default function App() {
   return (
