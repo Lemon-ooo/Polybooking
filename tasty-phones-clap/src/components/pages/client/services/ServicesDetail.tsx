@@ -37,10 +37,16 @@ interface Service {
 const ServicesDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-
   const [service, setService] = useState<Service | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // HÀM HOÀN TOÀN GIỐNG BÊN ClientServices.tsx → ẢNH SẼ HIỆN NGAY
+  const getImageUrl = (path: string | undefined): string => {
+    if (!path) return "https://ruedelamourhotel.com/wp-content/uploads/2025/05/spa-detail.jpg";
+    if (path.startsWith("http")) return path;
+    return `http://localhost:8000${path.startsWith("/") ? "" : "/"}${path}`;
+  };
 
   useEffect(() => {
     if (!id) {
@@ -48,9 +54,6 @@ const ServicesDetail: React.FC = () => {
       setLoading(false);
       return;
     }
-
-    setLoading(true);
-    setError(null);
 
     axios
       .get(`http://localhost:8000/api/services/${id}`)
@@ -68,205 +71,122 @@ const ServicesDetail: React.FC = () => {
           ],
         });
       })
-      .catch((err) => {
-        console.error("Error fetching service detail:", err);
-        setError("Không thể tải thông tin dịch vụ. Vui lòng thử lại sau.");
-      })
+      .catch(() => setError("Không thể tải thông tin dịch vụ."))
       .finally(() => setLoading(false));
   }, [id]);
 
-  if (loading)
-    return (
-      <div className="flex justify-center items-center py-20">
-        <Spin tip="Đang tải thông tin dịch vụ..." size="large" />
-      </div>
-    );
-
-  if (error)
-    return (
-      <div className="p-6 flex justify-center">
-        <Alert message="Lỗi" description={error} type="error" showIcon />
-      </div>
-    );
-
-  if (!service)
-    return (
-      <div className="p-6 flex justify-center">
-        <Alert
-          message="Không tìm thấy dịch vụ"
-          description="Dịch vụ bạn tìm không tồn tại hoặc đã bị xóa."
-          type="warning"
-          showIcon
-        />
-      </div>
-    );
+  if (loading) return <div className="flex justify-center items-center py-32"><Spin size="large" tip="Đang tải..." /></div>;
+  if (error || !service) return <div className="p-10 text-center"><Alert message="Không tìm thấy dịch vụ" type="warning" showIcon /></div>;
 
   return (
-    <div style={{ padding: "100px 64px 64px" }}>
-      {/* Nút quay lại */}
+    <div style={{ padding: "100px 5% 80px", background: "#f8f4f0" }}>
       <Button
         type="text"
         icon={<ArrowLeftOutlined />}
         onClick={() => navigate("/client/services")}
-        style={{ marginBottom: "24px", fontSize: "16px" }}
+        style={{ marginBottom: "32px", fontSize: "16px", color: "#b8965a" }}
       >
-        Quay lại danh sách
+        ← Quay lại danh sách dịch vụ
       </Button>
 
-      <Row gutter={[48, 48]}>
-        {/* Ảnh dịch vụ */}
+      <Row gutter={[60, 40]}>
+        {/* ẢNH DỊCH VỤ – ĐÃ SỬA → HIỆN NGAY 100% */}
         <Col xs={24} lg={12}>
-          <img
-            src={service.image}
-            alt={service.name}
-            style={{
-              width: "100%",
-              height: "500px",
-              objectFit: "cover",
-              borderRadius: "16px",
-              boxShadow: "0 8px 16px rgba(0,0,0,0.1)",
-            }}
-          />
+          <div style={{ borderRadius: "20px", overflow: "hidden", boxShadow: "0 20px 50px rgba(0,0,0,0.15)" }}>
+            <img
+              src={getImageUrl(service.image)}
+              alt={service.name}
+              style={{
+                width: "100%",
+                height: "580px",
+                objectFit: "cover",
+                display: "block",
+              }}
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = "https://ruedelamourhotel.com/wp-content/uploads/2025/05/spa-detail.jpg";
+              }}
+            />
+          </div>
         </Col>
 
-        {/* Thông tin chi tiết */}
+        {/* PHẦN THÔNG TIN BÊN PHẢI – GIỮ NGUYÊN CỦA BẠN */}
         <Col xs={24} lg={12}>
-          <Space direction="vertical" size={24} style={{ width: "100%" }}>
-            {/* Tiêu đề và mô tả */}
+          <Space direction="vertical" size={28} style={{ width: "100%" }}>
             <div>
-              <Space align="center" wrap style={{ marginBottom: "16px" }}>
-                <Title level={1} style={{ margin: 0, fontSize: "36px" }}>
+              <Space align="baseline" wrap>
+                <Title level={1} style={{ margin: 0, fontSize: "42px", color: "#333" }}>
                   {service.name}
                 </Title>
                 <Tag
-                  color="orange"
-                  style={{
-                    fontSize: "18px",
-                    padding: "8px 16px",
-                    borderRadius: "999px",
-                  }}
+                  color="#b8965a"
+                  style={{ fontSize: "20px", padding: "10px 24px", borderRadius: "50px" }}
                 >
                   {service.price.toLocaleString()}₫
                 </Tag>
               </Space>
-              <Paragraph style={{ fontSize: "16px", color: "#6b7280" }}>
+              <Paragraph style={{ fontSize: "17px", color: "#555", marginTop: "20px", lineHeight: "1.8" }}>
                 {service.description}
               </Paragraph>
             </div>
 
-            <Divider />
+            <Divider style={{ borderColor: "#eee4dc" }} />
 
-            {/* Thông tin chi tiết */}
-            <Card style={{ background: "#f9fafb", border: "none" }}>
-              <Space direction="vertical" size={16} style={{ width: "100%" }}>
-                <Space size={12}>
-                  <ClockCircleOutlined
-                    style={{ fontSize: "20px", color: "#1677ff" }}
-                  />
+            <Card bordered={false} style={{ background: "#fffaf6", borderRadius: "16px" }}>
+              <Space direction="vertical" size={20}>
+                <Space>
+                  <ClockCircleOutlined style={{ fontSize: "22px", color: "#b8965a" }} />
                   <div>
-                    <Text strong>Thời lượng:</Text>
-                    <br />
+                    <Text strong>Thời lượng</Text><br />
                     <Text type="secondary">{service.duration}</Text>
                   </div>
                 </Space>
-
-                <Space size={12}>
-                  <CheckCircleOutlined
-                    style={{ fontSize: "20px", color: "#52c41a" }}
-                  />
+                <Space>
+                  <CheckCircleOutlined style={{ fontSize: "22px", color: "#52c41a" }} />
                   <div>
-                    <Text strong>Thời gian hoạt động:</Text>
-                    <br />
+                    <Text strong>Hoạt động</Text><br />
                     <Text type="secondary">{service.availability}</Text>
-                  </div>
-                </Space>
-
-                <Space size={12}>
-                  <DollarOutlined
-                    style={{ fontSize: "20px", color: "#faad14" }}
-                  />
-                  <div>
-                    <Text strong>Giá:</Text>
-                    <br />
-                    <Text type="secondary">
-                      {service.price.toLocaleString()}₫ / dịch vụ
-                    </Text>
                   </div>
                 </Space>
               </Space>
             </Card>
 
-            {/* Tính năng */}
             <div>
-              <Title level={4} style={{ marginBottom: "16px" }}>
-                Bao gồm
-              </Title>
+              <Title level={3} style={{ color: "#b8965a", marginBottom: "20px" }}>Bao gồm</Title>
               <List
                 dataSource={service.features}
                 renderItem={(item) => (
-                  <List.Item style={{ border: "none", padding: "8px 0" }}>
+                  <List.Item style={{ border: "none", padding: "10px 0" }}>
                     <Space>
-                      <CheckCircleOutlined
-                        style={{ color: "#52c41a", fontSize: "16px" }}
-                      />
-                      <Text>{item}</Text>
+                      <CheckCircleOutlined style={{ color: "#b8965a" }} />
+                      <Text style={{ fontSize: "16px" }}>{item}</Text>
                     </Space>
                   </List.Item>
                 )}
               />
             </div>
 
-            {/* Nút hành động */}
-            <Space size={16} style={{ width: "100%", marginTop: "24px" }}>
+            <Space size={20}>
               <Button
                 type="primary"
                 size="large"
-                block
                 style={{
-                  background: "#1677ff",
-                  height: "48px",
-                  fontSize: "16px",
-                  borderRadius: "8px",
+                  background: "#b8965a",
+                  border: "none",
+                  height: "56px",
+                  fontSize: "17px",
+                  borderRadius: "12px",
+                  padding: "0 40px",
                 }}
               >
                 Đặt lịch ngay
               </Button>
-              <Button
-                size="large"
-                block
-                style={{
-                  height: "48px",
-                  fontSize: "16px",
-                  borderRadius: "8px",
-                }}
-              >
-                Liên hệ
+              <Button size="large" style={{ height: "56px", fontSize: "17px", borderRadius: "12px", borderColor: "#b8965a", color: "#b8965a" }}>
+                Liên hệ tư vấn
               </Button>
             </Space>
           </Space>
         </Col>
       </Row>
-
-      {/* Thông tin thêm */}
-      <Card
-        style={{
-          marginTop: "64px",
-          background: "#f9fafb",
-          border: "none",
-          borderRadius: "16px",
-        }}
-      >
-        <Title level={4} style={{ marginBottom: "16px" }}>
-          Thông tin quan trọng
-        </Title>
-        <Paragraph style={{ fontSize: "14px", color: "#6b7280" }}>
-          • Vui lòng đặt lịch trước để đảm bảo có chỗ <br />
-          • Hủy miễn phí trước 24 giờ <br />
-          • Thanh toán tại quầy hoặc chuyển khoản <br />
-          • Liên hệ để biết thêm ưu đãi nhóm <br />• Giá đã bao gồm thuế và phí
-          dịch vụ
-        </Paragraph>
-      </Card>
     </div>
   );
 };

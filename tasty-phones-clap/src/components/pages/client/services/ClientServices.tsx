@@ -1,7 +1,5 @@
-// src/components/pages/client/services/ClientServices.tsx
-
 import React, { useEffect, useState } from "react";
-import { Row, Col, Spin, Alert, Empty } from "antd";
+import { Spin, Alert, Empty } from "antd";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./ClientServices.css";
@@ -24,9 +22,7 @@ const ClientServices: React.FC = () => {
     axios
       .get("http://localhost:8000/api/services")
       .then((res) => {
-        const data = Array.isArray(res.data)
-          ? res.data
-          : res.data?.data || [];
+        const data = Array.isArray(res.data) ? res.data : res.data?.data || [];
         setServices(data);
       })
       .catch(() => setError("Không thể tải dịch vụ."))
@@ -41,70 +37,73 @@ const ClientServices: React.FC = () => {
 
   return (
     <div className="services-page">
-      {/* HERO */}
-      <div className="services-hero">
+      {/* ==================== HERO BANNER – GIỐNG HỆT TRANG ROOMS ==================== */}
+      <section className="services-hero-banner">
+        <div className="hero-overlay"></div>
         <div className="hero-content">
-          <h1>ENJOY YOUR EXPERIENCE</h1>
-          <p>Like Never Before!</p>
+          <h1 className="hero-title">Dịch Vụ</h1>
+          <p className="hero-subtitle">Trải nghiệm đẳng cấp thượng lưu</p>
         </div>
-      </div>
+      </section>
 
-      {/* SERVICES SECTION */}
-      <div className="services-section">
-        <div className="container">
-          <h2 className="section-title">DỊCH VỤ CAO CẤP</h2>
+      {/* ==================== DANH SÁCH DỊCH VỤ ==================== */}
+      <section className="services-templatemo">
+        {loading ? (
+          <div className="loading-wrapper">
+            <Spin size="large" />
+          </div>
+        ) : error ? (
+          <Alert message="Lỗi" description={error} type="error" showIcon className="max-w-2xl mx-auto my-20" />
+        ) : services.length === 0 ? (
+          <Empty description="Chưa có dịch vụ nào" className="py-40" />
+        ) : (
+          services.map((sv, index) => (
+            <div
+              key={sv.id}
+              className={`service-block ${index % 2 === 1 ? "reverse" : ""}`}
+              onClick={() => {
+                navigate(`/client/services/${sv.id}`);
+                window.scrollTo(0, 0);
+              }}
+            >
+              {/* Ảnh */}
+              <div className="block-image">
+                <img
+                  src={getImageUrl(sv.image)}
+                  alt={sv.name}
+                  onError={(e) => (
+                    (e.target as HTMLImageElement).src =
+                      "https://ruedelamourhotel.com/wp-content/uploads/2025/05/spa1.jpg"
+                  )}
+                />
+              </div>
 
-          {loading ? (
-            <div className="loading">
-              <Spin size="large" />
+              {/* Khung nội dung trắng kem */}
+              <div
+                className="block-content"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h3>{sv.name}</h3>
+                <p>
+                  {sv.description.length > 150
+                    ? sv.description.substring(0, 150) + "..."
+                    : sv.description}
+                </p>
+                <button
+                  className="learn-more"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/client/services/${sv.id}`);
+                    window.scrollTo(0, 0);
+                  }}
+                >
+                  learn more
+                </button>
+              </div>
             </div>
-          ) : error ? (
-            <Alert message="Lỗi" description={error} type="error" showIcon />
-          ) : services.length === 0 ? (
-            <Empty description="Chưa có dịch vụ nào" />
-          ) : (
-            <Row gutter={[32, 32]}>
-              {services.map((sv) => (
-                <Col xs={24} sm={12} lg={8} xl={6} key={sv.id}>
-                  <div
-                    className="service-card"
-                    onClick={() => {
-                      navigate(`/client/services/${sv.id}`);
-                      window.scrollTo(0, 0);
-                    }}
-                  >
-                    <div className="card-image">
-                      <img
-                        src={getImageUrl(sv.image)}
-                        alt={sv.name}
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src =
-                            "https://ruedelamourhotel.com/wp-content/uploads/2025/05/spa1.jpg";
-                        }}
-                      />
-                      <div className="offer-badge">HOT</div>
-                    </div>
-
-                    <div className="card-body">
-                      <h3 className="card-title">{sv.name.toUpperCase()}</h3>
-                      <p className="card-desc">{sv.description}</p>
-
-                      <div className="card-price">
-                        <span className="from">Từ</span>
-                        <span className="price">
-                          {Number(sv.price).toLocaleString()}₫
-                        </span>
-                      </div>
-
-                      <button className="book-now-btn">BOOK NOW</button>
-                    </div>
-                  </div>
-                </Col>
-              ))}
-            </Row>
-          )}
-        </div>
-      </div>
+          ))
+        )}
+      </section>
     </div>
   );
 };
