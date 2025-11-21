@@ -6,9 +6,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\RoomController;
 
 // Web Controllers
+use App\Http\Controllers\web\EventController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Web\AmenityController;
-use App\Http\Controllers\Web\EventController;
 use App\Http\Controllers\Web\GalleryController;
 use App\Http\Controllers\Web\PaymentController;
 use App\Http\Controllers\Web\ServiceController;
@@ -118,7 +118,7 @@ Route::get('/events/{event}', [EventController::class, 'show'])->name('web.event
 Route::get('/events/{event}/edit', [EventController::class, 'edit'])->name('web.events.edit');
 Route::put('/events/{event}', [EventController::class, 'update'])->name('web.events.update');
 Route::patch('/events/{event}', [EventController::class, 'update'])->name('web.events.update.patch');
-Route::delete('/events/{event}', [WebEventController::class, 'destroy'])->name('web.events.destroy');
+Route::delete('/events/{event}', [EventController::class, 'destroy'])->name('web.events.destroy');
 
 
 // Checkout page

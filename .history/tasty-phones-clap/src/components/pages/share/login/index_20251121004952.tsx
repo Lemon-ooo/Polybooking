@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { useLogin } from "@refinedev/core";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Layout, Form, Input, Button, Card, Alert, Typography } from "antd";
 import { UserOutlined, LockOutlined, HomeOutlined } from "@ant-design/icons";
-import "./Login.css"; // để style placeholder và responsive
 
 const { Title } = Typography;
 
@@ -22,21 +21,34 @@ export const Login: React.FC = () => {
       },
       onError: (error: any) => {
         console.error("❌ Login error:", error);
-        // Bắt lỗi từ backend nếu có, fallback message mặc định
-        setError(
-          error?.response?.data?.message || "Email hoặc mật khẩu không đúng!"
-        );
+        setError(error?.message || "Email hoặc mật khẩu không đúng!");
       },
     });
   };
 
   return (
-    <Layout className="login-layout">
-      <Card className="login-card">
-        <div className="login-header">
-          <HomeOutlined className="login-icon" />
-          <Title level={3}>Đăng nhập</Title>
-          <p className="login-subtitle">Hệ thống đặt phòng khách sạn</p>
+    <Layout
+      style={{
+        minHeight: "100vh",
+        justifyContent: "center",
+        alignItems: "center",
+        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+      }}
+    >
+      <Card
+        style={{
+          width: 400,
+          boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
+          borderRadius: 12,
+          backgroundColor: "rgba(255,255,255,0.95)", // nền sáng cho input dễ nhìn
+        }}
+      >
+        <div style={{ textAlign: "center", marginBottom: 24 }}>
+          <HomeOutlined style={{ fontSize: 32, color: "#1890ff" }} />
+          <Title level={3} style={{ margin: "16px 0 8px 0" }}>
+            Đăng nhập
+          </Title>
+          <p style={{ color: "#666" }}>Hệ thống đặt phòng khách sạn</p>
         </div>
 
         {error && (
@@ -48,35 +60,28 @@ export const Login: React.FC = () => {
           />
         )}
 
-        <Form
-          name="login"
-          onFinish={onFinish}
-          autoComplete="off"
-          layout="vertical"
-        >
+        <Form name="login" onFinish={onFinish} autoComplete="off">
           <Form.Item
             name="email"
-            label="Email"
             rules={[{ required: true, message: "Vui lòng nhập email!" }]}
           >
             <Input
               prefix={<UserOutlined />}
               placeholder="Email"
               size="large"
-              className="custom-input"
+              style={{ color: "#000" }}
             />
           </Form.Item>
 
           <Form.Item
             name="password"
-            label="Mật khẩu"
             rules={[{ required: true, message: "Vui lòng nhập mật khẩu!" }]}
           >
             <Input.Password
               prefix={<LockOutlined />}
               placeholder="Mật khẩu"
               size="large"
-              className="custom-input"
+              style={{ color: "#000" }}
             />
           </Form.Item>
 
@@ -86,14 +91,11 @@ export const Login: React.FC = () => {
               htmlType="submit"
               loading={isPending}
               size="large"
-              block
+              style={{ width: "100%" }}
             >
               Đăng nhập
             </Button>
           </Form.Item>
-          <p style={{ textAlign: "center" }}>
-            Quên mật khẩu? <Link to="/forgot-password">Nhấn vào đây</Link>
-          </p>
         </Form>
       </Card>
     </Layout>

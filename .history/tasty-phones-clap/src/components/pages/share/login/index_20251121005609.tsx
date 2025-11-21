@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useLogin } from "@refinedev/core";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Layout, Form, Input, Button, Card, Alert, Typography } from "antd";
 import { UserOutlined, LockOutlined, HomeOutlined } from "@ant-design/icons";
 import "./Login.css"; // để style placeholder và responsive
@@ -91,9 +91,6 @@ export const Login: React.FC = () => {
               Đăng nhập
             </Button>
           </Form.Item>
-          <p style={{ textAlign: "center" }}>
-            Quên mật khẩu? <Link to="/forgot-password">Nhấn vào đây</Link>
-          </p>
         </Form>
       </Card>
     </Layout>

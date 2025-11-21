@@ -200,7 +200,7 @@ export const authProvider = {
   // ======================
   // 🔄 FORGOT PASSWORD
   // ======================
-  forgotPassword: async (email: string) => {
+  forgotPassword: async ({ email }: { email: string }) => {
     try {
       const response = await fetch(`${API_URL}/forgot-password`, {
         method: "POST",
@@ -214,18 +214,13 @@ export const authProvider = {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Không thể reset mật khẩu!");
+        throw new Error(data.message || "Không thể gửi email reset mật khẩu!");
       }
 
-      // BE đã gửi email kèm mật khẩu mới → FE chỉ hiển thị message
-      message.success("Mật khẩu mới đã được gửi qua email!");
-
-      return {
-        success: true,
-        redirectTo: "/login",
-      };
+      message.success("Mật khẩu mới đã gửi qua email!");
+      return { success: true };
     } catch (error: any) {
-      message.error(error.message || "Có lỗi xảy ra!");
+      message.error(error.message || "Lỗi gửi email!");
       throw error;
     }
   },

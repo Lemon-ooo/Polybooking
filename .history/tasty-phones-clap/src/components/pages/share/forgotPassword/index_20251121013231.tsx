@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Form, Input, Button, Card, Alert, Typography } from "antd";
 import { MailOutlined } from "@ant-design/icons";
+import { authProvider } from "../../providers/authProvider";
 import { Link } from "react-router-dom";
-import { authProvider } from "../../../../providers";
 
 const { Title } = Typography;
 

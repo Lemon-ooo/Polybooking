@@ -197,66 +197,7 @@ export const authProvider = {
       return null;
     }
   },
-  // ======================
-  // 🔄 FORGOT PASSWORD
-  // ======================
-  forgotPassword: async (email: string) => {
-    try {
-      const response = await fetch(`${API_URL}/forgot-password`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({ email }),
-      });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Không thể reset mật khẩu!");
-      }
-
-      // BE đã gửi email kèm mật khẩu mới → FE chỉ hiển thị message
-      message.success("Mật khẩu mới đã được gửi qua email!");
-
-      return {
-        success: true,
-        redirectTo: "/login",
-      };
-    } catch (error: any) {
-      message.error(error.message || "Có lỗi xảy ra!");
-      throw error;
-    }
-  },
-
-  // ======================
-  // 🔁 RESET PASSWORD (Laravel không cần token, chỉ cần email)
-  // ======================
-  resetPassword: async ({ email, password }: any) => {
-    try {
-      const response = await fetch(`${API_URL}/reset-password`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Không thể đặt lại mật khẩu!");
-      }
-
-      message.success("Đặt lại mật khẩu thành công!");
-      return { success: true, redirectTo: "/login" };
-    } catch (error: any) {
-      message.error(error.message || "Lỗi đặt lại mật khẩu!");
-      throw error;
-    }
-  },
   // ======================
   // ⚠️ ON ERROR
   // ======================
