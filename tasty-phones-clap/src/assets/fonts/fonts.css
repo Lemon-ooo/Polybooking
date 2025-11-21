@@ -1,7 +1,24 @@
 @font-face {
   font-family: "UTM-Yen-Tu";
   src: url("/fonts/UTM-Yen-Tu.woff2") format("woff2"),
-    url("/fonts/UTM-Yen-Tu.woff") format("woff");
+       url("/fonts/UTM-Yen-Tu.woff") format("woff");
   font-weight: 400;
   font-style: normal;
+  font-display: swap;
+}
+
+/* Áp dụng font cho toàn trang */
+body {
+  font-family: "UTM-Yen-Tu", sans-serif;
+}
+
+/* Sửa màu chữ khi nhập vào Input */
+input,
+.ant-input,
+.ant-input::placeholder {
+  color: #000 !important;
+}
+
+.ant-input {
+  background: #fff !important;
 }
