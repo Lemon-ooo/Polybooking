@@ -2,69 +2,99 @@
 
 namespace App\Http\Controllers\Web;
 
-use App\Http\Controllers\Controller; // ✅ thêm dòng này
+use App\Http\Controllers\Controller;
 use App\Models\Service;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ServiceController extends Controller
 {
     public function index()
     {
-        $services = Service::all();
-        return view('services.index', compact('services'));
+        $services = Service::paginate(20);
+
+        return view('admin.services.index', compact('services'));
     }
 
     public function create()
     {
-        return view('services.create');
+        return view('admin.services.create');
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:1000',
-            'price' => 'required|numeric',
-            'description' => 'nullable|string',
-            'image' => 'nullable|string',
+        $validated = $request->validate([
+            'service_name'  => 'required|string|max:255',
+            'service_price' => 'required|numeric|min:0',
+            'description'   => 'nullable|string',
+            'service_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        $service = Service::create($request->all());
+        if ($request->hasFile('service_image')) {
+            $path = $request->file('service_image')->store('services', 'public');
+            $validated['service_image'] = $path;
+        }
 
-        return redirect()->route('services.index')->with('success', 'Dịch vụ đã được thêm thành công.');
+        Service::create($validated);
+
+        return redirect()
+            ->route('admin.services.index')
+            ->with('success', 'Tạo dịch vụ thành công.');
     }
 
     public function show($id)
     {
         $service = Service::findOrFail($id);
-        return view('services.show', compact('service'));
+
+        return view('admin.services.show', compact('service'));
     }
 
     public function edit($id)
     {
         $service = Service::findOrFail($id);
-        return view('services.edit', compact('service'));
+
+        return view('admin.services.edit', compact('service'));
     }
 
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'price' => 'required|numeric',
-            'description' => 'nullable|string',
-            'image' => 'nullable|string',
+        $service = Service::findOrFail($id);
+
+        $validated = $request->validate([
+            'service_name'  => 'required|string|max:255',
+            'service_price' => 'required|numeric|min:0',
+            'description'   => 'nullable|string',
+            'service_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        $service = Service::findOrFail($id);
-        $service->update($request->all());
+        if ($request->hasFile('service_image')) {
+            if ($service->service_image && Storage::disk('public')->exists($service->service_image)) {
+                Storage::disk('public')->delete($service->service_image);
+            }
 
-        return redirect()->route('services.index')->with('success', 'Dịch vụ đã được cập nhật thành công.');
+            $path = $request->file('service_image')->store('services', 'public');
+            $validated['service_image'] = $path;
+        }
+
+        $service->update($validated);
+
+        return redirect()
+            ->route('admin.services.index')
+            ->with('success', 'Cập nhật dịch vụ thành công.');
     }
 
     public function destroy($id)
     {
         $service = Service::findOrFail($id);
+
+        if ($service->service_image && Storage::disk('public')->exists($service->service_image)) {
+            Storage::disk('public')->delete($service->service_image);
+        }
+
         $service->delete();
 
-        return redirect()->route('services.index')->with('success', 'Dịch vụ đã được xóa thành công.');
+        return redirect()
+            ->route('admin.services.index')
+            ->with('success', 'Xóa dịch vụ thành công.');
     }
 }

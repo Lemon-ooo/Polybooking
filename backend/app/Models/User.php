@@ -2,20 +2,26 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens; // ✅ thêm dòng này
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use Notifiable;
+
+    protected $primaryKey = 'user_id';
+    public $incrementing = true;
+    protected $keyType = 'int';
 
     protected $fillable = [
-        'name',
+        'user_name',
         'email',
         'password',
-        'role', // ✅ thêm dòng này
+        'phone_number',
+        'address',
+        'avatar',
+        'date_of_birth',
+        'role',
     ];
 
     protected $hidden = [
@@ -23,11 +29,8 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'date_of_birth' => 'date',
+    ];
 }

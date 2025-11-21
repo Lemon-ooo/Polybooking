@@ -12,11 +12,29 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('room_types', function (Blueprint $table) {
-           $table->id();
-        $table->string('name'); // Tên loại phòng, ví dụ: "Standard", "Deluxe"
-        $table->text('description')->nullable(); // Mô tả
-        $table->decimal('base_price', 8, 2); // Giá cơ bản
-        $table->timestamps();
+
+            // Primary key
+            $table->bigIncrements('room_type_id');
+
+            // Tên loại phòng hiển thị, ví dụ "Phòng Deluxe", "Phòng Standard"
+            $table->string('room_type_name');
+
+            // Ảnh đại diện loại phòng
+            $table->string('room_type_image')->nullable();
+
+            // Giá cơ bản
+            $table->decimal('base_price', 12, 2)->default(0);
+
+            // Tổng số phòng thuộc loại này
+            // $table->unsignedInteger('total_rooms')->default(1);
+
+            // Số khách tối đa mỗi phòng
+            $table->unsignedInteger('max_guests')->default(1);
+
+            // Mô tả chi tiết
+            $table->text('description')->nullable();
+
+            $table->timestamps();
         });
     }
 

@@ -9,12 +9,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('amenities', function (Blueprint $table) {
-            $table->id('amenity_id');
-            $table->string('name');
-            $table->string('category')->nullable(); // general, bathroom, service...
-            $table->string('icon_url')->nullable();
+            // Khóa chính
+            $table->bigIncrements('amenity_id');
+
+            // Tên tiện ích, ví dụ: "Free Wi-Fi", "Breakfast included"
+            $table->string('amenity_name');
+
+            // Ảnh / icon biểu diễn tiện ích
+            $table->string('amenity_image')->nullable();
+
+            // Mô tả chi tiết
             $table->text('description')->nullable();
-            $table->timestamps(); // thêm created_at, updated_at
+
+            $table->timestamps();
         });
     }
 

@@ -2,33 +2,29 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Amenity extends Model
 {
-    use HasFactory;
-
     protected $primaryKey = 'amenity_id';
-public $timestamps = false;
-
+    public $incrementing = true;
+    protected $keyType = 'int';
 
     protected $fillable = [
-        'name',
-        'category',
-        'icon_url',
+        'amenity_name',
+        'amenity_image',
         'description',
     ];
-    public function rooms()
-{
-    return $this->belongsToMany(
-        Room::class,
-        'room_amenity',
-        'amenity_id',
-        'room_id'
-    );
-}
 
-
-
+    // amenity <-> room_type (many-to-many)
+    public function roomTypes(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            RoomType::class,
+            'room_type_amenity',
+            'amenity_id',
+            'room_type_id'
+        );
+    }
 }

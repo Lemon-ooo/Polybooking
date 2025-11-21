@@ -12,15 +12,28 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('rooms', function (Blueprint $table) {
-            $table->id('room_id');
-        $table->string('room_number'); // VD: 101, 102, 201...
-        $table->unsignedBigInteger('room_type_id'); // khóa ngoại
-        $table->text('description')->nullable();
-        $table->decimal('price', 10, 2)->nullable(); // có thể kế thừa từ loại phòng
-        $table->string('status')->default('available'); // available, booked, maintenance,...
-        $table->timestamps();
+            // Khóa chính
+            $table->bigIncrements('room_id');
 
-        $table->foreign('room_type_id')->references('id')->on('room_types')->onDelete('cascade');
+            // Số phòng, ví dụ: 101, 102, 201...
+            $table->string('room_number')->unique();
+
+            // Khóa ngoại tới room_types.room_type_id
+            $table->unsignedBigInteger('room_type_id');
+
+            // Trạng thái phòng: available, booked, maintenance,...
+            $table->string('room_status')->default('available');
+
+            // Mô tả
+            $table->text('description')->nullable();
+
+            $table->timestamps();
+
+            // Thiết lập khóa ngoại đúng với room_types
+            $table->foreign('room_type_id')
+                  ->references('room_type_id')
+                  ->on('room_types')
+                  ->onDelete('cascade');
         });
     }
 

@@ -5,99 +5,101 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Room;
 use App\Models\RoomType;
-use App\Models\Amenity;
 use Illuminate\Http\Request;
 
 class RoomController extends Controller
 {
     /**
-     * Hiển thị danh sách phòng
+     * Danh sách phòng.
      */
     public function index()
     {
-        $rooms = Room::with(['roomType', 'amenities'])->latest()->paginate(10);
-        return view('rooms.index', compact('rooms'));
+        $rooms = Room::with('roomType')->paginate(15);
+
+        return view('admin.rooms.index', compact('rooms'));
     }
 
     /**
-     * Hiển thị form tạo phòng mới
+     * Form tạo phòng.
      */
     public function create()
     {
         $roomTypes = RoomType::all();
-        $amenities = Amenity::all();
-        return view('rooms.create', compact('roomTypes', 'amenities'));
+
+        return view('admin.rooms.create', compact('roomTypes'));
     }
 
     /**
-     * Lưu phòng mới vào database
+     * Lưu phòng mới.
      */
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'room_number' => 'required|numeric|max:999',
-            'room_type_id' => 'required|exists:room_types,id',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-            'status' => 'required|string|in:pending',
-            'amenities' => 'nullable|array',
-            'amenities.*' => 'exists:amenities,amenity_id',
-
-
+            'room_number'  => 'required|string|max:50|unique:rooms,room_number',
+            'room_type_id' => 'required|exists:room_types,room_type_id',
+            'room_status'  => 'required|string|in:available',
+            'description'  => 'nullable|string',
         ]);
 
-        $room = Room::create($validated);
+        Room::create($validated);
 
-        if (!empty($request->amenities)) {
-            $room->amenities()->sync($request->amenities);
-        }
-
-        return redirect()->route('web.rooms.index')->with('success', 'Thêm phòng thành công!');
+        return redirect()
+            ->route('admin.rooms.index')
+            ->with('success', 'Tạo phòng thành công.');
     }
 
     /**
-     * Hiển thị form sửa phòng
+     * Xem chi tiết phòng.
      */
-    public function edit(Room $room)
+    public function show($id)
     {
+        $room = Room::with('roomType')->findOrFail($id);
+
+        return view('admin.rooms.show', compact('room'));
+    }
+
+    /**
+     * Form sửa phòng.
+     */
+    public function edit($id)
+    {
+        $room      = Room::findOrFail($id);
         $roomTypes = RoomType::all();
-        $amenities = Amenity::all();
-        $room->load('amenities');
-        return view('rooms.edit', compact('room', 'roomTypes', 'amenities'));
+
+        return view('admin.rooms.edit', compact('room', 'roomTypes'));
     }
 
     /**
-     * Cập nhật phòng
+     * Cập nhật phòng.
      */
-    public function update(Request $request, Room $room)
+    public function update(Request $request, $id)
     {
+        $room = Room::findOrFail($id);
+
         $validated = $request->validate([
-            'room_number' => 'required|numeric|max:999',
-            'room_type_id' => 'required|exists:room_types,id',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-            'status' => 'required|string|in:pending,confirmed,checked_in,checked_out,cancelled',
-            'amenities' => 'nullable|array',
-            'amenities.*' => 'exists:amenities,amenity_id',
+            'room_number'  => 'required|integer|max:50|unique:rooms,room_number,' . $room->room_id . ',room_id',
+            'room_type_id' => 'required|exists:room_types,room_type_id',
+            'room_status'  => 'required|string|in:available,booked,maintenance,unavailable',
+            'description'  => 'nullable|string',
         ]);
 
         $room->update($validated);
-        $room->amenities()->sync($request->amenities ?? []);
 
-        return redirect()->route('rooms.index')->with('success', 'Cập nhật phòng thành công!');
-    }
-        public function show(string $id)
-    {
-        $room = Room::findOrFail($id);
-        return view('rooms.show', compact('room'));
+        return redirect()
+            ->route('admin.rooms.index')
+            ->with('success', 'Cập nhật phòng thành công.');
     }
 
     /**
-     * Xóa phòng
+     * Xóa phòng.
      */
-    public function destroy(Room $room)
+    public function destroy($id)
     {
+        $room = Room::findOrFail($id);
         $room->delete();
-        return redirect()->route('rooms.index')->with('success', 'Xóa phòng thành công!');
+
+        return redirect()
+            ->route('admin.rooms.index')
+            ->with('success', 'Xóa phòng thành công.');
     }
 }
