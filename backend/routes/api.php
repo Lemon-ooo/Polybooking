@@ -1,14 +1,13 @@
 <?php
 
-
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AmenityController;
+use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\RoomTypeController;
 use App\Http\Controllers\Api\RoomController;
 use App\Http\Controllers\Api\GalleryController;
-use App\Http\Controllers\Api\EventController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,6 +16,9 @@ use App\Http\Controllers\Api\EventController;
 */
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+// Quên mật khẩu
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+
 
 /*
 |--------------------------------------------------------------------------
@@ -33,11 +35,11 @@ Route::apiResource('room-types', RoomTypeController::class);
 // Tiện nghi
 Route::apiResource('amenities', AmenityController::class);
 
-// Dịch vụ
+// Dịch vụ - DÙNG ĐẦY ĐỦ apiResource (có PUT/PATCH)
 Route::apiResource('services', ServiceController::class);
 
-
-// Thư viện ảnh (gallery)
+// Thư viện ảnh
 Route::apiResource('galleries', GalleryController::class);
-// Sự kiện (Events)
+
+// Sự kiện
 Route::apiResource('events', EventController::class);

@@ -1,141 +1,220 @@
-// src/components/pages/admin/services/Edit.tsx
-import { Edit, useForm } from "@refinedev/antd";
-import { Form, Input, InputNumber, Upload, message } from "antd";
-import { useNavigate } from "react-router-dom";
-import { UploadOutlined } from "@ant-design/icons";
-import { RcFile, UploadFile } from "antd/es/upload/interface";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  Form,
+  Input,
+  Button,
+  Typography,
+  message,
+  Spin,
+  Space,
+  Alert,
+} from "antd";
+import {
+  ArrowLeftOutlined,
+  SaveOutlined,
+  LoadingOutlined,
+} from "@ant-design/icons";
+import { useNavigate, useParams } from "react-router-dom";
+import axiosInstance from "../../../../providers/data/axiosConfig";
 
-export const ServicesEdit = () => {
+const { Title, Text } = Typography;
+
+interface Service {
+  id: number;
+  name: string;
+  description: string | null;
+  price: number | null; // THÊM price
+  created_at: string;
+  updated_at: string;
+}
+
+export default function ServicesEdit() {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [form] = Form.useForm();
 
-  const { formProps, saveButtonProps, queryResult } = useForm({
-    resource: "services",
-    action: "edit",
-    redirect: false,
-    onMutationSuccess: () => {
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchService = async () => {
+      if (!id) return;
+
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await axiosInstance.get(`/services/${id}`);
+        const data = res.data.data || res.data;
+
+        form.setFieldsValue({
+          name: data.name || "",
+          description: data.description || "",
+          price: data.price || "", // ĐẶT GIÁ TRỊ price
+        });
+      } catch (err: any) {
+        const msg =
+          err.response?.data?.message || "Không thể tải thông tin dịch vụ";
+        setError(msg);
+        message.error(msg);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchService();
+  }, [id, form]);
+
+  const handleSubmit = async (values: {
+    name: string;
+    description?: string;
+    price: string;
+  }) => {
+    if (!id) return;
+
+    try {
+      setSubmitting(true);
+      setError(null);
+
+      // Gửi price dưới dạng số (nếu cần)
+      const payload = {
+        ...values,
+        price: values.price ? parseFloat(values.price) : null,
+      };
+
+      await axiosInstance.patch(`/services/${id}`, payload);
+
       message.success("Cập nhật dịch vụ thành công!");
       navigate("/admin/services");
-    },
-    onMutationError: () => {
-      message.error("Cập nhật thất bại!");
-    },
-  });
-
-  // LẤY DỮ LIỆU CŨ TỪ API
-  const service = queryResult?.data?.data;
-
-  // HIỂN THỊ ẢNH CŨ KHI LOAD TRANG
-  useEffect(() => {
-    if (service?.image_url && fileList.length === 0) {
-      setFileList([
-        {
-          uid: "-1",
-          name: "current-image.jpg",
-          status: "done",
-          url: service.image_url,
-          thumbUrl: service.image_url,
-        },
-      ]);
+    } catch (err: any) {
+      if (err.response?.data?.errors) {
+        const errors = err.response.data.errors;
+        const errorMsg = Object.values(errors).flat().join(", ");
+        setError(errorMsg);
+        message.error(errorMsg);
+      } else {
+        const msg = err.response?.data?.message || "Cập nhật thất bại";
+        setError(msg);
+        message.error(msg);
+      }
+    } finally {
+      setSubmitting(false);
     }
-  }, [service?.image_url, fileList.length]);
+  };
 
-  const handleFinish = (values: any) => {
-    const formData = new FormData();
-
-    // Thêm các field
-    formData.append("name", values.name);
-    formData.append("price", String(values.price));
-    if (values.description) {
-      formData.append("description", values.description);
-    }
-
-    // GỬI ẢNH MỚI (nếu có)
-    const newFile = fileList[0]?.originFileObj;
-    if (newFile) {
-      formData.append("image", newFile as RcFile);
-    }
-
-    // GỬI FormData → dataProvider dùng PATCH
-    formProps.onFinish?.(formData);
+  const handleBack = () => {
+    navigate("/admin/services");
   };
 
   return (
-    <Edit
-      saveButtonProps={{
-        ...saveButtonProps,
-        children: "Cập nhật dịch vụ",
-      }}
-    >
-      <Form {...formProps} onFinish={handleFinish} layout="vertical">
-        {/* TÊN DỊCH VỤ */}
-        <Form.Item
-          label="Tên dịch vụ"
-          name="name"
-          rules={[{ required: true, message: "Vui lòng nhập tên dịch vụ!" }]}
-        >
-          <Input placeholder="VD: Massage thư giãn" />
-        </Form.Item>
-
-        {/* GIÁ */}
-        <Form.Item
-          label="Giá"
-          name="price"
-          rules={[{ required: true, message: "Vui lòng nhập giá!" }]}
-        >
-          <InputNumber
-            style={{ width: "100%" }}
-            min={0}
-            formatter={(value) =>
-              value ? `₫${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : ""
-            }
-            parser={(value) => value?.replace(/\₫\s?|(,*)/g, "") as any}
-          />
-        </Form.Item>
-
-        {/* MÔ TẢ */}
-        <Form.Item label="Mô tả" name="description">
-          <Input.TextArea rows={4} placeholder="Mô tả chi tiết dịch vụ..." />
-        </Form.Item>
-
-        {/* ẢNH DỊCH VỤ */}
-        <Form.Item label="Ảnh dịch vụ" name="image">
-          <Upload
-            listType="picture-card"
-            maxCount={1}
-            fileList={fileList}
-            onChange={({ fileList: newFileList }) => {
-              const filtered = newFileList
-                .filter((f) => f.status !== "error")
-                .map((f) => ({
-                  ...f,
-                  originFileObj: f.originFileObj,
-                }));
-              setFileList(filtered);
-            }}
-            beforeUpload={() => false}
-            accept="image/*"
-          >
-            {fileList.length === 0 && (
-              <div>
-                <UploadOutlined />
-                <div style={{ marginTop: 8 }}>Tải lên</div>
-              </div>
-            )}
-          </Upload>
-
-          {/* HIỂN THỊ ẢNH CŨ NẾU KHÔNG CÓ ẢNH MỚI */}
-          {fileList.length === 0 && service?.image_url && (
-            <div style={{ marginTop: 8, fontSize: 12, color: "#888" }}>
-              Ảnh hiện tại:{" "}
-              <a href={service.image_url} target="_blank" rel="noreferrer">
-                Xem ảnh
-              </a>
+    <div className="p-6 max-w-4xl mx-auto">
+      <Card>
+        <div className="mb-6">
+          <Space align="center" className="w-full">
+            <Button
+              icon={<ArrowLeftOutlined />}
+              onClick={handleBack}
+              type="text"
+            />
+            <div>
+              <Title level={3} className="m-0">
+                Sửa Dịch vụ
+              </Title>
+              <Text type="secondary">Cập nhật thông tin dịch vụ ID: #{id}</Text>
             </div>
-          )}
-        </Form.Item>
-      </Form>
-    </Edit>
+          </Space>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <Spin
+              indicator={<LoadingOutlined style={{ fontSize: 32 }} spin />}
+            />
+          </div>
+        ) : (
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleSubmit}
+            disabled={submitting}
+          >
+            {error && (
+              <Alert
+                message="Lỗi"
+                description={error}
+                type="error"
+                showIcon
+                className="mb-4"
+              />
+            )}
+
+            <Form.Item
+              name="name"
+              label="Tên dịch vụ"
+              rules={[
+                { required: true, message: "Vui lòng nhập tên dịch vụ!" },
+                { max: 255, message: "Tên không được quá 255 ký tự" },
+              ]}
+            >
+              <Input
+                placeholder="Ví dụ: Dịch vụ đưa đón sân bay"
+                size="large"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="description"
+              label="Mô tả"
+              rules={[
+                { max: 1000, message: "Mô tả không được quá 1000 ký tự" },
+              ]}
+            >
+              <Input.TextArea
+                rows={5}
+                placeholder="Mô tả chi tiết về dịch vụ..."
+                size="large"
+              />
+            </Form.Item>
+
+            {/* THÊM TRƯỜNG GIÁ */}
+            <Form.Item
+              name="price"
+              label="Giá (VND)"
+              rules={[
+                { required: true, message: "Vui lòng nhập giá dịch vụ!" },
+                {
+                  pattern: /^\d+(\.\d{1,2})?$/,
+                  message: "Giá phải là số hợp lệ (VD: 150000 hoặc 99.99)",
+                },
+              ]}
+            >
+              <Input
+                placeholder="Ví dụ: 250000"
+                size="large"
+                addonAfter="VND"
+                style={{ width: "100%" }}
+              />
+            </Form.Item>
+
+            <Form.Item className="mb-0">
+              <Space>
+                <Button onClick={handleBack} disabled={submitting}>
+                  Hủy
+                </Button>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  icon={submitting ? <LoadingOutlined /> : <SaveOutlined />}
+                  loading={submitting}
+                >
+                  {submitting ? "Đang lưu..." : "Lưu thay đổi"}
+                </Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        )}
+      </Card>
+    </div>
   );
-};
+}

@@ -117,17 +117,26 @@ export const dataProvider: DataProvider = {
       throw error;
     }
   },
+update: async ({ resource, id, variables, meta }) => {
+  try {
+    // Nếu là FormData → dùng POST + _method=PATCH
+    const isFormData = variables instanceof FormData;
+    const method = isFormData ? "post" : "put";
+    const url = isFormData ? `/${resource}/${id}` : `/${resource}/${id}`;
 
-  update: async ({ resource, id, variables, meta }) => {
-    try {
-      const response = await axiosInstance.put(`/${resource}/${id}`, variables);
-      const mappedData = mapDataToRefine(response.data.data, resource);
-      return { data: mappedData };
-    } catch (error) {
-      console.error("Error in update:", error);
-      throw error;
+    if (isFormData) {
+      variables.append("_method", "PATCH");
     }
-  },
+
+    const response = await axiosInstance[method](url, variables);
+
+    const mappedData = mapDataToRefine(response.data.data, resource);
+    return { data: mappedData };
+  } catch (error) {
+    console.error("Error in update:", error);
+    throw error;
+  }
+},
 
   // --------------------------------------------------------------------------
   // CÁC HÀM KHÁC (Đã đúng logic map, chỉ cần dùng hàm tiện ích)

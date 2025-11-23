@@ -8,31 +8,16 @@ import {
   Typography,
   Space,
   Form,
-  Select,
-  DatePicker,
-  InputNumber,
   Rate,
   Tag,
   Spin,
   Empty,
   message,
+  Carousel,
 } from "antd";
-import {
-  SearchOutlined,
-  WifiOutlined,
-  CarOutlined,
-  CoffeeOutlined,
-  EnvironmentOutlined,
-  StarFilled,
-} from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../../../providers/data/axiosConfig";
-import heroImage from "../../../../assets/heroImage.png";
-import {
-  formatPrice,
-  getRoomStatusColor,
-  getRoomStatusLabel,
-} from "../../../../interfaces/rooms";
+import "../../../../assets/fonts/fonts.css";
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -151,482 +136,808 @@ export const ClientDashboard: React.FC = () => {
     );
 
   return (
+    
     <>
-      {/* ---------- HERO SECTION ---------- */}
+    {/* ===================== BOOKING BAR ===================== */}
+<section
+  style={{
+    width: "100%",
+    background: "white",
+    padding: "20px 0",
+    display: "flex",
+    justifyContent: "center",
+    borderBottom: "1px solid #eee",
+  }}
+>
+  <div
+    style={{
+      width: "100%",
+      maxWidth: "1200px",
+      display: "grid",
+      gridTemplateColumns: "repeat(5, 1fr)",
+      gap: "12px",
+      alignItems: "center",
+      padding: "0 16px",
+    }}
+  >
+    {/* CHECK-IN */}
+    <div
+      style={{
+        border: "1px solid #d9d9d9",
+        borderRadius: 6,
+        padding: "8px 12px",
+        background: "#fff",
+      }}
+    >
+      <label style={{ fontSize: 13, color: "#666" }}>Check-in</label>
+      <input
+        type="date"
+        style={{
+          border: "none",
+          width: "100%",
+          marginTop: 4,
+          fontWeight: 600,
+          outline: "none",
+        }}
+        defaultValue="2025-11-19"
+      />
+    </div>
+
+    {/* CHECK-OUT */}
+    <div
+      style={{
+        border: "1px solid #d9d9d9",
+        borderRadius: 6,
+        padding: "8px 12px",
+        background: "#fff",
+      }}
+    >
+      <label style={{ fontSize: 13, color: "#666" }}>Check-out</label>
+      <input
+        type="date"
+        style={{
+          border: "none",
+          width: "100%",
+          marginTop: 4,
+          fontWeight: 600,
+          outline: "none",
+        }}
+        defaultValue="2025-11-20"
+      />
+    </div>
+
+    {/* GUESTS */}
+    <div
+      style={{
+        border: "1px solid #d9d9d9",
+        borderRadius: 6,
+        padding: "8px 12px",
+        background: "#fff",
+      }}
+    >
+      <label style={{ fontSize: 13, color: "#666" }}>Guests</label>
+      <select
+        style={{
+          border: "none",
+          width: "100%",
+          marginTop: 4,
+          fontWeight: 600,
+          outline: "none",
+          background: "transparent",
+        }}
+      >
+        <option>2 adults, 0 children</option>
+        <option>2 adults, 1 child</option>
+        <option>1 adult</option>
+      </select>
+    </div>
+
+    {/* PROMO CODE */}
+    <button
+      style={{
+        width: "100%",
+        height: "100%",
+        borderRadius: 6,
+        border: "1px solid #d9d9d9",
+        background: "#efe5e0",
+        fontWeight: 500,
+        cursor: "pointer",
+      }}
+    >
+      I have a promo code
+    </button>
+
+    {/* BUTTON FIND ROOM */}
+    <button
+      style={{
+        width: "100%",
+        height: "100%",
+        borderRadius: 6,
+        border: "none",
+        background: "#b89585",
+        color: "white",
+        fontWeight: 600,
+        cursor: "pointer",
+      }}
+      onClick={() => console.log("Go search rooms")}
+    >
+      FIND ROOM
+    </button>
+  </div>
+</section>
+
+      {/* ====== BACKGROUND WRAPPER CHUNG ====== */}
       <div
         style={{
           position: "relative",
-          width: "100vw",
+          width: "100%",
           minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-start",
-          justifyContent: "center",
-          padding: "88px 64px 24px",
-          backgroundImage: `url(${heroImage})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          color: "#fff",
-          marginBottom: "48px",
-          marginTop: "-64px",
-          marginLeft: "calc(-50vw + 50%)",
-          marginRight: "calc(-50vw + 50%)",
+          overflow: "hidden",
         }}
       >
-        <div style={{ maxWidth: "600px" }}>
-          <Text
-            style={{
-              background: "rgba(73,185,255,0.5)",
-              padding: "4px 14px",
-              borderRadius: "999px",
-              display: "inline-block",
-              color: "#fff",
-              fontSize: "14px",
-            }}
-          >
-            The Ultimate HomeStay Experience
-          </Text>
-
-          <Title
-            level={1}
-            style={{
-              color: "#fff",
-              marginTop: 16,
-              marginBottom: 8,
-              fontSize: "56px",
-              lineHeight: "56px",
-              fontWeight: 800,
-              maxWidth: "576px",
-            }}
-          >
-            Discover Your Perfect Getaway Destination
-          </Title>
-
-          <Paragraph
-            style={{
-              color: "#fff",
-              fontSize: "16px",
-              maxWidth: "520px",
-              marginBottom: "32px",
-            }}
-          >
-            Unparalleled luxury and comfort await at the world's most exclusive
-            homestays. Start your journey today.
-          </Paragraph>
-        </div>
-
-        {/* ---------- SEARCH FORM ---------- */}
-        <Form
-          form={form}
-          onFinish={onFinish}
+        {/* LAYER BACKGROUND (mờ) */}
+        <div
           style={{
-            background: "#fff",
-            borderRadius: "8px",
-            padding: "16px 24px",
-            marginTop: "32px",
-            width: "auto",
-            maxWidth: "fit-content",
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundImage:
+              'url("https://kimfurniture.com/wp-content/uploads/2022/10/phong-khach-mau-xam-12.jpg")',
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            filter: "blur(8px)",
+            transform: "scale(1.1)",
+            zIndex: 0,
           }}
-        >
-          <Space
-            direction={isMobile ? "vertical" : "horizontal"}
-            size={16}
-            align="end"
-            wrap
+        ></div>
+        {/* LAYER OVERLAY */}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            background: "rgba(0,0,0,0.35)",
+            zIndex: 1,
+          }}
+        ></div>
+        {/* TẤT CẢ NỘI DUNG */}
+        <div style={{ position: "relative", zIndex: 2 }}>
+          {/* ========================================== */}
+          {/* ---------- (VỊ TRÍ B) INTRO SECTION ------- */}
+          {/* ========================================== */}
+
+          <section
+            style={{
+              width: "100%",
+              padding: "60px 0 0 0",
+              display: "flex",
+              justifyContent: "center",
+            }}
           >
-            <Form.Item
-              name="destination"
-              rules={[{ required: true, message: "Vui lòng chọn điểm đến" }]}
-              style={{ marginBottom: 0 }}
+            <div
+              style={{
+                width: "100%",
+                maxWidth: "1000px",
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "60px",
+                alignItems: "center",
+              }}
             >
-              <Select
-                placeholder="Chọn thành phố"
-                showSearch
-                style={{ width: isMobile ? "100%" : 200 }}
-                options={[
-                  { label: "Hà Nội", value: "hanoi" },
-                  { label: "Đà Nẵng", value: "danang" },
-                  { label: "Hồ Chí Minh", value: "hcm" },
-                ]}
-              />
-            </Form.Item>
-
-            <Form.Item name="checkIn" style={{ marginBottom: 0 }}>
-              <DatePicker
-                style={{ width: isMobile ? "100%" : 200 }}
-                placeholder="Ngày nhận phòng"
-              />
-            </Form.Item>
-
-            <Form.Item name="checkOut" style={{ marginBottom: 0 }}>
-              <DatePicker
-                style={{ width: isMobile ? "100%" : 200 }}
-                placeholder="Ngày trả phòng"
-              />
-            </Form.Item>
-
-            <Form.Item name="guests" style={{ marginBottom: 0 }}>
-              <InputNumber
-                min={1}
-                max={10}
-                placeholder="Số khách"
-                style={{ width: isMobile ? "100%" : 100 }}
-              />
-            </Form.Item>
-
-            <Form.Item style={{ marginBottom: 0 }}>
-              <Button
-                type="primary"
-                htmlType="submit"
-                icon={<SearchOutlined />}
+              {/* SLIDE ẢNH BÊN TRÁI */}
+              <div
                 style={{
-                  background: "#000",
-                  borderColor: "#000",
-                  height: "auto",
-                  padding: "12px 16px",
-                  borderRadius: "6px",
+                  width: "100%",
+                  overflow: "hidden",
+                  borderRadius: "14px",
                 }}
               >
-                Tìm Phòng
-              </Button>
-            </Form.Item>
-          </Space>
-        </Form>
-      </div>
+                <Carousel
+                  autoplay
+                  dots={true}
+                  autoplaySpeed={3500}
+                  speed={900}
+                  easing="ease-in-out"
+                  swipeToSlide
+                  draggable
+                  pauseOnHover={false}
+                >
+                  {[
+                    "https://muongthanh.com/images/trademark/intro/2019/04/normal/luxury_1_1554258787.jpg",
+                    "https://muongthanh.com/images/trademark/intro/2019/04/normal/luxury_2_1554258928.jpg",
+                    "https://muongthanh.com/images/slideshow/2019/05/22/slideshow_large/luxury-slider_1_1558490470.jpg",
+                  ].map((img, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        background: "#000",
+                      }}
+                    >
+                      <img
+                        src={img}
+                        alt={`slide-${index}`}
+                        style={{
+                          width: "100%",
+                          height: "auto",
+                          borderRadius: "14px",
+                          objectFit: "contain",
+                        }}
+                      />
+                    </div>
+                  ))}
+                </Carousel>
+              </div>
 
-      {/* ---------- FEATURED ROOMS ---------- */}
-      <section
-        className="featured-rooms-section"
-        style={{ padding: "80px 64px" }}
-      >
-        <div className="container">
-          <Title level={2} style={{ textAlign: "center" }}>
-            Phòng được yêu thích nhất
-          </Title>
-          <Paragraph style={{ textAlign: "center", marginBottom: 40 }}>
-            Tận hưởng không gian yên bình trong từng căn phòng
-          </Paragraph>
+              {/* TEXT BÊN PHẢI */}
+              <div style={{ color: "#e6d0c4", textAlign: "left" }}>
+                <h2
+                  style={{
+                    fontFamily: "UTM-Yen-Tu",
+                    fontSize: "38px",
+                    fontWeight: 600,
+                    marginBottom: "12px",
+                  }}
+                >
+                  Rue De L’amour{" "}
+                  <span style={{ fontStyle: "italic" }}>Boutique</span>
+                </h2>
 
-          {isLoading ? (
-            <div style={{ textAlign: "center" }}>
-              <Spin size="large" />
-              <Text style={{ marginTop: 16, display: "block" }}>
-                Đang tải danh sách phòng nổi bật...
-              </Text>
+                <h3
+                  style={{
+                    fontFamily: "UTM-Yen-Tu",
+                    fontSize: "24px",
+                    fontWeight: 400,
+                    marginBottom: "20px",
+                    color: "#ffffff",
+                    letterSpacing: 1,
+                  }}
+                >
+                  Hotel Hanoi
+                </h3>
+
+                <p
+                  style={{
+                    color: "#c7c7c7",
+                    fontSize: "16px",
+                    lineHeight: 1.6,
+                    maxWidth: "500px",
+                  }}
+                >
+                  Bringing guests unique and memorable experiences with the goal
+                  of becoming the leading Boutique hotel chain in Vietnam.
+                </p>
+              </div>
             </div>
-          ) : rooms.length === 0 ? (
-            <div style={{ textAlign: "center" }}>
-              <Text type="secondary" style={{ fontSize: 16 }}>
-                Chưa có phòng nào được hiển thị.
-              </Text>
+          </section>
+
+          {/* ========================================== */}
+          {/* -------------- PHẦN DƯỚI ----------------- */}
+          {/* ========================================== */}
+
+          <section
+            style={{
+              width: "100%",
+              padding: "0 0 20px",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              position: "relative",
+            }}
+          >
+            <div
+              style={{
+                width: "90%",
+                maxWidth: "1000px",
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "40px",
+                alignItems: "center",
+              }}
+            >
+              {/* TEXT LEFT */}
+              <div style={{ color: "#e6d0c4", textAlign: "left" }}>
+                <h2
+                  style={{
+                    fontFamily: "UTM-Yen-Tu",
+                    fontSize: "42px",
+                    fontWeight: 600,
+                    marginBottom: "12px",
+                    color: "#e6d0c4",
+                  }}
+                >
+                  Path <span style={{ fontStyle: "italic" }}>of</span> Love
+                </h2>
+
+                <h3
+                  style={{
+                    fontFamily: "UTM-Yen-Tu",
+                    fontSize: "26px",
+                    fontWeight: 400,
+                    marginBottom: "16px",
+                    color: "#ffffff",
+                  }}
+                >
+                  Rue De L’amour Boutique Hotel Hanoi
+                </h3>
+
+                <p
+                  style={{
+                    color: "#c7c7c7",
+                    fontSize: "16px",
+                    lineHeight: 1.6,
+                    maxWidth: "480px",
+                  }}
+                >
+                  Located on Phan Dinh Phung Street — one of the most beautiful
+                  & romantic streets in Hanoi. 05–15 minutes from the Old
+                  Quarter.
+                </p>
+
+                <p style={{ marginTop: "16px", color: "#e6d0c4" }}>VIEW MORE</p>
+              </div>
+
+              {/* SLIDE ẢNH PHẢI */}
+              <div
+                style={{
+                  width: "100%",
+                  height: "480px",
+                  overflow: "hidden",
+                  borderRadius: "12px",
+                }}
+              >
+                <Carousel
+                  autoplay
+                  dots={true}
+                  autoplaySpeed={3500}
+                  speed={900}
+                  easing="ease-in-out"
+                  swipeToSlide
+                  draggable
+                  pauseOnHover={false}
+                >
+                  {[
+                    "https://muongthanh.com/images/trademark/intro/2019/04/normal/grand_2_1554889159.jpg",
+                    "https://muongthanh.com/images/trademark/intro/2019/04/normal/grand_1_1554889131.jpg",
+                    "https://q-xx.bstatic.com/xdata/images/hotel/max500/572052538.jpg?k=2ecaea7ec84a8d111ce4b7aff393333d968d6087f4746925e6753cd908b9fb41&o=",
+                  ].map((img, index) => (
+                    <div key={index} style={{ width: "100%", height: "480px" }}>
+                      <img
+                        src={img}
+                        alt={`slide-${index}`}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          borderRadius: "12px",
+                          transition: "transform .6s ease-in-out",
+                        }}
+                      />
+                    </div>
+                  ))}
+                </Carousel>
+              </div>
             </div>
-          ) : (
-            <Row gutter={[32, 32]}>
-              {rooms.slice(0, 4).map((room) => (
-                <Col xs={24} lg={12} key={room.id}>
-                  <Card
-                    className="room-card"
-                    bodyStyle={{ padding: 0 }}
-                    hoverable
-                  >
-                    <Row gutter={0}>
-                      <Col xs={24} md={12}>
-                        <div className="room-image-container">
+          </section>
+
+          {/* ========================================== */}
+          {/* ------------ ACCOMMODATIONS -------------- */}
+          {/* ========================================== */}
+
+          <section
+            className="featured-rooms-section"
+            style={{
+              padding: "20px 64px",
+            }}
+          >
+            <div className="container">
+              <Title
+                level={2}
+                style={{
+                  textAlign: "center",
+                  marginBottom: 16,
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: 42,
+                  color: "#e6d0c4",
+                }}
+              >
+                Accommodations
+              </Title>
+
+              <Paragraph
+                style={{
+                  textAlign: "center",
+                  marginBottom: 40,
+                  color: "#c7c7c7",
+                  fontSize: 16,
+                }}
+              >
+                Tận hưởng sự sang trọng và tinh tế trong từng không gian nghỉ
+                dưỡng
+              </Paragraph>
+
+              {isLoading ? (
+                <div style={{ textAlign: "center" }}>
+                  <Spin size="large" />
+                  <Text style={{ marginTop: 16, display: "block" }}>
+                    Đang tải danh sách phòng...
+                  </Text>
+                </div>
+              ) : rooms.length === 0 ? (
+                <div style={{ textAlign: "center" }}>
+                  <Text type="secondary" style={{ fontSize: 16 }}>
+                    Chưa có phòng nào được hiển thị.
+                  </Text>
+                </div>
+              ) : (
+                <Row gutter={[32, 32]}>
+                  {rooms.slice(0, 3).map((room) => (
+                    <Col xs={24} md={12} lg={8} key={room.id}>
+                      <Card
+                        bodyStyle={{ padding: 0 }}
+                        style={{
+                          border: "none",
+                          background: "#fff",
+                          boxShadow: "none",
+                        }}
+                      >
+                        {/* IMAGE */}
+                        <div
+                          style={{
+                            width: "100%",
+                            height: 260,
+                            overflow: "hidden",
+                          }}
+                        >
                           <img
                             src={
                               room.room_type?.image_url ||
                               room.image_url ||
-                              "https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=400&h=300&fit=crop"
+                              "https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=800"
                             }
-                            alt={
-                              room.room_type?.name ||
-                              `Phòng ${room.room_number}`
+                            alt={room.room_type?.name}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                              transition: "0.4s",
+                            }}
+                            onMouseOver={(e) =>
+                              (e.currentTarget.style.transform = "scale(1.06)")
                             }
-                            className="room-image"
+                            onMouseOut={(e) =>
+                              (e.currentTarget.style.transform = "scale(1.0)")
+                            }
                           />
-                          <Tag
-                            color={getRoomStatusColor(room.status)}
-                            className="room-status-tag"
-                          >
-                            {getRoomStatusLabel(room.status)}
-                          </Tag>
-                          <div className="room-overlay">
-                            <Button
-                              type="primary"
-                              className="view-details-btn"
-                              onClick={() => navigate(`/client/rooms`)}
-                            >
-                              Xem Chi Tiết
-                            </Button>
-                          </div>
                         </div>
-                      </Col>
-                      <Col xs={24} md={12}>
-                        <div className="room-info">
-                          <div className="room-header">
-                            <Title level={3} className="room-title">
-                              {room.room_type?.name ||
-                                `Phòng ${room.room_number}`}
-                            </Title>
-                            <div className="room-rating">
-                              <StarFilled style={{ color: "#ffc107" }} />
-                              <Text strong>4.8</Text>
-                              <Text type="secondary">(124 đánh giá)</Text>
-                            </div>
-                          </div>
 
-                          <Paragraph className="room-description">
+                        {/* CONTENT */}
+                        <div style={{ padding: "24px 28px" }}>
+                          <h3
+                            style={{
+                              fontFamily: "'Playfair Display', serif",
+                              color: "#8a6e5b",
+                              fontSize: 24,
+                              marginBottom: 12,
+                            }}
+                          >
+                            {room.room_type?.name ||
+                              `Phòng ${room.room_number}`}
+                          </h3>
+
+                          <p
+                            style={{
+                              color: "#444",
+                              fontSize: 15,
+                              lineHeight: 1.6,
+                              marginBottom: 24,
+                            }}
+                          >
                             {room.description ||
                               room.room_type?.description ||
-                              "Phòng nghỉ sang trọng với đầy đủ tiện nghi hiện đại..."}
-                          </Paragraph>
+                              "Phòng sang trọng, thiết kế tinh tế và đầy đủ tiện nghi để mang đến trải nghiệm nghỉ dưỡng hoàn hảo."}
+                          </p>
 
-                          <div className="room-features">
-                            <div className="feature-item">
-                              <WifiOutlined /> <Text>WiFi miễn phí</Text>
-                            </div>
-                            <div className="feature-item">
-                              <CarOutlined /> <Text>Bãi đỗ xe</Text>
-                            </div>
-                            <div className="feature-item">
-                              <CoffeeOutlined /> <Text>Bữa sáng</Text>
-                            </div>
-                            <div className="feature-item">
-                              <EnvironmentOutlined />{" "}
-                              <Text>Trung tâm thành phố</Text>
-                            </div>
-                          </div>
-
-                          <div className="room-footer">
-                            <div className="room-price">
-                              <Text className="price-from">Từ </Text>
-                              <Text className="price-amount">
-                                {formatPrice(room.price)}
-                              </Text>
-                              <Text className="price-unit"> /đêm</Text>
-                            </div>
+                          <div style={{ textAlign: "right" }}>
+                            <button
+                              onClick={() =>
+                                navigate(`/client/rooms/${room.id}`)
+                              }
+                              style={{
+                                background: "transparent",
+                                border: "none",
+                                color: "#8a6e5b",
+                                fontSize: 14,
+                                fontWeight: 600,
+                                letterSpacing: 1,
+                                cursor: "pointer",
+                                textTransform: "uppercase",
+                                transition: "0.3s",
+                              }}
+                              onMouseOver={(e) =>
+                                (e.currentTarget.style.color = "#6b4e3d")
+                              }
+                              onMouseOut={(e) =>
+                                (e.currentTarget.style.color = "#8a6e5b")
+                              }
+                            >
+                              ROOM DETAILS
+                            </button>
                           </div>
                         </div>
-                      </Col>
-                    </Row>
-                  </Card>
-                </Col>
-              ))}
-            </Row>
-          )}
-        </div>
-      </section>
+                      </Card>
+                    </Col>
+                  ))}
+                </Row>
+              )}
+            </div>
+          </section>
 
-      {/* ---------- OTHER SECTIONS ---------- */}
-      {/* ---------- FEATURED SERVICES (DỊCH VỤ NỔI BẬT) ---------- */}
-      <section style={{ padding: "80px 64px", background: "#ffffff" }}>
-        <div style={{ textAlign: "center", marginBottom: "56px" }}>
-          <Title
-            level={2}
-            style={{
-              fontSize: "36px",
-              fontWeight: 600,
-              color: "#1f2937",
-              marginBottom: "16px",
-              fontFamily: "Playfair Display, serif",
-            }}
-          >
-            Dịch vụ nổi bật
-          </Title>
-          <Paragraph
-            style={{
-              fontSize: "16px",
-              color: "#6b7280",
-              maxWidth: "640px",
-              margin: "0 auto",
-            }}
-          >
-            Trải nghiệm những dịch vụ được yêu thích nhất tại khách sạn của
-            chúng tôi — mang đến sự thư giãn, tiện nghi và đẳng cấp.
-          </Paragraph>
-        </div>
+          {/* ========================================== */}
+          {/* ------------ OTHER SECTIONS -------------- */}
+          {/* ========================================== */}
 
-        {services.length === 0 ? (
-          <Empty description="Hiện chưa có dịch vụ nào" />
-        ) : (
-          <Row
-            gutter={[40, 40]}
-            style={{ maxWidth: "1280px", margin: "0 auto" }}
-          >
-            {services.slice(0, 3).map((service: any) => (
-              <Col xs={24} sm={12} lg={8} key={service.id}>
-                <Card
-                  hoverable
-                  cover={
-                    <div style={{ position: "relative", overflow: "hidden" }}>
-                      <img
-                        src={
-                          service.image ||
-                          service.icon_url ||
-                          "https://images.unsplash.com/photo-1591017403286-fd8493524d2f?w=800"
-                        }
-                        alt={service.name}
-                        style={{
-                          width: "100%",
-                          height: "240px",
-                          objectFit: "cover",
-                          transition: "transform 0.3s ease",
-                        }}
-                        onMouseEnter={(e) =>
-                          (e.currentTarget.style.transform = "scale(1.05)")
-                        }
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.transform = "scale(1)")
-                        }
-                      />
-                      {service.price && (
-                        <Tag
-                          color="gold"
+          <section style={{ padding: "80px 64px" }}>
+            <div style={{ textAlign: "center", marginBottom: "56px" }}>
+              <Title
+                level={2}
+                style={{
+                  fontSize: "36px",
+                  fontWeight: 600,
+                  color: "#e6d0c4",
+                  marginBottom: "16px",
+                  fontFamily: "Playfair Display, serif",
+                }}
+              >
+                Dịch vụ nổi bật
+              </Title>
+              <Paragraph
+                style={{
+                  fontSize: "16px",
+                  color: "#e6d0c4",
+                  maxWidth: "640px",
+                  margin: "0 auto",
+                }}
+              >
+                Trải nghiệm những dịch vụ được yêu thích nhất tại khách sạn của
+                chúng tôi.
+              </Paragraph>
+            </div>
+
+            {services.length === 0 ? (
+              <Empty description="Hiện chưa có dịch vụ nào" />
+            ) : (
+              <Row
+                gutter={[40, 40]}
+                style={{ maxWidth: "1280px", margin: "0 auto" }}
+              >
+                {services.slice(0, 3).map((service: any) => (
+                  <Col xs={24} sm={12} lg={8} key={service.id}>
+                    <Card
+                      hoverable
+                      cover={
+                        <div
+                          style={{ position: "relative", overflow: "hidden" }}
+                        >
+                          <img
+                            src={
+                              service.image ||
+                              service.icon_url ||
+                              "https://images.unsplash.com/photo-1591017403286-fd8493524d2f?w=800"
+                            }
+                            alt={service.name}
+                            style={{
+                              width: "100%",
+                              height: "240px",
+                              objectFit: "cover",
+                              transition: "transform 0.3s ease",
+                            }}
+                            onMouseEnter={(e) =>
+                              (e.currentTarget.style.transform = "scale(1.05)")
+                            }
+                            onMouseLeave={(e) =>
+                              (e.currentTarget.style.transform = "scale(1)")
+                            }
+                          />
+                          {service.price && (
+                            <Tag
+                              color="gold"
+                              style={{
+                                position: "absolute",
+                                top: "16px",
+                                right: "16px",
+                                fontSize: "14px",
+                                fontWeight: 600,
+                                padding: "4px 12px",
+                                borderRadius: "999px",
+                              }}
+                            >
+                              {parseFloat(
+                                service.price.toString()
+                              ).toLocaleString()}
+                              ₫
+                            </Tag>
+                          )}
+                        </div>
+                      }
+                      style={{
+                        borderRadius: "16px",
+                        overflow: "hidden",
+                        background: "rgba(255,255,255,0.9)",
+                        boxShadow: "0 4px 6px rgba(0,0,0,0.15)",
+                        display: "flex",
+                        flexDirection: "column",
+                        height: "100%",
+                      }}
+                      bodyStyle={{
+                        padding: "24px",
+                        display: "flex",
+                        flexDirection: "column",
+                        flex: 1,
+                      }}
+                    >
+                      <div style={{ flex: 1 }}>
+                        <Title
+                          level={4}
                           style={{
-                            position: "absolute",
-                            top: "16px",
-                            right: "16px",
-                            fontSize: "14px",
+                            fontSize: "20px",
                             fontWeight: 600,
-                            padding: "4px 12px",
-                            borderRadius: "999px",
+                            color: "#1f2937",
+                            marginBottom: "8px",
                           }}
                         >
-                          {parseFloat(
-                            service.price.toString()
-                          ).toLocaleString()}
-                          ₫
-                        </Tag>
-                      )}
-                    </div>
-                  }
-                  style={{
-                    borderRadius: "16px",
-                    overflow: "hidden",
-                    boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-                    display: "flex",
-                    flexDirection: "column",
-                    height: "100%",
-                  }}
-                  bodyStyle={{
-                    padding: "24px",
-                    display: "flex",
-                    flexDirection: "column",
-                    flex: 1,
-                  }}
-                >
-                  <div style={{ flex: 1 }}>
-                    <Title
-                      level={4}
-                      style={{
-                        fontSize: "20px",
-                        fontWeight: 600,
-                        color: "#1f2937",
-                        marginBottom: "8px",
-                      }}
-                    >
-                      {service.name}
-                    </Title>
-                    <Paragraph
-                      style={{
-                        fontSize: "14px",
-                        color: "#6b7280",
-                        marginBottom: "24px",
-                      }}
-                    >
-                      {service.description ||
-                        "Dịch vụ cao cấp, mang lại trải nghiệm tuyệt vời cho bạn."}
-                    </Paragraph>
-                  </div>
+                          {service.name}
+                        </Title>
+                        <Paragraph
+                          style={{
+                            fontSize: "14px",
+                            color: "#6b7280",
+                            marginBottom: "24px",
+                          }}
+                        >
+                          {service.description ||
+                            "Dịch vụ cao cấp, mang lại trải nghiệm tuyệt vời cho bạn."}
+                        </Paragraph>
+                      </div>
 
-                  <div style={{ textAlign: "center", marginTop: "auto" }}>
-                    <Button
-                      type="primary"
-                      onClick={() => navigate(`/client/services/${service.id}`)}
-                      style={{
-                        background: "#1677ff",
-                        borderRadius: "999px",
-                        padding: "12px 28px",
-                        height: "auto",
-                        fontSize: "12px",
-                        fontWeight: 500,
-                      }}
-                    >
-                      Xem chi tiết
-                    </Button>
-                  </div>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        )}
+                      <div style={{ textAlign: "center", marginTop: "auto" }}>
+                        <Button
+                          type="primary"
+                          onClick={() =>
+                            navigate(`/client/services/${service.id}`)
+                          }
+                          style={{
+                            borderRadius: "999px",
+                            padding: "12px 28px",
+                            height: "auto",
+                            fontSize: "12px",
+                            fontWeight: 500,
+                          }}
+                        >
+                          Xem chi tiết
+                        </Button>
+                      </div>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+            )}
 
-        <div style={{ textAlign: "center", marginTop: "64px" }}>
-          <Button
-            type="default"
-            size="large"
-            onClick={() => navigate("/client/services")}
-            style={{
-              borderRadius: "999px",
-              padding: "12px 32px",
-              fontWeight: 500,
-              borderColor: "#1677ff",
-              color: "#1677ff",
-            }}
-          >
-            Xem tất cả dịch vụ
-          </Button>
-        </div>
-      </section>
-
+            <div style={{ textAlign: "center", marginTop: "64px" }}>
+              <Button
+                type="default"
+                size="large"
+                onClick={() => navigate("/client/services")}
+                style={{
+                  borderRadius: "999px",
+                  padding: "12px 32px",
+                  fontWeight: 500,
+                  borderColor: "#1677ff",
+                  color: "#1677ff",
+                }}
+              >
+                Xem tất cả dịch vụ
+              </Button>
+            </div>
+          </section>
+        </div>{" "}
+        {/* END CONTENT WRAPPER */}
+      </div>{" "}
+      {/* END BACKGROUND WRAPPER */}
       <Section
         title="Địa điểm khám phá"
         subtitle="Những nơi bạn nên đến gần khách sạn"
         data={places}
         emptyMessage="Không có địa điểm nào để hiển thị"
       />
-
-      {/* ---------- Bình luận của khách hàng ---------- */}
+      {/* ---------- TESTIMONIALS ---------- */}
       <div
         style={{
-          background: "#f8fafc",
+          position: "relative",
+          width: "100%",
           padding: "80px 64px",
           textAlign: "center",
+          backgroundImage:
+            'url("https://kimfurniture.com/wp-content/uploads/2022/10/phong-khach-mau-xam-13.jpg")',
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
         }}
       >
-        <Title level={1}>BÌNH LUẬN & ĐÁNH GIÁ KHÁCH HÀNG</Title>
-        <Paragraph style={{ maxWidth: 600, margin: "0 auto 64px" }}>
-          “Lắng nghe trải nghiệm từ những vị khách đáng mến”
-        </Paragraph>
+        {/* Overlay đen làm mờ (giống đúng hình bạn đưa) */}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(0, 0, 0, 0.55)", // độ mờ
+            backdropFilter: "blur(2px)", // thêm độ blur giống mẫu
+            zIndex: 0,
+          }}
+        ></div>
 
-        <Row gutter={[24, 24]} justify="center">
-          {testimonials.length === 0 ? (
-            <Empty description="Chưa có đánh giá nào" />
-          ) : (
-            testimonials.map((item: any) => (
-              <Col xs={24} sm={12} lg={8} key={item.id}>
-                <Card styles={{ body: { textAlign: "center" } }}>
-                  <Space direction="vertical" align="center">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      style={{
-                        width: 64,
-                        height: 64,
-                        borderRadius: "50%",
-                        objectFit: "cover",
-                      }}
-                    />
-                    <Title level={5}>{item.name}</Title>
-                    <Text type="secondary">{item.address}</Text>
-                    <Rate disabled defaultValue={item.rating} />
-                    <Paragraph>"{item.review}"</Paragraph>
-                  </Space>
-                </Card>
-              </Col>
-            ))
-          )}
-        </Row>
+        {/* CONTENT */}
+        <div style={{ position: "relative", zIndex: 1, color: "white" }}>
+          <Title level={1} style={{ color: "white" }}>
+            BÌNH LUẬN & ĐÁNH GIÁ KHÁCH HÀNG
+          </Title>
+
+          <Paragraph
+            style={{ maxWidth: 600, margin: "0 auto 64px", color: "#f1f1f1" }}
+          >
+            “Lắng nghe trải nghiệm từ những vị khách đáng mến”
+          </Paragraph>
+
+          <Row gutter={[24, 24]} justify="center">
+            {testimonials.length === 0 ? (
+              <Empty description="Chưa có đánh giá nào" />
+            ) : (
+              testimonials.map((item: any) => (
+                <Col xs={24} sm={12} lg={8} key={item.id}>
+                  <Card
+                    styles={{ body: { textAlign: "center" } }}
+                    style={{
+                      backdropFilter: "blur(6px)",
+                      background: "rgba(255,255,255,0.1)",
+                      border: "1px solid rgba(255,255,255,0.15)",
+                      color: "white",
+                    }}
+                  >
+                    <Space direction="vertical" align="center">
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        style={{
+                          width: 64,
+                          height: 64,
+                          borderRadius: "50%",
+                          objectFit: "cover",
+                        }}
+                      />
+                      <Title level={5} style={{ color: "white" }}>
+                        {item.name}
+                      </Title>
+                      <Text style={{ color: "#e0e0e0" }}>{item.address}</Text>
+                      <Rate disabled defaultValue={item.rating} />
+                      <Paragraph style={{ color: "#ddd" }}>
+                        "{item.review}"
+                      </Paragraph>
+                    </Space>
+                  </Card>
+                </Col>
+              ))
+            )}
+          </Row>
+        </div>
       </div>
     </>
   );

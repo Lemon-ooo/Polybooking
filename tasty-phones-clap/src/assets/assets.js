@@ -309,6 +309,8 @@ export const dashboardDummyData = {
   bookings: userBookingsDummyData,
 };
 
+
+
 // --------- SVG code for Book Icon------
 /* 
 const BookIcon = ()=>(

@@ -7,6 +7,10 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ResetPasswordMail;
+
 
 class AuthController extends Controller
 {
@@ -85,4 +89,34 @@ class AuthController extends Controller
             'user' => $request->user()
         ]);
     }
+    public function forgotPassword(Request $request)
+{
+    $request->validate([
+        'email' => 'required|email'
+    ]);
+
+    $user = User::where('email', $request->email)->first();
+
+    if (!$user) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Email không tồn tại trong hệ thống.'
+        ], 404);
+    }
+
+    // Tạo mật khẩu mới
+    $newPassword = Str::random(length: 8);
+
+    // Cập nhật DB
+    $user->password = Hash::make($newPassword);
+    $user->save();
+
+    // Gửi email
+    Mail::to($user->email)->send(new \App\Mail\ResetPasswordMail($newPassword));
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Mật khẩu mới đã được gửi đến email của bạn!'
+    ]);
+}
 }
