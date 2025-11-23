@@ -1,156 +1,98 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Amenity;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
 
 class AmenityController extends Controller
 {
-    /**
-     * 🟢 Lấy danh sách tiện ích
-     */
-    public function index(): JsonResponse
+    public function index()
     {
-        $amenities = Amenity::latest()->get();
+        $amenities = Amenity::paginate(20);
 
-        // Tạo icon_url để FE load ảnh
-        $amenities->each(function ($item) {
-            $item->icon_url = $item->icon_path ? asset($item->icon_path) : null;
-        });
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Danh sách tiện ích',
-            'data' => $amenities
-        ]);
+        return view('admin.amenities.index', compact('amenities'));
     }
 
-    /**
-     * 🟢 Lấy chi tiết tiện ích
-     */
-    public function show($id): JsonResponse
+    public function create()
     {
-        $amenity = Amenity::find($id);
-
-        if (!$amenity) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Không tìm thấy tiện ích',
-            ], 404);
-        }
-
-        $amenity->icon_url = $amenity->icon_path ? asset($amenity->icon_path) : null;
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Chi tiết tiện ích',
-            'data' => $amenity
-        ]);
+        return view('admin.amenities.create');
     }
 
-    /**
-     * 🟢 Tạo mới tiện ích (upload ảnh icon)
-     */
-    public function store(Request $request): JsonResponse
+    public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'category' => 'nullable|string|max:255',
-            'icon' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:2048',
-            'description' => 'nullable|string',
+            'amenity_name'  => 'required|string|max:255',
+            'description'   => 'nullable|string',
+            'amenity_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        $data = $request->only(['name', 'category', 'description']);
-
-        // Upload icon
-        if ($request->hasFile('icon')) {
-            $path = $request->file('icon')->store('amenities', 'public_uploads');
-            $data['icon_path'] = $path;
+        if ($request->hasFile('amenity_image')) {
+            $path = $request->file('amenity_image')->store('amenities', 'public');
+            $validated['amenity_image'] = $path;
         }
 
-        $amenity = Amenity::create($data);
-        $amenity->icon_url = $amenity->icon_path ? asset($amenity->icon_path) : null;
+        Amenity::create($validated);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Thêm tiện ích thành công!',
-            'data' => $amenity
-        ], 201);
+        return redirect()
+            ->route('admin.amenities.index')
+            ->with('success', 'Tạo tiện ích thành công.');
     }
 
-    /**
-     * 🟢 Cập nhật tiện ích
-     */
-    public function update(Request $request, $id): JsonResponse
+    public function show($id)
     {
-        $amenity = Amenity::find($id);
+        $amenity = Amenity::findOrFail($id);
 
-        if (!$amenity) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Không tìm thấy tiện ích',
-            ], 404);
-        }
+        return view('admin.amenities.show', compact('amenity'));
+    }
+
+    public function edit($id)
+    {
+        $amenity = Amenity::findOrFail($id);
+
+        return view('admin.amenities.edit', compact('amenity'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $amenity = Amenity::findOrFail($id);
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'category' => 'nullable|string|max:255',
-            'icon' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:2048',
-            'description' => 'nullable|string',
+            'amenity_name'  => 'required|string|max:255',
+            'description'   => 'nullable|string',
+            'amenity_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        $data = $request->only(['name', 'category', 'description']);
-
-        // Upload icon mới nếu có
-        if ($request->hasFile('icon')) {
-
-            // Xóa ảnh cũ
-            if ($amenity->icon_path && file_exists(public_path($amenity->icon_path))) {
-                unlink(public_path($amenity->icon_path));
+        if ($request->hasFile('amenity_image')) {
+            if ($amenity->amenity_image && Storage::disk('public')->exists($amenity->amenity_image)) {
+                Storage::disk('public')->delete($amenity->amenity_image);
             }
 
-            $path = $request->file('icon')->store('amenities', 'public_uploads');
-            $data['icon_path'] = $path;
+            $path = $request->file('amenity_image')->store('amenities', 'public');
+            $validated['amenity_image'] = $path;
         }
 
-        $amenity->update($data);
+        $amenity->update($validated);
 
-        $amenity->icon_url = $amenity->icon_path ? asset($amenity->icon_path) : null;
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Cập nhật tiện ích thành công!',
-            'data' => $amenity
-        ]);
+        return redirect()
+            ->route('admin.amenities.index')
+            ->with('success', 'Cập nhật tiện ích thành công.');
     }
 
-    /**
-     * 🟢 Xóa tiện ích
-     */
-    public function destroy($id): JsonResponse
+    public function destroy($id)
     {
-        $amenity = Amenity::find($id);
+        $amenity = Amenity::findOrFail($id);
 
-        if (!$amenity) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Không tìm thấy tiện ích',
-            ], 404);
-        }
-
-        // Xóa ảnh trên server
-        if ($amenity->icon_path && file_exists(public_path($amenity->icon_path))) {
-            unlink(public_path($amenity->icon_path));
+        if ($amenity->amenity_image && Storage::disk('public')->exists($amenity->amenity_image)) {
+            Storage::disk('public')->delete($amenity->amenity_image);
         }
 
         $amenity->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Xóa tiện ích thành công!'
-        ]);
+        return redirect()
+            ->route('admin.amenities.index')
+            ->with('success', 'Xóa tiện ích thành công.');
     }
 }

@@ -1,41 +1,31 @@
 <?php
 
 namespace App\Models;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Room extends Model
 {
-    use HasFactory;
-        protected $table = 'rooms';
-    protected $primaryKey = 'room_id'; // ✅ rất quan trọng!
-    public $timestamps = true; // nếu bảng có created_at, updated_at
-     protected $fillable = [
+    protected $primaryKey = 'room_id';
+    public $incrementing = true;
+    protected $keyType = 'int';
+
+    protected $fillable = [
         'room_number',
-        'room_type_id',
+        'room_status',
         'description',
-        'price',
-        'status',
+        'room_type_id',
     ];
 
-    public function roomType()
+    // room -> thuộc về room_type
+    public function roomType(): BelongsTo
     {
-        return $this->belongsTo(RoomType::class);
+        return $this->belongsTo(RoomType::class, 'room_type_id');
     }
-    public function amenities()
+    public function assignedRooms()
 {
-    return $this->belongsToMany(
-        Amenity::class,       // model liên kết
-        'room_amenity',       // tên bảng pivot
-        'room_id',            // khóa ngoại của Room
-        'amenity_id'          // khóa ngoại của Amenity
-    );
-}
-
-
-    public function images()
-{
-    return $this->hasMany(RoomImage::class, 'room_id', 'room_id');
+    return $this->hasMany(AssignedRoom::class, 'room_id', 'room_id');
 }
 
 }

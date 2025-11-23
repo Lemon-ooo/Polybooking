@@ -1,84 +1,150 @@
 <?php
 
 namespace App\Http\Controllers\Web;
+
 use App\Http\Controllers\Controller;
 use App\Models\RoomType;
+use App\Models\Amenity;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class RoomTypeController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Danh sách loại phòng (admin).
+     * total_rooms = rooms_count (đếm từ bảng rooms), không lấy từ DB column.
      */
     public function index()
     {
-        $roomTypes = RoomType::all();
-        return view('room_types.index', compact('roomTypes'));
+        // rooms_count được sinh ra bởi withCount('rooms')
+        $roomTypes = RoomType::withCount('rooms')->paginate(10);
+
+        return view('admin.room_types.index', compact('roomTypes'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Form tạo loại phòng.
      */
     public function create()
     {
-        return view('room_types.create');
+        $amenities = Amenity::all();
+
+        return view('admin.room_types.create', compact('amenities'));
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Lưu loại phòng mới.
+     * total_rooms không còn trong validate, logic chỉ phụ thuộc vào rooms bảng riêng.
      */
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'base_price' => 'required|numeric|min:0',
+            'room_type_name' => 'required|string|max:255',
+            'base_price'     => 'required|numeric|min:0',
+            'max_guests'     => 'required|integer|min:1',
+            'description'    => 'nullable|string',
+            'room_type_image'=> 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'amenity_ids'    => 'nullable|array',
+            'amenity_ids.*'  => 'exists:amenities,amenity_id',
         ]);
 
-        RoomType::create($validated);
-        return redirect()->route('web.room-types.index')->with('success', 'Loại phòng đã được thêm!');
-    
+        // Xử lý ảnh chính
+        if ($request->hasFile('room_type_image')) {
+            $path = $request->file('room_type_image')->store('room_types', 'public');
+            $validated['room_type_image'] = $path;
+        }
+
+        // Tạo room type mới
+        $roomType = RoomType::create($validated);
+
+        // Gán amenities (nếu có)
+        if (!empty($validated['amenity_ids'] ?? null)) {
+            $roomType->amenities()->sync($validated['amenity_ids']);
+        }
+
+        return redirect()
+            ->route('admin.room-types.index')
+            ->with('success', 'Tạo loại phòng thành công.');
     }
 
     /**
-     * Display the specified resource.
+     * Xem chi tiết 1 loại phòng.
+     * total_rooms = rooms->count()
      */
-    public function show(string $id)
+    public function show($id)
+    {
+        $roomType = RoomType::with(['rooms', 'amenities', 'images'])
+            ->withCount('rooms')
+            ->findOrFail($id);
+
+        return view('admin.room_types.show', compact('roomType'));
+    }
+
+    /**
+     * Form chỉnh sửa loại phòng.
+     */
+    public function edit($id)
+    {
+        $roomType  = RoomType::with('amenities')->findOrFail($id);
+        $amenities = Amenity::all();
+
+        return view('admin.room_types.edit', compact('roomType', 'amenities'));
+    }
+
+    /**
+     * Cập nhật loại phòng.
+     * Không đụng gì tới total_rooms, vì nó là số đếm từ bảng rooms.
+     */
+    public function update(Request $request, $id)
     {
         $roomType = RoomType::findOrFail($id);
-        return view('room_types.show', compact('roomType'));
-    }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        $roomType = RoomType::findOrFail($id);
-        return view('room_types.edit', compact('roomType'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, RoomType $roomType)
-    {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'base_price' => 'required|numeric|min:0',
+            'room_type_name' => 'required|string|max:255',
+            'base_price'     => 'required|numeric|min:0',
+            'max_guests'     => 'required|integer|min:1',
+            'description'    => 'nullable|string',
+            'room_type_image'=> 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'amenity_ids'    => 'nullable|array',
+            'amenity_ids.*'  => 'exists:amenities,amenity_id',
         ]);
+
+        // Nếu upload ảnh mới thì xóa ảnh cũ (nếu có)
+        if ($request->hasFile('room_type_image')) {
+            if ($roomType->room_type_image && Storage::disk('public')->exists($roomType->room_type_image)) {
+                Storage::disk('public')->delete($roomType->room_type_image);
+            }
+
+            $path = $request->file('room_type_image')->store('room_types', 'public');
+            $validated['room_type_image'] = $path;
+        }
 
         $roomType->update($validated);
-        return redirect()->route('web.room-types.index')->with('success', 'Loại phòng đã được cập nhật!');
+
+        // Cập nhật amenities
+        $roomType->amenities()->sync($validated['amenity_ids'] ?? []);
+
+        return redirect()
+            ->route('admin.room-types.index')
+            ->with('success', 'Cập nhật loại phòng thành công.');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Xóa loại phòng.
      */
-    public function destroy(RoomType $roomType)
+    public function destroy($id)
     {
+        $roomType = RoomType::findOrFail($id);
+
+        // Xóa ảnh chính nếu có
+        if ($roomType->room_type_image && Storage::disk('public')->exists($roomType->room_type_image)) {
+            Storage::disk('public')->delete($roomType->room_type_image);
+        }
+
         $roomType->delete();
-        return redirect()->route('web.room-types.index')->with('success', 'Loại phòng đã được xóa!');
+
+        return redirect()
+            ->route('admin.room-types.index')
+            ->with('success', 'Xóa loại phòng thành công.');
     }
 }

@@ -2,22 +2,27 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Foundation\Auth\User as Authenticatable; // 🔥 PHẢI LÀ CÁI NÀY
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens; // ✅ thêm dòng này
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class User extends Authenticatable
+class User extends Authenticatable  // 🔥 KẾ THỪA Authenticatable (của Eloquent)
 {
-    use HasApiTokens, HasFactory, Notifiable;
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasFactory, Notifiable;
+
+    protected $primaryKey = 'user_id';
+    public $incrementing = true;
+    protected $keyType = 'int';
 
     protected $fillable = [
-        'name',
+        'user_name',
         'email',
         'password',
-        'role', // ✅ thêm dòng này
-        'role', // ✅ thêm dòng này
+        'phone_number',
+        'address',
+        'avatar',
+        'date_of_birth',
+        'role',
     ];
 
     protected $hidden = [
@@ -25,11 +30,13 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'date_of_birth'     => 'date',
+    ];
+    public function bookings()
+{
+    return $this->hasMany(Booking::class, 'user_id', 'user_id');
+}
+
 }
