@@ -45,6 +45,7 @@ import ServicesEdit from "./components/pages/admin/services/edit";
 import ClientServices from "./components/pages/client/services/ClientServices";
 import { ClientAbout } from "./components/pages/client/about";
 import { ForgotPassword } from "./components/pages/share/forgotPassword";
+import { ResetPassword } from "./components/pages/share/resetPassword";
 
 export default function App() {
   return (
@@ -66,6 +67,7 @@ export default function App() {
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
             <Route path="forgot-password" element={<ForgotPassword />} />
+            <Route path="reset-password" element={<ResetPassword />} />
           </Route>
 
           {/* 🚀 Client routes */}
