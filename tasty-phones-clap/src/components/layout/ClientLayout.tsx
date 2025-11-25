@@ -25,7 +25,7 @@ export const ClientLayout: React.FC = () => {
 
   const navLinks: NavLink[] = [
     { name: "Home", path: "/client", key: "/client" },
-    { name: "Rooms & Suites", path: "/client/rooms", key: "/client/rooms" },
+    { name: "Rooms & Suites", path: "/client/room-types", key: "/client/room-types" },
     { name: "about", path: "/client/about", key: "/client/about" },
     { name: "Services", path: "/client/services", key: "/client/services" },
     { name: "Events", path: "/client/events", key: "/client/events" },

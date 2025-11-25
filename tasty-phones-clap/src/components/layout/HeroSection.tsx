@@ -2,9 +2,9 @@
 import React, { useState, useEffect } from "react";
 
 const IMAGES = [
-  "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1600&q=70",
-  "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=1600&q=70",
-  "https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?auto=format&fit=crop&w=1600&q=70",
+  "https://img.dothi.net/2020/07/31/Z9BcC3fq/khach-san-dep-2-88c4.jpg",
+  "https://img.dothi.net/2020/07/31/Z9BcC3fq/khach-san-dep-10-eb7a.jpg",
+  "https://img.dothi.net/2020/07/31/Z9BcC3fq/khach-san-dep-4-4fe1.jpg",
 ] as const;
 
 const GOLD = "#c9a96e";
