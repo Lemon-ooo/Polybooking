@@ -1,6 +1,6 @@
 import React from "react";
 import { useTable } from "@refinedev/antd";
-import { Row, Col, Typography, Spin, Alert, Button } from "antd";
+import { Row, Col, Typography, Spin, Alert, Button, Card } from "antd";
 import { useNavigate } from "react-router-dom";
 import { RoomType } from "../../../../interfaces/roomTypes";
 import "./ClientRooms.css";
@@ -15,13 +15,19 @@ export const ClientRooms: React.FC = () => {
     resource: "room-types",
   });
 
-  const roomTypes = tableProps?.dataSource || [];
+  const rooms = tableProps?.dataSource || [];
   const isLoading = tableQueryResult?.isLoading;
   const isError = tableQueryResult?.isError;
   const error = tableQueryResult?.error;
+  const API_URL = "http://localhost:8000/storage/"; // hoặc URL server của bạn
+
+  const getRoomTypeImage = (roomType: RoomType) =>
+    roomType.room_type_image
+      ? `${API_URL}${roomType.room_type_image}`
+      : "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop";
 
   const handleViewDetails = (roomTypeId: number) => {
-    navigate(`/client/rooms/${roomTypeId}`);
+    navigate(`/client/room-types/${roomTypeId}`);
     window.scrollTo(0, 0);
   };
 
@@ -45,6 +51,7 @@ export const ClientRooms: React.FC = () => {
 
   return (
     <div className="client-rooms-container">
+      {/* ================== HERO BANNER ================== */}
       <div className="rooms-hero-banner">
         <div className="hero-overlay" />
         <div className="hero-content">
@@ -52,68 +59,122 @@ export const ClientRooms: React.FC = () => {
         </div>
       </div>
 
-      <div className="rooms-grid-section luxury-rooms">
+      {/* ================== ROOM CARDS ================== */}
+      <section
+        className="featured-rooms-section"
+        style={{ padding: "40px 64px" }}
+      >
         <div className="container">
+          <Title
+            level={2}
+            style={{
+              textAlign: "center",
+              marginBottom: 16,
+              fontFamily: "'Playfair Display', serif",
+              fontSize: 42,
+              color: "#000",
+            }}
+          >
+            Accommodations
+          </Title>
+
+          <Paragraph
+            style={{
+              textAlign: "center",
+              marginBottom: 40,
+              color: "#000",
+              fontSize: 16,
+            }}
+          >
+            Luxurious and sophisticated effects in every resort space
+          </Paragraph>
+
           {isLoading ? (
-            <div className="loading-container luxury-loading">
+            <div style={{ textAlign: "center" }}>
               <Spin size="large" />
               <Text style={{ marginTop: 16, display: "block" }}>
-                Loading luxury accommodations...
+                Loading room types...
               </Text>
             </div>
-          ) : roomTypes.length === 0 ? (
-            <div className="empty-state luxury-empty">
+          ) : rooms.length === 0 ? (
+            <div style={{ textAlign: "center" }}>
               <Text type="secondary" style={{ fontSize: 16 }}>
-                No room types found.
+                No room types available.
               </Text>
             </div>
           ) : (
-            <Row gutter={[32, 32]} className="room-category-grid">
-              {roomTypes.map((roomType) => {
-                const mainImage =
-                  roomType.images?.find((img) => img.image_type === "main")
-                    ?.image_url ||
-                  roomType.room_type_image ||
-                  "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop";
+            <Row gutter={[32, 32]} justify="center">
+  {rooms.map((roomType) => (
+    <Col xs={24} sm={12} md={8} lg={6} key={roomType.room_type_id}>
+      <Card
+        bodyStyle={{ padding: 0 }}
+        hoverable
+        style={{
+          borderRadius: 12,
+          overflow: "hidden",
+          background: "#fff",
+          boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+          cursor: "pointer", // Thêm icon chuột
+        }}
+        onClick={() => handleViewDetails(roomType.room_type_id)} // Click card
+      >
+        <div style={{ width: "100%", height: 220, overflow: "hidden" }}>
+          <img
+            src={getRoomTypeImage(roomType)}
+            alt={roomType.room_type_name}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            onError={(e) =>
+              ((e.target as HTMLImageElement).src =
+                "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop")
+            }
+          />
+        </div>
 
-                return (
-                  <Col xs={24} md={12} key={roomType.room_type_id}>
-                    <div
-                      className="room-item fade-in"
-                      onClick={() => handleViewDetails(roomType.room_type_id)}
-                    >
-                      <div className="room-image-wrapper">
-                        <img
-                          src={mainImage}
-                          alt={roomType.room_type_name}
-                          className="room-thumbnail"
-                          onError={(e) =>
-                            ((e.target as HTMLImageElement).src =
-                              "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop")
-                          }
-                        />
-                      </div>
-                      <div className="room-content">
-                        <Title level={4} className="room-name">
-                          {roomType.room_type_name.toUpperCase()}
-                        </Title>
-                        <Paragraph className="room-desc">
-                          {roomType.description ||
-                            "Phòng được trang bị đầy đủ tiện nghi, nội thất sang trọng và hiện đại."}
-                        </Paragraph>
-                        <Text strong style={{ fontSize: 16 }}>
-                          Giá từ: {Number(roomType.base_price).toLocaleString()}{" "}
-                          VND
-                        </Text>
-                      </div>
-                    </div>
-                  </Col>
-                );
-              })}
-            </Row>
+        <div style={{ padding: "20px" }}>
+          <h3
+            style={{
+              fontFamily: "'Playfair Display', serif",
+              color: "#8a6e5b",
+              fontSize: 22,
+              marginBottom: 8,
+            }}
+          >
+            {roomType.room_type_name}
+          </h3>
+          <p
+            style={{
+              color: "#444",
+              fontSize: 14,
+              lineHeight: 1.5,
+              marginBottom: 16,
+            }}
+          >
+            {roomType.description || "A luxurious room with elegant design."}
+          </p>
+          <div style={{ textAlign: "right" }}>
+            <button
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "#8a6e5b",
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: "pointer",
+                textTransform: "uppercase",
+              }}
+            >
+              ROOM DETAILS
+            </button>
+          </div>
+        </div>
+      </Card>
+    </Col>
+  ))}
+</Row>
+
           )}
         </div>
-      </div>
+      </section>
     </div>
   );
 };

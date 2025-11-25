@@ -45,13 +45,16 @@ export const ClientDashboard: React.FC = () => {
     fetchAllData();
   }, []);
 
+  const getRoomTypeImage = (roomType: any) =>
+    `http://localhost:8000/storage/${roomType.room_type_image}`;
+
   const fetchAllData = async () => {
     try {
       setLoading(true);
       setIsLoading(true);
 
       const [roomsRes, servicesRes, amenitiesRes] = await Promise.all([
-        axiosInstance.get("/rooms"),
+        axiosInstance.get("/room-types"),
         axiosInstance.get("/services"),
         axiosInstance.get("/amenities"),
       ]);
@@ -63,24 +66,24 @@ export const ClientDashboard: React.FC = () => {
       const mockPlaces = [
         {
           id: 1,
-          name: "Bãi biển Mỹ Khê",
-          description: "Một trong những bãi biển đẹp nhất Việt Nam.",
+          name: "My Khe Beach",
+          description: "One of Vietnam's most beautiful beaches.",
           image:
             "https://havi-web.s3.ap-southeast-1.amazonaws.com/bien_my_khe_da_nang_2_11zon_1_a3a8e98ee1.webp",
         },
         {
           id: 2,
-          name: "Cầu Rồng",
+          name: "Dragon Bridge",
           description:
-            "Biểu tượng nổi tiếng của Đà Nẵng, phun lửa mỗi cuối tuần.",
+            "A famous Danang landmark that breathes fire on weekends.",
           image:
             "https://vietluxtour.com/Upload/images/2024/khamphatrongnuoc/C%E1%BA%A7u%20R%E1%BB%93ng%20%C4%90%C3%A0%20N%E1%BA%B5ng/cau-rong-da-nang-main-min.jpg",
         },
         {
           id: 3,
-          name: "Ngũ Hành Sơn",
+          name: "Marble Mountains",
           description:
-            "Thắng cảnh nổi tiếng với hệ thống chùa chiền và hang động kỳ thú.",
+            "A popular attraction with temples and interesting caves to explore.",
           image:
             "https://booking.muongthanh.com/upload_images/images/H%60/nui-ngu-hanh-son.jpg",
         },
@@ -89,26 +92,27 @@ export const ClientDashboard: React.FC = () => {
       const mockTestimonials = [
         {
           id: 1,
-          name: "Nguyễn Văn A",
-          address: "Hà Nội",
+          name: "Nguyen Van A",
+          address: "Hanoi",
           rating: 5,
-          review: "Phòng rất đẹp và sạch sẽ, nhân viên phục vụ chu đáo!",
+          review:
+            "The room was beautiful and clean, and the staff were very attentive!",
           image: "https://randomuser.me/api/portraits/men/75.jpg",
         },
         {
           id: 2,
-          name: "Trần Thị B",
-          address: "Hồ Chí Minh",
+          name: "Tran Thi B",
+          address: "Ho Chi Minh City",
           rating: 4,
-          review: "Dịch vụ tuyệt vời, tôi sẽ quay lại lần sau.",
+          review: "Excellent service — I will definitely come back.",
           image: "https://randomuser.me/api/portraits/women/65.jpg",
         },
         {
           id: 3,
-          name: "Phạm Minh C",
-          address: "Đà Nẵng",
+          name: "Pham Minh C",
+          address: "Da Nang",
           rating: 5,
-          review: "Trải nghiệm tuyệt vời, đáng đồng tiền!",
+          review: "Wonderful experience, great value for money!",
           image: "https://randomuser.me/api/portraits/men/20.jpg",
         },
       ];
@@ -117,7 +121,7 @@ export const ClientDashboard: React.FC = () => {
       setTestimonials(mockTestimonials);
     } catch (err) {
       console.error(err);
-      message.error("Không thể tải dữ liệu từ server!");
+      message.error("Unable to load data from server!");
     } finally {
       setLoading(false);
       setIsLoading(false);
@@ -136,137 +140,135 @@ export const ClientDashboard: React.FC = () => {
     );
 
   return (
-    
     <>
-    {/* ===================== BOOKING BAR ===================== */}
-<section
-  style={{
-    width: "100%",
-    background: "white",
-    padding: "20px 0",
-    display: "flex",
-    justifyContent: "center",
-    borderBottom: "1px solid #eee",
-  }}
->
-  <div
-    style={{
-      width: "100%",
-      maxWidth: "1200px",
-      display: "grid",
-      gridTemplateColumns: "repeat(5, 1fr)",
-      gap: "12px",
-      alignItems: "center",
-      padding: "0 16px",
-    }}
-  >
-    {/* CHECK-IN */}
-    <div
-      style={{
-        border: "1px solid #d9d9d9",
-        borderRadius: 6,
-        padding: "8px 12px",
-        background: "#fff",
-      }}
-    >
-      <label style={{ fontSize: 13, color: "#666" }}>Check-in</label>
-      <input
-        type="date"
+      {/* ===================== BOOKING BAR ===================== */}
+      <section
         style={{
-          border: "none",
           width: "100%",
-          marginTop: 4,
-          fontWeight: 600,
-          outline: "none",
-        }}
-        defaultValue="2025-11-19"
-      />
-    </div>
-
-    {/* CHECK-OUT */}
-    <div
-      style={{
-        border: "1px solid #d9d9d9",
-        borderRadius: 6,
-        padding: "8px 12px",
-        background: "#fff",
-      }}
-    >
-      <label style={{ fontSize: 13, color: "#666" }}>Check-out</label>
-      <input
-        type="date"
-        style={{
-          border: "none",
-          width: "100%",
-          marginTop: 4,
-          fontWeight: 600,
-          outline: "none",
-        }}
-        defaultValue="2025-11-20"
-      />
-    </div>
-
-    {/* GUESTS */}
-    <div
-      style={{
-        border: "1px solid #d9d9d9",
-        borderRadius: 6,
-        padding: "8px 12px",
-        background: "#fff",
-      }}
-    >
-      <label style={{ fontSize: 13, color: "#666" }}>Guests</label>
-      <select
-        style={{
-          border: "none",
-          width: "100%",
-          marginTop: 4,
-          fontWeight: 600,
-          outline: "none",
-          background: "transparent",
+          background: "white",
+          padding: "20px 0",
+          display: "flex",
+          justifyContent: "center",
+          borderBottom: "1px solid #eee",
         }}
       >
-        <option>2 adults, 0 children</option>
-        <option>2 adults, 1 child</option>
-        <option>1 adult</option>
-      </select>
-    </div>
+        <div
+          style={{
+            width: "100%",
+            maxWidth: "1200px",
+            display: "grid",
+            gridTemplateColumns: "repeat(5, 1fr)",
+            gap: "12px",
+            alignItems: "center",
+            padding: "0 16px",
+          }}
+        >
+          {/* CHECK-IN */}
+          <div
+            style={{
+              border: "1px solid #d9d9d9",
+              borderRadius: 6,
+              padding: "8px 12px",
+              background: "#fff",
+            }}
+          >
+            <label style={{ fontSize: 13, color: "#666" }}>Check-in</label>
+            <input
+              type="date"
+              style={{
+                border: "none",
+                width: "100%",
+                marginTop: 4,
+                fontWeight: 600,
+                outline: "none",
+              }}
+              defaultValue="2025-11-19"
+            />
+          </div>
 
-    {/* PROMO CODE */}
-    <button
-      style={{
-        width: "100%",
-        height: "100%",
-        borderRadius: 6,
-        border: "1px solid #d9d9d9",
-        background: "#efe5e0",
-        fontWeight: 500,
-        cursor: "pointer",
-      }}
-    >
-      I have a promo code
-    </button>
+          {/* CHECK-OUT */}
+          <div
+            style={{
+              border: "1px solid #d9d9d9",
+              borderRadius: 6,
+              padding: "8px 12px",
+              background: "#fff",
+            }}
+          >
+            <label style={{ fontSize: 13, color: "#666" }}>Check-out</label>
+            <input
+              type="date"
+              style={{
+                border: "none",
+                width: "100%",
+                marginTop: 4,
+                fontWeight: 600,
+                outline: "none",
+              }}
+              defaultValue="2025-11-20"
+            />
+          </div>
 
-    {/* BUTTON FIND ROOM */}
-    <button
-      style={{
-        width: "100%",
-        height: "100%",
-        borderRadius: 6,
-        border: "none",
-        background: "#b89585",
-        color: "white",
-        fontWeight: 600,
-        cursor: "pointer",
-      }}
-      onClick={() => console.log("Go search rooms")}
-    >
-      FIND ROOM
-    </button>
-  </div>
-</section>
+          {/* GUESTS */}
+          <div
+            style={{
+              border: "1px solid #d9d9d9",
+              borderRadius: 6,
+              padding: "8px 12px",
+              background: "#fff",
+            }}
+          >
+            <label style={{ fontSize: 13, color: "#666" }}>Guests</label>
+            <select
+              style={{
+                border: "none",
+                width: "100%",
+                marginTop: 4,
+                fontWeight: 600,
+                outline: "none",
+                background: "transparent",
+              }}
+            >
+              <option>2 adults, 0 children</option>
+              <option>2 adults, 1 child</option>
+              <option>1 adult</option>
+            </select>
+          </div>
 
-      {/* ====== BACKGROUND WRAPPER CHUNG ====== */}
+          {/* PROMO CODE */}
+          <button
+            style={{
+              width: "100%",
+              height: "100%",
+              borderRadius: 6,
+              border: "1px solid #d9d9d9",
+              background: "#efe5e0",
+              fontWeight: 500,
+              cursor: "pointer",
+            }}
+          >
+            I have a promo code
+          </button>
+
+          {/* BUTTON FIND ROOM */}
+          <button
+            style={{
+              width: "100%",
+              height: "100%",
+              borderRadius: 6,
+              border: "none",
+              background: "#b89585",
+              color: "white",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+            onClick={() => console.log("Search rooms")}
+          >
+            FIND ROOM
+          </button>
+        </div>
+      </section>
+      {/* ====== SHARED BACKGROUND WRAPPER ====== */}
       <div
         style={{
           position: "relative",
@@ -275,7 +277,7 @@ export const ClientDashboard: React.FC = () => {
           overflow: "hidden",
         }}
       >
-        {/* LAYER BACKGROUND (mờ) */}
+        {/* BACKGROUND LAYER (blurred) */}
         <div
           style={{
             position: "absolute",
@@ -292,7 +294,7 @@ export const ClientDashboard: React.FC = () => {
             zIndex: 0,
           }}
         ></div>
-        {/* LAYER OVERLAY */}
+        {/* OVERLAY LAYER */}
         <div
           style={{
             position: "absolute",
@@ -304,10 +306,10 @@ export const ClientDashboard: React.FC = () => {
             zIndex: 1,
           }}
         ></div>
-        {/* TẤT CẢ NỘI DUNG */}
+        {/* ALL CONTENT */}
         <div style={{ position: "relative", zIndex: 2 }}>
           {/* ========================================== */}
-          {/* ---------- (VỊ TRÍ B) INTRO SECTION ------- */}
+          {/* ---------- INTRO SECTION (AREA B) ------- */}
           {/* ========================================== */}
 
           <section
@@ -328,7 +330,7 @@ export const ClientDashboard: React.FC = () => {
                 alignItems: "center",
               }}
             >
-              {/* SLIDE ẢNH BÊN TRÁI */}
+              {/* LEFT IMAGE SLIDER */}
               <div
                 style={{
                   width: "100%",
@@ -376,7 +378,7 @@ export const ClientDashboard: React.FC = () => {
                 </Carousel>
               </div>
 
-              {/* TEXT BÊN PHẢI */}
+              {/* RIGHT TEXT */}
               <div style={{ color: "#e6d0c4", textAlign: "left" }}>
                 <h2
                   style={{
@@ -412,14 +414,14 @@ export const ClientDashboard: React.FC = () => {
                   }}
                 >
                   Bringing guests unique and memorable experiences with the goal
-                  of becoming the leading Boutique hotel chain in Vietnam.
+                  of becoming the leading boutique hotel chain in Vietnam.
                 </p>
               </div>
             </div>
           </section>
 
           {/* ========================================== */}
-          {/* -------------- PHẦN DƯỚI ----------------- */}
+          {/* -------------- LOWER SECTION -------------- */}
           {/* ========================================== */}
 
           <section
@@ -442,7 +444,7 @@ export const ClientDashboard: React.FC = () => {
                 alignItems: "center",
               }}
             >
-              {/* TEXT LEFT */}
+              {/* LEFT TEXT */}
               <div style={{ color: "#e6d0c4", textAlign: "left" }}>
                 <h2
                   style={{
@@ -484,7 +486,7 @@ export const ClientDashboard: React.FC = () => {
                 <p style={{ marginTop: "16px", color: "#e6d0c4" }}>VIEW MORE</p>
               </div>
 
-              {/* SLIDE ẢNH PHẢI */}
+              {/* RIGHT IMAGE SLIDER */}
               <div
                 style={{
                   width: "100%",
@@ -533,9 +535,7 @@ export const ClientDashboard: React.FC = () => {
 
           <section
             className="featured-rooms-section"
-            style={{
-              padding: "20px 64px",
-            }}
+            style={{ padding: "40px 64px" }}
           >
             <div className="container">
               <Title
@@ -559,96 +559,88 @@ export const ClientDashboard: React.FC = () => {
                   fontSize: 16,
                 }}
               >
-                Tận hưởng sự sang trọng và tinh tế trong từng không gian nghỉ
-                dưỡng
+                Luxurious and sophisticated effects in every resort space
               </Paragraph>
 
               {isLoading ? (
                 <div style={{ textAlign: "center" }}>
                   <Spin size="large" />
                   <Text style={{ marginTop: 16, display: "block" }}>
-                    Đang tải danh sách phòng...
+                    Loading room types...
                   </Text>
                 </div>
               ) : rooms.length === 0 ? (
                 <div style={{ textAlign: "center" }}>
                   <Text type="secondary" style={{ fontSize: 16 }}>
-                    Chưa có phòng nào được hiển thị.
+                    No room types available.
                   </Text>
                 </div>
               ) : (
-                <Row gutter={[32, 32]}>
-                  {rooms.slice(0, 3).map((room) => (
-                    <Col xs={24} md={12} lg={8} key={room.id}>
+                <Row gutter={[32, 32]} justify="center">
+                  {rooms.slice(0, 3).map((roomType) => (
+                    <Col
+                      xs={24}
+                      sm={12}
+                      md={8}
+                      lg={6}
+                      key={roomType.room_type_id}
+                    >
                       <Card
                         bodyStyle={{ padding: 0 }}
+                        hoverable
                         style={{
-                          border: "none",
+                          borderRadius: 12,
+                          overflow: "hidden",
                           background: "#fff",
-                          boxShadow: "none",
+                          boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
                         }}
                       >
-                        {/* IMAGE */}
                         <div
                           style={{
                             width: "100%",
-                            height: 260,
+                            height: 220,
                             overflow: "hidden",
                           }}
                         >
                           <img
-                            src={
-                              room.room_type?.image_url ||
-                              room.image_url ||
-                              "https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=800"
-                            }
-                            alt={room.room_type?.name}
+                            src={getRoomTypeImage(roomType)}
+                            alt={roomType.room_type_name}
                             style={{
                               width: "100%",
                               height: "100%",
                               objectFit: "cover",
-                              transition: "0.4s",
                             }}
-                            onMouseOver={(e) =>
-                              (e.currentTarget.style.transform = "scale(1.06)")
-                            }
-                            onMouseOut={(e) =>
-                              (e.currentTarget.style.transform = "scale(1.0)")
-                            }
                           />
                         </div>
 
-                        {/* CONTENT */}
-                        <div style={{ padding: "24px 28px" }}>
+                        <div style={{ padding: "20px" }}>
                           <h3
                             style={{
                               fontFamily: "'Playfair Display', serif",
                               color: "#8a6e5b",
-                              fontSize: 24,
-                              marginBottom: 12,
+                              fontSize: 22,
+                              marginBottom: 8,
                             }}
                           >
-                            {room.room_type?.name ||
-                              `Phòng ${room.room_number}`}
+                            {roomType.room_type_name}
                           </h3>
-
                           <p
                             style={{
                               color: "#444",
-                              fontSize: 15,
-                              lineHeight: 1.6,
-                              marginBottom: 24,
+                              fontSize: 14,
+                              lineHeight: 1.5,
+                              marginBottom: 16,
                             }}
                           >
-                            {room.description ||
-                              room.room_type?.description ||
-                              "Phòng sang trọng, thiết kế tinh tế và đầy đủ tiện nghi để mang đến trải nghiệm nghỉ dưỡng hoàn hảo."}
+                            {roomType.description ||
+                              "A luxurious room with elegant design."}
                           </p>
-
                           <div style={{ textAlign: "right" }}>
                             <button
                               onClick={() =>
-                                navigate(`/client/rooms/${room.id}`)
+                                navigate(
+                                  `/client/rooms/${roomType.room_type_id}`
+                                )
                               }
                               style={{
                                 background: "transparent",
@@ -656,17 +648,9 @@ export const ClientDashboard: React.FC = () => {
                                 color: "#8a6e5b",
                                 fontSize: 14,
                                 fontWeight: 600,
-                                letterSpacing: 1,
                                 cursor: "pointer",
                                 textTransform: "uppercase",
-                                transition: "0.3s",
                               }}
-                              onMouseOver={(e) =>
-                                (e.currentTarget.style.color = "#6b4e3d")
-                              }
-                              onMouseOut={(e) =>
-                                (e.currentTarget.style.color = "#8a6e5b")
-                              }
                             >
                               ROOM DETAILS
                             </button>
@@ -683,59 +667,73 @@ export const ClientDashboard: React.FC = () => {
           {/* ========================================== */}
           {/* ------------ OTHER SECTIONS -------------- */}
           {/* ========================================== */}
-
-          <section style={{ padding: "80px 64px" }}>
-            <div style={{ textAlign: "center", marginBottom: "56px" }}>
+          <section
+            className="featured-services-section"
+            style={{ padding: "40px 64px" }}
+          >
+            <div className="container">
               <Title
                 level={2}
                 style={{
-                  fontSize: "36px",
-                  fontWeight: 600,
+                  textAlign: "center",
+                  marginBottom: 16,
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: 42,
                   color: "#e6d0c4",
-                  marginBottom: "16px",
-                  fontFamily: "Playfair Display, serif",
                 }}
               >
-                Dịch vụ nổi bật
+                Outstanding Services
               </Title>
+
               <Paragraph
                 style={{
-                  fontSize: "16px",
-                  color: "#e6d0c4",
-                  maxWidth: "640px",
-                  margin: "0 auto",
+                  textAlign: "center",
+                  marginBottom: 40,
+                  color: "#c7c7c7",
+                  fontSize: 16,
                 }}
               >
-                Trải nghiệm những dịch vụ được yêu thích nhất tại khách sạn của
-                chúng tôi.
+                Experience our hotel's most popular services.
               </Paragraph>
-            </div>
 
-            {services.length === 0 ? (
-              <Empty description="Hiện chưa có dịch vụ nào" />
-            ) : (
-              <Row
-                gutter={[40, 40]}
-                style={{ maxWidth: "1280px", margin: "0 auto" }}
-              >
-                {services.slice(0, 3).map((service: any) => (
-                  <Col xs={24} sm={12} lg={8} key={service.id}>
-                    <Card
-                      hoverable
-                      cover={
+              {services.length === 0 ? (
+                <div style={{ textAlign: "center" }}>
+                  <Text type="secondary" style={{ fontSize: 16 }}>
+                    No services available.
+                  </Text>
+                </div>
+              ) : (
+                <Row gutter={[32, 32]} justify="center">
+                  {services.slice(0, 3).map((service: any) => (
+                    <Col xs={24} sm={12} md={8} lg={6} key={service.id}>
+                      <Card
+                        hoverable
+                        bodyStyle={{ padding: 0 }}
+                        style={{
+                          borderRadius: 12,
+                          overflow: "hidden",
+                          background: "#fff",
+                          boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                        }}
+                      >
+                        {/* IMAGE */}
                         <div
-                          style={{ position: "relative", overflow: "hidden" }}
+                          style={{
+                            width: "100%",
+                            height: 220,
+                            overflow: "hidden",
+                          }}
                         >
                           <img
                             src={
-                              service.image ||
-                              service.icon_url ||
-                              "https://images.unsplash.com/photo-1591017403286-fd8493524d2f?w=800"
+                              service.service_image
+                                ? `http://localhost:8000/storage/${service.service_image}`
+                                : "https://images.unsplash.com/photo-1591017403286-fd8493524d2f?w=800"
                             }
                             alt={service.name}
                             style={{
                               width: "100%",
-                              height: "240px",
+                              height: "100%",
                               objectFit: "cover",
                               transition: "transform 0.3s ease",
                             }}
@@ -746,105 +744,76 @@ export const ClientDashboard: React.FC = () => {
                               (e.currentTarget.style.transform = "scale(1)")
                             }
                           />
-                          {service.price && (
-                            <Tag
-                              color="gold"
-                              style={{
-                                position: "absolute",
-                                top: "16px",
-                                right: "16px",
-                                fontSize: "14px",
-                                fontWeight: 600,
-                                padding: "4px 12px",
-                                borderRadius: "999px",
-                              }}
-                            >
-                              {parseFloat(
-                                service.price.toString()
-                              ).toLocaleString()}
-                              ₫
-                            </Tag>
-                          )}
                         </div>
-                      }
-                      style={{
-                        borderRadius: "16px",
-                        overflow: "hidden",
-                        background: "rgba(255,255,255,0.9)",
-                        boxShadow: "0 4px 6px rgba(0,0,0,0.15)",
-                        display: "flex",
-                        flexDirection: "column",
-                        height: "100%",
-                      }}
-                      bodyStyle={{
-                        padding: "24px",
-                        display: "flex",
-                        flexDirection: "column",
-                        flex: 1,
-                      }}
-                    >
-                      <div style={{ flex: 1 }}>
-                        <Title
-                          level={4}
-                          style={{
-                            fontSize: "20px",
-                            fontWeight: 600,
-                            color: "#1f2937",
-                            marginBottom: "8px",
-                          }}
-                        >
-                          {service.name}
-                        </Title>
-                        <Paragraph
-                          style={{
-                            fontSize: "14px",
-                            color: "#6b7280",
-                            marginBottom: "24px",
-                          }}
-                        >
-                          {service.description ||
-                            "Dịch vụ cao cấp, mang lại trải nghiệm tuyệt vời cho bạn."}
-                        </Paragraph>
-                      </div>
 
-                      <div style={{ textAlign: "center", marginTop: "auto" }}>
-                        <Button
-                          type="primary"
-                          onClick={() =>
-                            navigate(`/client/services/${service.id}`)
-                          }
-                          style={{
-                            borderRadius: "999px",
-                            padding: "12px 28px",
-                            height: "auto",
-                            fontSize: "12px",
-                            fontWeight: 500,
-                          }}
-                        >
-                          Xem chi tiết
-                        </Button>
-                      </div>
-                    </Card>
-                  </Col>
-                ))}
-              </Row>
-            )}
+                        {/* CONTENT */}
+                        <div style={{ padding: "20px" }}>
+                          <h3
+                            style={{
+                              fontFamily: "'Playfair Display', serif",
+                              color: "#8a6e5b",
+                              fontSize: 22,
+                              marginBottom: 8,
+                            }}
+                          >
+                            {service.name}
+                          </h3>
 
-            <div style={{ textAlign: "center", marginTop: "64px" }}>
-              <Button
-                type="default"
-                size="large"
-                onClick={() => navigate("/client/services")}
-                style={{
-                  borderRadius: "999px",
-                  padding: "12px 32px",
-                  fontWeight: 500,
-                  borderColor: "#1677ff",
-                  color: "#1677ff",
-                }}
-              >
-                Xem tất cả dịch vụ
-              </Button>
+                          <p
+                            style={{
+                              color: "#444",
+                              fontSize: 14,
+                              lineHeight: 1.5,
+                              marginBottom: 16,
+                            }}
+                          >
+                            {service.description ||
+                              "High-quality hotel service."}
+                          </p>
+
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                            }}
+                          >
+                            {service.price && (
+                              <span
+                                style={{
+                                  fontWeight: 700,
+                                  color: "#8a6e5b",
+                                }}
+                              >
+                                {parseFloat(
+                                  service.price.toString()
+                                ).toLocaleString()}
+                                ₫
+                              </span>
+                            )}
+
+                            <button
+                              style={{
+                                background: "transparent",
+                                border: "none",
+                                color: "#8a6e5b",
+                                fontSize: 14,
+                                fontWeight: 600,
+                                cursor: "pointer",
+                                textTransform: "uppercase",
+                              }}
+                              onClick={() =>
+                                console.log("Service Details:", service.id)
+                              }
+                            >
+                              SERVICES DETAILS
+                            </button>
+                          </div>
+                        </div>
+                      </Card>
+                    </Col>
+                  ))}
+                </Row>
+              )}
             </div>
           </section>
         </div>{" "}
@@ -852,10 +821,10 @@ export const ClientDashboard: React.FC = () => {
       </div>{" "}
       {/* END BACKGROUND WRAPPER */}
       <Section
-        title="Địa điểm khám phá"
-        subtitle="Những nơi bạn nên đến gần khách sạn"
+        title="Discovery locations"
+        subtitle="Places you should visit near the hotel"
         data={places}
-        emptyMessage="Không có địa điểm nào để hiển thị"
+        emptyMessage="No locations to display"
       />
       {/* ---------- TESTIMONIALS ---------- */}
       <div
@@ -871,7 +840,7 @@ export const ClientDashboard: React.FC = () => {
           backgroundRepeat: "no-repeat",
         }}
       >
-        {/* Overlay đen làm mờ (giống đúng hình bạn đưa) */}
+        {/* Dark overlay (similar to the provided design) */}
         <div
           style={{
             position: "absolute",
@@ -879,8 +848,8 @@ export const ClientDashboard: React.FC = () => {
             left: 0,
             width: "100%",
             height: "100%",
-            backgroundColor: "rgba(0, 0, 0, 0.55)", // độ mờ
-            backdropFilter: "blur(2px)", // thêm độ blur giống mẫu
+            backgroundColor: "rgba(0, 0, 0, 0.55)",
+            backdropFilter: "blur(2px)",
             zIndex: 0,
           }}
         ></div>
@@ -888,18 +857,18 @@ export const ClientDashboard: React.FC = () => {
         {/* CONTENT */}
         <div style={{ position: "relative", zIndex: 1, color: "white" }}>
           <Title level={1} style={{ color: "white" }}>
-            BÌNH LUẬN & ĐÁNH GIÁ KHÁCH HÀNG
+            CUSTOMER REVIEWS & RATINGS
           </Title>
 
           <Paragraph
             style={{ maxWidth: 600, margin: "0 auto 64px", color: "#f1f1f1" }}
           >
-            “Lắng nghe trải nghiệm từ những vị khách đáng mến”
+            "Hear experiences from our valued guests"
           </Paragraph>
 
           <Row gutter={[24, 24]} justify="center">
             {testimonials.length === 0 ? (
-              <Empty description="Chưa có đánh giá nào" />
+              <Empty description="No reviews yet" />
             ) : (
               testimonials.map((item: any) => (
                 <Col xs={24} sm={12} lg={8} key={item.id}>

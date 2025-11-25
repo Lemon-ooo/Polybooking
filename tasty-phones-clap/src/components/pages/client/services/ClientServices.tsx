@@ -1,9 +1,10 @@
 // src/components/pages/client/services/ClientServices.tsx
 import React from "react";
 import { useTable } from "@refinedev/antd";
-import { Row, Col, Typography, Spin, Alert, Button } from "antd";
+import { Row, Col, Typography, Spin, Alert, Button, Card } from "antd";
 import { useNavigate } from "react-router-dom";
 import "./ClientServices.css";
+import "../../../../../src/assets/fonts/fonts.css";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -20,11 +21,6 @@ const ClientServices: React.FC = () => {
 
   const { tableProps, tableQueryResult } = useTable<Service>({
     resource: "services",
-    pagination: { pageSize: 20 },
-    parseResponse: (response: any) => ({
-      data: response.data,
-      total: response.total,
-    }),
   });
 
   const services = tableProps?.dataSource || [];
@@ -32,16 +28,14 @@ const ClientServices: React.FC = () => {
   const isError = tableQueryResult?.isError;
   const error = tableQueryResult?.error;
 
+  const getImageUrl = (path: string) =>
+  path
+    ? `http://localhost:8000/storage/${path}`
+    : "https://ruedelamourhotel.com/wp-content/uploads/2025/05/spa1.jpg";
+
   const handleViewDetails = (serviceId: number) => {
     navigate(`/client/services/${serviceId}`);
     window.scrollTo(0, 0);
-  };
-
-  const getImageUrl = (path: string) => {
-    if (!path)
-      return "https://ruedelamourhotel.com/wp-content/uploads/2025/05/spa1.jpg";
-    if (path.startsWith("http")) return path;
-    return `http://localhost:8000/${path}`;
   };
 
   if (isError) {
@@ -64,65 +58,133 @@ const ClientServices: React.FC = () => {
 
   return (
     <div className="services-page">
-      {/* HERO */}
+      {/* ================== HERO BANNER ================== */}
       <div className="services-hero">
+        <div className="hero-overlay" />
         <div className="hero-content">
-          <h1>ENJOY YOUR EXPERIENCE</h1>
-          <p>Like Never Before!</p>
+          <h1 className="services-title">Services</h1>
         </div>
       </div>
 
-      {/* SERVICES GRID */}
-      <div className="services-section">
+      {/* ================== SERVICE CARDS ================== */}
+      <section className="services-section" style={{ padding: "40px 64px" }}>
         <div className="container">
+          <Title
+            level={2}
+            style={{
+              textAlign: "center",
+              marginBottom: 16,
+              fontFamily: "'Playfair Display', serif",
+              fontSize: 42,
+              color: "#000",
+            }}
+          >
+            Our Services
+          </Title>
+
+          <Paragraph
+            style={{
+              textAlign: "center",
+              marginBottom: 40,
+              color: "#000",
+              fontSize: 16,
+            }}
+          >
+            Premium services for your comfort and relaxation
+          </Paragraph>
+
           {isLoading ? (
-            <div className="loading-container">
+            <div style={{ textAlign: "center" }}>
               <Spin size="large" />
               <Text style={{ marginTop: 16, display: "block" }}>
                 Đang tải dịch vụ...
               </Text>
             </div>
           ) : services.length === 0 ? (
-            <div className="empty-state">
+            <div style={{ textAlign: "center" }}>
               <Text type="secondary" style={{ fontSize: 16 }}>
                 Chưa có dịch vụ nào
               </Text>
             </div>
           ) : (
-            <Row gutter={[32, 32]}>
+            <Row gutter={[32, 32]} justify="center">
               {services.map((service) => (
-                <Col xs={24} sm={12} md={12} lg={8} key={service.service_id}>
-                  <div
-                    className="service-card"
+                <Col xs={24} sm={12} md={8} lg={6} key={service.service_id}>
+                  <Card
+                    bodyStyle={{ padding: 0 }}
+                    hoverable
+                    style={{
+                      borderRadius: 12,
+                      overflow: "hidden",
+                      background: "#fff",
+                      boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                      cursor: "pointer",
+                    }}
                     onClick={() => handleViewDetails(service.service_id)}
                   >
-                    <div className="card-image">
+                    <div style={{ width: "100%", height: 220, overflow: "hidden" }}>
                       <img
                         src={getImageUrl(service.service_image)}
                         alt={service.service_name}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
                         onError={(e) =>
                           ((e.target as HTMLImageElement).src =
                             "https://ruedelamourhotel.com/wp-content/uploads/2025/05/spa1.jpg")
                         }
                       />
                     </div>
-                    <div className="card-body">
-                      <Title level={4}>
-                        {service.service_name.toUpperCase()}
-                      </Title>
-                      <Paragraph>{service.description}</Paragraph>
+
+                    <div style={{ padding: "20px" }}>
+                      <h3
+                        style={{
+                          fontFamily: "'Playfair Display', serif",
+                          color: "#8a6e5b",
+                          fontSize: 22,
+                          marginBottom: 8,
+                        }}
+                      >
+                        {service.service_name}
+                      </h3>
+
+                      <p
+                        style={{
+                          color: "#444",
+                          fontSize: 14,
+                          lineHeight: 1.5,
+                          marginBottom: 16,
+                        }}
+                      >
+                        {service.description}
+                      </p>
+
                       <Text strong style={{ fontSize: 16 }}>
-                        Giá từ: {Number(service.service_price).toLocaleString()}
-                        ₫
+                        Giá từ:{" "}
+                        {Number(service.service_price).toLocaleString("vi-VN")}₫
                       </Text>
+
+                      <div style={{ textAlign: "right", marginTop: 12 }}>
+                        <button
+                          style={{
+                            background: "transparent",
+                            border: "none",
+                            color: "#8a6e5b",
+                            fontSize: 14,
+                            fontWeight: 600,
+                            cursor: "pointer",
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          Service Details
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  </Card>
                 </Col>
               ))}
             </Row>
           )}
         </div>
-      </div>
+      </section>
     </div>
   );
 };

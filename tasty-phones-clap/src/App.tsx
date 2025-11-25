@@ -23,7 +23,6 @@ import { RoomList } from "./components/pages/admin/rooms/list";
 import { ServiceList } from "./components/pages/admin/services/list";
 // ⚠️ Thêm import mới cho trang chi tiết dịch vụ của client
 import { ClientGallery } from "./components/pages/client/Gallery";
-import { RoomDetail } from "./components/pages/client/rooms/roomDetail";
 import ServicesDetail from "./components/pages/client/services/ServicesDetail";
 import { GalleryList } from "./components/pages/admin/Gallery/list";
 import { GalleryCreate } from "./components/pages/admin/Gallery/create";
@@ -45,6 +44,7 @@ import ServicesEdit from "./components/pages/admin/services/edit";
 import ClientServices from "./components/pages/client/services/ClientServices";
 import { ClientAbout } from "./components/pages/client/about";
 import { ForgotPassword } from "./components/pages/share/forgotPassword";
+import { RoomDetail } from "./components/pages/client/rooms/roomDetail";
 
 export default function App() {
   return (
@@ -77,8 +77,8 @@ export default function App() {
             }
           >
             <Route path="client" element={<ClientDashboard />} />
-            <Route path="client/rooms" element={<ClientRooms />} />
-            <Route path="client/rooms/:id" element={<RoomDetail />} />
+            <Route path="client/room-types" element={<ClientRooms />} />
+            <Route path="client/room-types/:id" element={<RoomDetail />} />
             <Route path="client/services" element={<ClientServices />} />
             <Route path="client/gallery" element={<ClientGallery />} />
             <Route path="client/events" element={<ClientEvent />} />

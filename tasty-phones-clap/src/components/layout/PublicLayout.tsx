@@ -19,7 +19,7 @@ export const PublicLayout: React.FC = () => {
 
   const navLinks = [
     { name: "Home", path: "/client", key: "/client" },
-    { name: "Rooms & Suites", path: "/client/rooms", key: "/client/rooms" },
+    { name: "Rooms & Suites", path: "/client/room-types", key: "/client/room-types" },
     { name: "Services", path: "/client/services", key: "/client/services" },
     {
       name: "Experience",
