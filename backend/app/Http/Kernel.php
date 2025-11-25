@@ -3,90 +3,90 @@
 namespace App\Http;
 
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
-use App\Http\Middleware\Authenticate;
-use App\Http\Middleware\EncryptCookies;
-use App\Http\Middleware\PreventRequestsDuringMaintenance;
-use App\Http\Middleware\RedirectIfAuthenticated;
-use App\Http\Middleware\TrimStrings;
-use App\Http\Middleware\TrustHosts;
-use App\Http\Middleware\TrustProxies;
-use App\Http\Middleware\VerifyCsrfToken;
-use Illuminate\Auth\Middleware\AuthenticateWithBasicAuth;
-use Illuminate\Auth\Middleware\Authorize;
-use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
-use Illuminate\Auth\Middleware\RequirePassword;
-use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
-use Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull;
+
+// Core middlewares (dùng bản trong framework, không cần bản trong App\Http\Middleware)
+use Illuminate\Http\Middleware\HandleCors;
 use Illuminate\Foundation\Http\Middleware\ValidatePostSize;
+use Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Session\Middleware\StartSession;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Routing\Middleware\ValidateSignature;
-use Illuminate\Session\Middleware\AuthenticateSession;
-use Illuminate\Session\Middleware\StartSession;
-use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Illuminate\Http\Middleware\SetCacheHeaders;
-use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
-use App\Http\Middleware\RoleMiddleware;
+
+// Auth-related middlewares (framework)
+use Illuminate\Auth\Middleware\Authenticate;
+use Illuminate\Auth\Middleware\AuthenticateWithBasicAuth;
+use Illuminate\Session\Middleware\AuthenticateSession;
+use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
+use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
+use Illuminate\Auth\Middleware\Authorize;
+use Illuminate\Auth\Middleware\RequirePassword;
+
+// Middleware custom của bro
+use App\Http\Middleware\IsAdmin;
 
 class Kernel extends HttpKernel
 {
     /**
-     * The application's global HTTP middleware stack.
-     *
-     * These middleware are run during every request to your application.
+     * Global middleware – chạy trên mọi request.
      *
      * @var array<int, class-string|string>
      */
     protected $middleware = [
-        // \App\Http\Middleware\TrustHosts::class,
-        
-        \Illuminate\Http\Middleware\HandleCors::class,
-       
-        \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
-       
-        \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+        HandleCors::class,
+        ValidatePostSize::class,
+        ConvertEmptyStringsToNull::class,
     ];
 
     /**
-     * The application's route middleware groups.
+     * Middleware groups: web, api.
      *
      * @var array<string, array<int, class-string|string>>
      */
     protected $middlewareGroups = [
         'web' => [
-           
-            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
-            \Illuminate\Session\Middleware\StartSession::class,
-            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
-            
-            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            AddQueuedCookiesToResponse::class,
+            StartSession::class,
+            ShareErrorsFromSession::class,
+            VerifyCsrfToken::class,
+            SubstituteBindings::class,
         ],
 
         'api' => [
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-            \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
-            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            ThrottleRequests::class . ':api',
+            SubstituteBindings::class,
         ],
     ];
 
     /**
-     * The application's route middleware.
-     *
-     * These middleware may be assigned to groups or used individually.
+     * Route middleware – gắn theo alias.
      *
      * @var array<string, class-string|string>
      */
     protected $routeMiddleware = [
-        
-        'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
-        'auth.session' => \Illuminate\Session\Middleware\AuthenticateSession::class,
-        'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
-        'can' => \Illuminate\Auth\Middleware\Authorize::class,
-        
-        'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
-        'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
-        'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
-        // 'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-        'role' => \App\Http\Middleware\RoleMiddleware::class, // 👈 Thêm dòng này để chia role
+        // Auth
+        'auth'            => Authenticate::class,
+        'auth.basic'      => AuthenticateWithBasicAuth::class,
+        'auth.session'    => AuthenticateSession::class,
+
+        // Guest (chặn login/register khi đã đăng nhập)
+        'guest'           => RedirectIfAuthenticated::class,
+
+        // Authorization / verified
+        'can'             => Authorize::class,
+        'verified'        => EnsureEmailIsVerified::class,
+        'password.confirm'=> RequirePassword::class,
+
+        // Various
+        'throttle'        => ThrottleRequests::class,
+        'signed'          => ValidateSignature::class,
+        'cache.headers'   => SetCacheHeaders::class,
+
+        // 🔥 alias phân quyền admin
+        // 'is_admin'        => IsAdmin::class,
     ];
 }

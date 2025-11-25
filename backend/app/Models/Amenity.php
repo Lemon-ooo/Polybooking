@@ -2,46 +2,29 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Amenity extends Model
 {
-    use HasFactory;
-
     protected $primaryKey = 'amenity_id';
-    public $timestamps = false;
+    public $incrementing = true;
+    protected $keyType = 'int';
 
-    // ĐÃ ĐỔI: icon_url → icon_path
     protected $fillable = [
-        'name',
-        'category',
-        'icon_path',      // <-- mới
+        'amenity_name',
+        'amenity_image',
         'description',
     ];
 
-    public function rooms()
+    // amenity <-> room_type (many-to-many)
+    public function roomTypes(): BelongsToMany
     {
         return $this->belongsToMany(
-            Room::class,
-            'room_amenity',
+            RoomType::class,
+            'room_type_amenity',
             'amenity_id',
-            'room_id'
+            'room_type_id'
         );
-    }
-
-    /**
-     * Accessor: tự động trả về URL đầy đủ của ảnh
-     * Dùng: $amenity->iconUrl  (trong Blade)
-     */
-    public function getIconUrlAttribute()
-    {
-        if ($this->icon_path) {
-            return asset('storage/' . $this->icon_path);
-        }
-
-        // Nếu không có ảnh thì trả về placeholder hoặc null
-        return asset('images/no-image.png'); // bạn có thể tạo file placeholder hoặc để null
-        // return null;
     }
 }

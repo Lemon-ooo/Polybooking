@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
@@ -10,66 +11,88 @@ class AmenityController extends Controller
 {
     public function index()
     {
-        $amenities = Amenity::latest()->paginate(10);
-        return view('amenities.index', compact('amenities'));
+        $amenities = Amenity::paginate(20);
+
+        return view('admin.amenities.index', compact('amenities'));
     }
 
     public function create()
     {
-        return view('amenities.create');
+        return view('admin.amenities.create');
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'        => 'required|string|max:255',
-            'category'    => 'nullable|string|max:255',
-            'icon'        => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
-            'description' => 'nullable|string',
+            'amenity_name'  => 'required|string|max:255',
+            'description'   => 'nullable|string',
+            'amenity_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        if ($request->hasFile('icon')) {
-            $validated['icon_path'] = $request->file('icon')->store('amenities', 'public');
+        if ($request->hasFile('amenity_image')) {
+            $path = $request->file('amenity_image')->store('amenities', 'public');
+            $validated['amenity_image'] = $path;
         }
 
         Amenity::create($validated);
 
-        return redirect()->route('web.amenities.index')->with('success', 'Thêm thành công!');
+        return redirect()
+            ->route('admin.amenities.index')
+            ->with('success', 'Tạo tiện ích thành công.');
     }
 
-    public function edit(Amenity $amenity)
+    public function show($id)
     {
-        return view('amenities.edit', compact('amenity'));
+        $amenity = Amenity::findOrFail($id);
+
+        return view('admin.amenities.show', compact('amenity'));
     }
 
-    public function update(Request $request, Amenity $amenity)
+    public function edit($id)
     {
+        $amenity = Amenity::findOrFail($id);
+
+        return view('admin.amenities.edit', compact('amenity'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $amenity = Amenity::findOrFail($id);
+
         $validated = $request->validate([
-            'name'        => 'required|string|max:255',
-            'category'    => 'nullable|string|max:255',
-            'icon'        => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
-            'description' => 'nullable|string',
+            'amenity_name'  => 'required|string|max:255',
+            'description'   => 'nullable|string',
+            'amenity_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        if ($request->hasFile('icon')) {
-            if ($amenity->icon_path) {
-                Storage::disk('public')->delete($amenity->icon_path);
+        if ($request->hasFile('amenity_image')) {
+            if ($amenity->amenity_image && Storage::disk('public')->exists($amenity->amenity_image)) {
+                Storage::disk('public')->delete($amenity->amenity_image);
             }
-            $validated['icon_path'] = $request->file('icon')->store('amenities', 'public');
+
+            $path = $request->file('amenity_image')->store('amenities', 'public');
+            $validated['amenity_image'] = $path;
         }
 
         $amenity->update($validated);
 
-        return redirect()->route('web.amenities.index')->with('success', 'Cập nhật thành công!');
+        return redirect()
+            ->route('admin.amenities.index')
+            ->with('success', 'Cập nhật tiện ích thành công.');
     }
 
-    public function destroy(Amenity $amenity)
+    public function destroy($id)
     {
-        if ($amenity->icon_path) {
-            Storage::disk('public')->delete($amenity->icon_path);
+        $amenity = Amenity::findOrFail($id);
+
+        if ($amenity->amenity_image && Storage::disk('public')->exists($amenity->amenity_image)) {
+            Storage::disk('public')->delete($amenity->amenity_image);
         }
+
         $amenity->delete();
 
-        return redirect()->route('web.amenities.index')->with('success', 'Xóa thành công!');
+        return redirect()
+            ->route('admin.amenities.index')
+            ->with('success', 'Xóa tiện ích thành công.');
     }
 }

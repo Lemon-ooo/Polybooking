@@ -1,153 +1,54 @@
-<!DOCTYPE html>
-<html lang="vi">
-
+<!doctype html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Polybooking</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f6f8;
-            color: #333;
-        }
-
-        /* HEADER */
-        .header {
-            background-color: #2196F3;
-            color: white;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: bold;
-            font-size: 20px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        /* SIDEBAR */
-        .sidebar {
-            width: 220px;
-            background-color: #263238;
-            color: #cfd8dc;
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            padding-top: 70px;
-        }
-
-        .sidebar h3 {
-            color: #fff;
-            font-size: 18px;
-            margin-left: 20px;
-            margin-bottom: 15px;
-        }
-
-        .sidebar a {
-            display: block;
-            color: #cfd8dc;
-            padding: 10px 20px;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .sidebar a:hover {
-            background-color: #37474f;
-            color: #fff;
-        }
-
-        /* CONTENT */
-        .content {
-            margin-left: 240px;
-            padding: 30px;
-        }
-
-        .content h2 {
-            color: #333;
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 8px 15px;
-            background-color: #2196F3;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            font-size: 14px;
-            transition: background-color 0.3s ease;
-        }
-
-        .btn:hover {
-            background-color: #1976D2;
-        }
-
-        /* TABLE */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-
-        th,
-        td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-
-        th {
-            background-color: #f5f5f5;
-            font-weight: bold;
-        }
-
-        tr:hover {
-            background-color: #f9f9f9;
-        }
-
-        .alert {
-            background-color: #e3f2fd;
-            border-left: 4px solid #2196F3;
-            padding: 10px 15px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            color: #0d47a1;
-        }
-    </style>
+    <title>@yield('title', 'Admin') - Polybooking</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-
 <body>
-    <div class="header">
-        <h2>Admin</h2>
-        <!-- Tạm thời bỏ nút Đăng xuất -->
-        {{-- <a href="{{ route('logout') }}" style="color: white;">Đăng xuất</a> --}}
 
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{{ route('admin.dashboard') }}">Polybooking Admin</a>
+
+        <div class="d-flex align-items-center">
+
+            <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-light btn-sm me-2">Dashboard</a>
+            <a href="{{ route('admin.room-types.index') }}" class="btn btn-outline-light btn-sm me-2">Room Types</a>
+            <a href="{{ route('admin.rooms.index') }}" class="btn btn-outline-light btn-sm me-2">Rooms</a>
+            <a href="{{ route('admin.amenities.index') }}" class="btn btn-outline-light btn-sm me-2">Amenities</a>
+            <a href="{{ route('admin.services.index') }}" class="btn btn-outline-light btn-sm me-2">Services</a>
+            <a href="{{ route('admin.users.index') }}" class="btn btn-outline-light btn-sm me-3">Users</a>
+            <a href="{{ route('admin.bookings.index') }}" class="btn btn-outline-light btn-sm me-3">Bookings</a>
+
+            @auth
+                <span class="navbar-text text-light me-3">
+                    {{ auth()->user()->user_name }}
+                    <span class="badge bg-{{ auth()->user()->role === 'admin' ? 'danger' : 'secondary' }}">
+                        {{ auth()->user()->role }}
+                    </span>
+                </span>
+
+                <form action="{{ route('logout') }}" method="POST" class="mb-0">
+                    @csrf
+                    <button class="btn btn-outline-danger btn-sm" type="submit">
+                        Logout
+                    </button>
+                </form>
+            @endauth
+        </div>
     </div>
+</nav>
 
-    <div class="sidebar">
-        <h3>Menu</h3>
-        <a href="{{ route('web.room-types.index') }}">Quản lý loại phòng</a>
-        <a href="{{ route('web.rooms.index') }}">Quản lý phòng</a>
-        <a href="{{ route('web.services.index') }}">Dịch vụ</a>
-        <a href="{{ route('web.events.index') }}">Sự kiện</a>
-        <a href="{{ route('web.rooms.index') }}">Album ảnh phòng</a>
+<div class="container">
+    @if(session('success'))
+        <div class="alert alert-success mt-2">
+            {{ session('success') }}
+        </div>
+    @endif
 
-        <a href="{{ route('web.rooms.index') }}">Quản lý phòng</a>
-        <a href="{{ route('web.amenities.index') }}">Quản lý tiện ích</a>
-        <a href="{{ route('web.galleries.index') }}">🖼️ Quản lý Gallery</a>
-        <a href="#">Quản lý booking</a>
-        <a href="#">Báo cáo</a>
-    </div>
+    @yield('content')
+</div>
 
-    <div class="content">
-        @yield('content')
-    </div>
 </body>
-
 </html>
