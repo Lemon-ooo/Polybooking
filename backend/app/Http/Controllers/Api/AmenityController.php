@@ -13,12 +13,17 @@ class AmenityController extends Controller
     {
         $amenities = Amenity::paginate(20);
 
-        return view('admin.amenities.index', compact('amenities'));
-    }
-
-    public function create()
-    {
-        return view('admin.amenities.create');
+        return response()->json([
+            "success" => true,
+            "data"    => $amenities->items(),
+            "message" => "Amenities retrieved successfully",
+            "meta"    => [
+                "total" => $amenities->total(),
+                "per_page" => $amenities->perPage(),
+                "current_page" => $amenities->currentPage(),
+                "last_page" => $amenities->lastPage(),
+            ]
+        ]);
     }
 
     public function store(Request $request)
@@ -34,25 +39,24 @@ class AmenityController extends Controller
             $validated['amenity_image'] = $path;
         }
 
-        Amenity::create($validated);
+        $amenity = Amenity::create($validated);
 
-        return redirect()
-            ->route('admin.amenities.index')
-            ->with('success', 'Tạo tiện ích thành công.');
+        return response()->json([
+            "success" => true,
+            "data"    => $amenity,
+            "message" => "Amenity created successfully",
+        ], 201);
     }
 
     public function show($id)
     {
         $amenity = Amenity::findOrFail($id);
 
-        return view('admin.amenities.show', compact('amenity'));
-    }
-
-    public function edit($id)
-    {
-        $amenity = Amenity::findOrFail($id);
-
-        return view('admin.amenities.edit', compact('amenity'));
+        return response()->json([
+            "success" => true,
+            "data"    => $amenity,
+            "message" => "Amenity retrieved successfully",
+        ]);
     }
 
     public function update(Request $request, $id)
@@ -76,9 +80,11 @@ class AmenityController extends Controller
 
         $amenity->update($validated);
 
-        return redirect()
-            ->route('admin.amenities.index')
-            ->with('success', 'Cập nhật tiện ích thành công.');
+        return response()->json([
+            "success" => true,
+            "data"    => $amenity,
+            "message" => "Amenity updated successfully",
+        ]);
     }
 
     public function destroy($id)
@@ -91,8 +97,10 @@ class AmenityController extends Controller
 
         $amenity->delete();
 
-        return redirect()
-            ->route('admin.amenities.index')
-            ->with('success', 'Xóa tiện ích thành công.');
+        return response()->json([
+            "success" => true,
+            "data"    => null,
+            "message" => "Amenity deleted successfully",
+        ]);
     }
 }
