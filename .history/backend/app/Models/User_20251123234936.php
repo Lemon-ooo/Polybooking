@@ -5,11 +5,10 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable; // 🔥 PHẢI LÀ CÁI NÀY
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable  // 🔥 KẾ THỪA Authenticatable (của Eloquent)
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasFactory, Notifiable;
 
     protected $primaryKey = 'user_id';
     public $incrementing = true;
