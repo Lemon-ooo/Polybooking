@@ -1,8 +1,8 @@
 import React from "react";
-import { useTable } from "@refinedev/antd";
+import { useTable } from "@refinedev/core";
 import { Row, Col, Typography, Spin, Alert, Button } from "antd";
 import { useNavigate } from "react-router-dom";
-import { RoomType } from "../../../../interfaces/roomTypes";
+import { RoomType } from "../../../../interfaces/roomTypes"; // interface mới
 import "./ClientRooms.css";
 import "../../../../../src/assets/fonts/fonts.css";
 
@@ -11,11 +11,17 @@ const { Title, Text, Paragraph } = Typography;
 export const ClientRooms: React.FC = () => {
   const navigate = useNavigate();
 
-  const { tableProps, tableQueryResult } = useTable<RoomType>({
-    resource: "room-types",
+  // Lấy room types thay vì rooms
+  const { tableQueryResult, setCurrent } = useTable<RoomType>({
+    resource: "roomtypes",
+    pagination: { pageSize: 100, mode: "server" },
+    sorters: { initial: [{ field: "name", order: "asc" }] },
   });
 
-  const roomTypes = tableProps?.dataSource || [];
+  const roomTypes = tableQueryResult?.data?.data || [];
+  const total = tableQueryResult?.data?.total || 0;
+  const currentPage = tableQueryResult?.data?.current_page || 1;
+  const pageSize = tableQueryResult?.data?.per_page || 100;
   const isLoading = tableQueryResult?.isLoading;
   const isError = tableQueryResult?.isError;
   const error = tableQueryResult?.error;
@@ -24,6 +30,8 @@ export const ClientRooms: React.FC = () => {
     navigate(`/client/rooms/${roomTypeId}`);
     window.scrollTo(0, 0);
   };
+
+  const handlePageChange = (page: number) => setCurrent?.(page);
 
   if (isError) {
     return (
@@ -45,6 +53,7 @@ export const ClientRooms: React.FC = () => {
 
   return (
     <div className="client-rooms-container">
+      {/* HERO BANNER */}
       <div className="rooms-hero-banner">
         <div className="hero-overlay" />
         <div className="hero-content">
@@ -52,6 +61,7 @@ export const ClientRooms: React.FC = () => {
         </div>
       </div>
 
+      {/* ROOMS GRID */}
       <div className="rooms-grid-section luxury-rooms">
         <div className="container">
           {isLoading ? (
@@ -70,10 +80,10 @@ export const ClientRooms: React.FC = () => {
           ) : (
             <Row gutter={[32, 32]} className="room-category-grid">
               {roomTypes.map((roomType) => {
+                // Lấy ảnh chính (main) hoặc fallback
                 const mainImage =
                   roomType.images?.find((img) => img.image_type === "main")
                     ?.image_url ||
-                  roomType.room_type_image ||
                   "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop";
 
                 return (
@@ -85,7 +95,7 @@ export const ClientRooms: React.FC = () => {
                       <div className="room-image-wrapper">
                         <img
                           src={mainImage}
-                          alt={roomType.room_type_name}
+                          alt={roomType.name}
                           className="room-thumbnail"
                           onError={(e) =>
                             ((e.target as HTMLImageElement).src =
@@ -95,15 +105,14 @@ export const ClientRooms: React.FC = () => {
                       </div>
                       <div className="room-content">
                         <Title level={4} className="room-name">
-                          {roomType.room_type_name.toUpperCase()}
+                          {roomType.name.toUpperCase()}
                         </Title>
                         <Paragraph className="room-desc">
                           {roomType.description ||
                             "Phòng được trang bị đầy đủ tiện nghi, nội thất sang trọng và hiện đại."}
                         </Paragraph>
                         <Text strong style={{ fontSize: 16 }}>
-                          Giá từ: {Number(roomType.base_price).toLocaleString()}{" "}
-                          VND
+                          Giá từ: {roomType.base_price?.toLocaleString()} VND
                         </Text>
                       </div>
                     </div>
@@ -111,6 +120,14 @@ export const ClientRooms: React.FC = () => {
                 );
               })}
             </Row>
+          )}
+
+          {/* PAGINATION */}
+          {total > pageSize && (
+            <div className="pagination-container luxury-pagination">
+              <Spin spinning={isLoading} />
+              {/* nếu dùng pagination của Antd, bạn có thể map page change */}
+            </div>
           )}
         </div>
       </div>

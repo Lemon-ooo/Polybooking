@@ -6,21 +6,17 @@ use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\GalleryController;
 use App\Http\Controllers\Api\RoomController;
-use App\Http\Controllers\Api\RoomImageController;
-use App\Http\Controllers\Api\RoomTypeController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ServiceController;
-use App\Http\Controllers\Web\RoomTypeImageController;
+
 
 Route::apiResource('amenities', AmenityController::class);
 Route::apiResource('bookings', BookingController::class);
 Route::apiResource('events', EventController::class);
 Route::apiResource('rooms', RoomController::class);
 Route::apiResource('galleries', GalleryController::class);
-Route::apiResource('roomimages', RoomImageController::class);
-Route::apiResource('room-types', RoomTypeController::class);
-Route::apiResource('roomtypeimages', RoomTypeImageController::class);
-Route::apiResource('services', ServiceController::class);
-Route::post('login', [AuthController::class, 'login']);
-Route::post('register', [AuthController::class, 'register']);
-Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+Route::apiResource('roomimages', GalleryController::class);
+Route::apiResource('roomtypes', GalleryController::class);
+Route::apiResource('roomtypeimages', GalleryController::class);
+Route::apiResource('services', GalleryController::class);
+Route::apiResource('auth', AuthController::class);

@@ -1,5 +1,5 @@
 import React from "react";
-import { useTable } from "@refinedev/antd";
+import { useTable } from "@refinedev/core";
 import { Row, Col, Typography, Spin, Alert, Button } from "antd";
 import { useNavigate } from "react-router-dom";
 import { RoomType } from "../../../../interfaces/roomTypes";
@@ -11,14 +11,18 @@ const { Title, Text, Paragraph } = Typography;
 export const ClientRooms: React.FC = () => {
   const navigate = useNavigate();
 
-  const { tableProps, tableQueryResult } = useTable<RoomType>({
+  const { tableQueryResult } = useTable<RoomType>({
     resource: "room-types",
+    parseResponse: (response: any) => ({
+      data: response.data,
+      total: response.total,
+    }),
   });
 
-  const roomTypes = tableProps?.dataSource || [];
-  const isLoading = tableQueryResult?.isLoading;
-  const isError = tableQueryResult?.isError;
-  const error = tableQueryResult?.error;
+  const roomTypes = tableQueryResult.data?.data || [];
+  const isLoading = tableQueryResult.isLoading;
+  const isError = tableQueryResult.isError;
+  const error = tableQueryResult.error;
 
   const handleViewDetails = (roomTypeId: number) => {
     navigate(`/client/rooms/${roomTypeId}`);
@@ -34,7 +38,7 @@ export const ClientRooms: React.FC = () => {
           type="error"
           showIcon
           action={
-            <Button size="small" onClick={() => tableQueryResult?.refetch()}>
+            <Button size="small" onClick={() => tableQueryResult.refetch()}>
               Thử lại
             </Button>
           }
@@ -45,6 +49,7 @@ export const ClientRooms: React.FC = () => {
 
   return (
     <div className="client-rooms-container">
+      {/* HERO BANNER */}
       <div className="rooms-hero-banner">
         <div className="hero-overlay" />
         <div className="hero-content">
@@ -52,6 +57,7 @@ export const ClientRooms: React.FC = () => {
         </div>
       </div>
 
+      {/* ROOMS GRID */}
       <div className="rooms-grid-section luxury-rooms">
         <div className="container">
           {isLoading ? (
