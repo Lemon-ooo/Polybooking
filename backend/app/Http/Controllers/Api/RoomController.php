@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Room;
@@ -10,27 +10,27 @@ use Illuminate\Http\Request;
 class RoomController extends Controller
 {
     /**
-     * Danh sách phòng (có phân trang).
+     * Danh sách phòng.
      */
     public function index()
     {
         $rooms = Room::with('roomType')->paginate(15);
 
-        return response()->json([
-            "success" => true,
-            "data"    => $rooms->items(),
-            "message" => "Rooms retrieved successfully",
-            "meta"    => [
-                "total" => $rooms->total(),
-                "per_page" => $rooms->perPage(),
-                "current_page" => $rooms->currentPage(),
-                "last_page" => $rooms->lastPage(),
-            ]
-        ]);
+        return view('admin.rooms.index', compact('rooms'));
     }
 
     /**
-     * Tạo phòng mới.
+     * Form tạo phòng.
+     */
+    public function create()
+    {
+        $roomTypes = RoomType::all();
+
+        return view('admin.rooms.create', compact('roomTypes'));
+    }
+
+    /**
+     * Lưu phòng mới.
      */
     public function store(Request $request)
     {
@@ -41,27 +41,32 @@ class RoomController extends Controller
             'description'  => 'nullable|string',
         ]);
 
-        $room = Room::create($validated);
+        Room::create($validated);
 
-        return response()->json([
-            "success" => true,
-            "data"    => $room,
-            "message" => "Room created successfully",
-        ], 201);
+        return redirect()
+            ->route('admin.rooms.index')
+            ->with('success', 'Tạo phòng thành công.');
     }
 
     /**
-     * Chi tiết phòng.
+     * Xem chi tiết phòng.
      */
     public function show($id)
     {
         $room = Room::with('roomType')->findOrFail($id);
 
-        return response()->json([
-            "success" => true,
-            "data"    => $room,
-            "message" => "Room retrieved successfully",
-        ]);
+        return view('admin.rooms.show', compact('room'));
+    }
+
+    /**
+     * Form sửa phòng.
+     */
+    public function edit($id)
+    {
+        $room      = Room::findOrFail($id);
+        $roomTypes = RoomType::all();
+
+        return view('admin.rooms.edit', compact('room', 'roomTypes'));
     }
 
     /**
@@ -80,11 +85,9 @@ class RoomController extends Controller
 
         $room->update($validated);
 
-        return response()->json([
-            "success" => true,
-            "data"    => $room,
-            "message" => "Room updated successfully",
-        ]);
+        return redirect()
+            ->route('admin.rooms.index')
+            ->with('success', 'Cập nhật phòng thành công.');
     }
 
     /**
@@ -95,10 +98,8 @@ class RoomController extends Controller
         $room = Room::findOrFail($id);
         $room->delete();
 
-        return response()->json([
-            "success" => true,
-            "data"    => null,
-            "message" => "Room deleted successfully",
-        ]);
+        return redirect()
+            ->route('admin.rooms.index')
+            ->with('success', 'Xóa phòng thành công.');
     }
 }

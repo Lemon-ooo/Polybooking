@@ -1,112 +1,145 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\RoomTypeImage;
 use App\Models\RoomType;
+use App\Models\RoomTypeImage;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class RoomTypeImageController extends Controller
 {
     /**
-     * Lấy danh sách ảnh của một loại phòng (Refine useTable)
+     * Danh sách ảnh của một room_type.
      */
-    public function index(Request $request, $roomTypeId)
+    public function index($roomTypeId)
     {
-        $perPage = $request->get('per_page', 10);
-        $page = $request->get('page', 1);
+        $roomType = RoomType::findOrFail($roomTypeId);
 
-        $query = RoomTypeImage::where('room_type_id', $roomTypeId)
-            ->orderBy('image_type', 'asc')
-            ->orderBy('sort_order', 'asc');
+        $images = RoomTypeImage::where('room_type_id', $roomTypeId)
+            ->orderBy('image_type', 'asc')      // main trước secondary
+            ->orderBy('sort_order', 'asc')
+            ->get();
 
-        $images = $query->paginate($perPage, ['*'], 'page', $page);
-
-        return response()->json([
-            'data' => $images->items(),
-            'total' => $images->total(),
-        ]);
+        return view('admin.room_type_images.index', compact('roomType', 'images'));
     }
 
     /**
-     * Upload ảnh mới (Refine useCreate)
+     * Form upload ảnh mới cho room_type.
+     */
+    public function create($roomTypeId)
+    {
+        $roomType = RoomType::findOrFail($roomTypeId);
+
+        return view('admin.room_type_images.create', compact('roomType'));
+    }
+
+    /**
+     * Lưu ảnh mới.
+     * - Có thể chọn main / secondary
+     * - Nếu chọn main: tự động set các ảnh khác của room_type này về secondary
      */
     public function store(Request $request, $roomTypeId)
     {
-        $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:4096',
+        $roomType = RoomType::findOrFail($roomTypeId);
+
+        $validated = $request->validate([
+            'image'      => 'required|image|mimes:jpeg,png,jpg,webp|max:4096',
             'image_type' => 'required|in:main,secondary',
             'sort_order' => 'nullable|integer|min:0',
         ]);
 
-        // Nếu chọn main, các ảnh khác chuyển thành secondary
-        if ($request->image_type === 'main') {
+        // Upload file
+        $path = $request->file('image')->store('room_type_images', 'public');
+
+        // Nếu chọn main, chuyển các ảnh khác về secondary
+        if ($validated['image_type'] === 'main') {
             RoomTypeImage::where('room_type_id', $roomTypeId)
                 ->where('image_type', 'main')
                 ->update(['image_type' => 'secondary']);
         }
 
-        $path = $request->file('image')->store('room_type_images', 'public');
-
-        $image = RoomTypeImage::create([
+        RoomTypeImage::create([
             'room_type_id' => $roomTypeId,
-            'image_url' => $path,
-            'image_type' => $request->image_type,
-            'sort_order' => $request->sort_order ?? 0,
+            'image_url'    => $path,
+            'image_type'   => $validated['image_type'],
+            'sort_order'   => $validated['sort_order'] ?? 0,
         ]);
 
-        return response()->json([
-            'data' => $image,
-        ], 201);
+        return redirect()
+            ->route('admin.room-types.images.index', $roomTypeId)
+            ->with('success', 'Thêm ảnh cho loại phòng thành công.');
     }
 
     /**
-     * Cập nhật ảnh (Refine useUpdate)
+     * Form sửa thông tin 1 ảnh (đổi main/secondary, sort_order, thay ảnh).
      */
-    public function update(Request $request, $roomTypeId, $imageId)
+    public function edit($roomTypeId, $imageId)
     {
+        $roomType = RoomType::findOrFail($roomTypeId);
+
         $image = RoomTypeImage::where('room_type_id', $roomTypeId)
             ->where('image_id', $imageId)
             ->firstOrFail();
 
-        $request->validate([
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
+        return view('admin.room_type_images.edit', compact('roomType', 'image'));
+    }
+
+    /**
+     * Cập nhật ảnh:
+     * - Có thể thay file
+     * - Có thể đổi main/secondary
+     * - Nếu set main -> các ảnh khác của room_type thành secondary
+     */
+    public function update(Request $request, $roomTypeId, $imageId)
+    {
+        $roomType = RoomType::findOrFail($roomTypeId);
+
+        $image = RoomTypeImage::where('room_type_id', $roomTypeId)
+            ->where('image_id', $imageId)
+            ->firstOrFail();
+
+        $validated = $request->validate([
+            'image'      => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
             'image_type' => 'required|in:main,secondary',
             'sort_order' => 'nullable|integer|min:0',
         ]);
 
-        // Upload ảnh mới nếu có
+        // Nếu upload ảnh mới → xóa file cũ
         if ($request->hasFile('image')) {
             if ($image->image_url && Storage::disk('public')->exists($image->image_url)) {
                 Storage::disk('public')->delete($image->image_url);
             }
-            $image->image_url = $request->file('image')->store('room_type_images', 'public');
+
+            $path = $request->file('image')->store('room_type_images', 'public');
+            $image->image_url = $path;
         }
 
-        // Nếu đổi sang main → các ảnh khác thành secondary
-        if ($request->image_type === 'main') {
+        // Nếu đổi sang main → các ảnh khác phải thành secondary
+        if ($validated['image_type'] === 'main') {
             RoomTypeImage::where('room_type_id', $roomTypeId)
                 ->where('image_id', '!=', $imageId)
                 ->where('image_type', 'main')
                 ->update(['image_type' => 'secondary']);
         }
 
-        $image->image_type = $request->image_type;
-        $image->sort_order = $request->sort_order ?? 0;
+        $image->image_type = $validated['image_type'];
+        $image->sort_order = $validated['sort_order'] ?? 0;
         $image->save();
 
-        return response()->json([
-            'data' => $image,
-        ]);
+        return redirect()
+            ->route('admin.room-types.images.index', $roomTypeId)
+            ->with('success', 'Cập nhật ảnh thành công.');
     }
 
     /**
-     * Xóa ảnh (Refine useDelete)
+     * Xóa một ảnh.
      */
     public function destroy($roomTypeId, $imageId)
     {
+        $roomType = RoomType::findOrFail($roomTypeId);
+
         $image = RoomTypeImage::where('room_type_id', $roomTypeId)
             ->where('image_id', $imageId)
             ->firstOrFail();
@@ -117,8 +150,8 @@ class RoomTypeImageController extends Controller
 
         $image->delete();
 
-        return response()->json([
-            'data' => null,
-        ]);
+        return redirect()
+            ->route('admin.room-types.images.index', $roomTypeId)
+            ->with('success', 'Xóa ảnh thành công.');
     }
 }
