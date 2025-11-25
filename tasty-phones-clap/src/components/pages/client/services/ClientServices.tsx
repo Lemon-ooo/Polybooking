@@ -158,7 +158,7 @@ const ClientServices: React.FC = () => {
                       </p>
 
                       <Text strong style={{ fontSize: 16 }}>
-                        Giá từ:{" "}
+                        Price: {" "}
                         {Number(service.service_price).toLocaleString("vi-VN")}₫
                       </Text>
 

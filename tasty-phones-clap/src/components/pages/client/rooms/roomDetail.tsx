@@ -181,6 +181,85 @@ export const RoomDetail: React.FC = () => {
           </Col>
         </Row>
       </div>
+
+      {/* AMENITIES */}
+      <div style={{ marginTop: 60 }}>
+        <div
+          style={{
+            width: "70%",
+            margin: "0 auto",
+          }}
+        >
+          <Title
+            level={3}
+            style={{
+              fontWeight: 600,
+              fontSize: 28,
+              marginBottom: 25,
+              color: "#333",
+              textAlign: "center",
+            }}
+          >
+            Amenities Included
+          </Title>
+
+          <Row gutter={[30, 30]}>
+            {room.amenities && room.amenities.length > 0 ? (
+              room.amenities.map((am: any) => (
+                <Col key={am.amenity_id} xs={24} sm={12} md={8} lg={6}>
+                  <div
+                    style={{
+                      border: "1px solid #e6e6e6",
+                      borderRadius: 10,
+                      padding: 18,
+                      textAlign: "center",
+                      transition: "0.3s",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <img
+                      src={BASE_URL + am.amenity_image}
+                      alt={am.amenity_name}
+                      style={{
+                        width: "100%",
+                        height: 130,
+                        objectFit: "cover",
+                        borderRadius: 8,
+                        marginBottom: 12,
+                      }}
+                    />
+
+                    <div
+                      style={{
+                        fontWeight: 600,
+                        fontSize: 17,
+                        marginBottom: 8,
+                        color: "#444",
+                      }}
+                    >
+                      {am.amenity_name}
+                    </div>
+
+                    <Paragraph
+                      style={{
+                        fontSize: 14,
+                        color: "#666",
+                        lineHeight: 1.6,
+                        marginBottom: 0,
+                        whiteSpace: "normal",
+                      }}
+                    >
+                      {am.description}
+                    </Paragraph>
+                  </div>
+                </Col>
+              ))
+            ) : (
+              <Paragraph>No amenities available.</Paragraph>
+            )}
+          </Row>
+        </div>
+      </div>
     </div>
   );
 };

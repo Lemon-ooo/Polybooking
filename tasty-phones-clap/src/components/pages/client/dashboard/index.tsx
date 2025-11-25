@@ -506,9 +506,9 @@ export const ClientDashboard: React.FC = () => {
                   pauseOnHover={false}
                 >
                   {[
-                    "https://muongthanh.com/images/trademark/intro/2019/04/normal/grand_2_1554889159.jpg",
-                    "https://muongthanh.com/images/trademark/intro/2019/04/normal/grand_1_1554889131.jpg",
-                    "https://q-xx.bstatic.com/xdata/images/hotel/max500/572052538.jpg?k=2ecaea7ec84a8d111ce4b7aff393333d968d6087f4746925e6753cd908b9fb41&o=",
+                    "https://img.dothi.net/2020/07/31/Z9BcC3fq/khach-san-dep-8-1a9e.jpg",
+                    "https://img.dothi.net/2020/07/31/Z9BcC3fq/khach-san-dep-7-8271.jpg",
+                    "https://img.dothi.net/2020/07/31/Z9BcC3fq/khach-san-dep-9-8a24.jpg",
                   ].map((img, index) => (
                     <div key={index} style={{ width: "100%", height: "480px" }}>
                       <img
@@ -834,7 +834,7 @@ export const ClientDashboard: React.FC = () => {
           padding: "80px 64px",
           textAlign: "center",
           backgroundImage:
-            'url("https://kimfurniture.com/wp-content/uploads/2022/10/phong-khach-mau-xam-13.jpg")',
+            'url("https://shac.vn/wp-content/uploads/2024/10/thiet-ke-sanh-khach-san-dep-dang-cap-cung-son-ha-group-2-800x600.jpg")',
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
