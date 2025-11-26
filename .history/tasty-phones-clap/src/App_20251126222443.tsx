@@ -51,7 +51,7 @@ export default function App() {
       <Refine
         dataProvider={dataProvider}
         // authProvider={authProvider}
-        // accessControlProvider={accessControlProvider}
+        accessControlProvider={accessControlProvider}
         notificationProvider={useNotificationProvider()}
         options={{
           syncWithLocation: true,
@@ -68,16 +68,15 @@ export default function App() {
           </Route>
 
           {/* 🚀 Client routes */}
-          <Route path="client" element={<ClientLayout />}>
-            <Route index element={<ClientDashboard />} />
-            <Route path="rooms" element={<ClientRooms />} />
-            <Route path="rooms/:id" element={<RoomDetail />} />
-            <Route path="services" element={<ClientServices />} />
-            <Route path="services/:id" element={<ServicesDetail />} />
-            <Route path="gallery" element={<ClientGallery />} />
-            <Route path="galleries" element={<ClientGallery />} />
-            <Route path="events" element={<ClientEvent />} />
-          </Route>
+          <Route path="client" element={<ClientDashboard />} />
+          <Route path="client/rooms" element={<ClientRooms />} />
+          <Route path="client/rooms/:id" element={<RoomDetail />} />
+          <Route path="client/services" element={<ClientServices />} />
+          <Route path="client/gallery" element={<ClientGallery />} />
+          <Route path="client/events" element={<ClientEvent />} />
+          <Route path="client/services/:id" element={<ServicesDetail />} />
+          <Route path="client/galleries" element={<ClientGallery />} />
+          <Route path="client/events" element={<ClientEvent />} />
 
           {/* 🚀 Admin routes */}
           <Route path="admin" element={<AdminLayout />}>
