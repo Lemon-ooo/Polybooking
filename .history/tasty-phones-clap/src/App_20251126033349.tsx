@@ -59,31 +59,38 @@ export default function App() {
           warnWhenUnsavedChanges: true,
         }}
       >
-        <Routes>
-          {/* Client routes */}
-          <Route element={<ClientLayout />}>
-            <Route path="client" element={<ClientDashboard />} />
-            <Route path="client/rooms" element={<ClientRooms />} />
-            <Route path="client/rooms/:id" element={<RoomDetail />} />
-            <Route path="client/services" element={<ClientServices />} />
-            <Route path="client/services/:id" element={<ServicesDetail />} />
-            <Route path="client/gallery" element={<ClientGallery />} />
-            <Route path="client/galleries" element={<ClientGallery />} />
-            <Route path="client/events" element={<ClientEvent />} />
-            <Route path="client/about" element={<ClientAbout />} />
-          </Route>
+        {/* 🚀 Client routes */}
+        <Route element={<ClientLayout />}>
+          <Route path="client" element={<ClientDashboard />} />
+          <Route path="client/rooms" element={<ClientRooms />} />
+          <Route path="client/rooms/:id" element={<RoomDetail />} />
+          <Route path="client/services" element={<ClientServices />} />
+          <Route path="client/gallery" element={<ClientGallery />} />
+          <Route path="client/events" element={<ClientEvent />} />
+          <Route path="client/services/:id" element={<ServicesDetail />} />
+          <Route path="client/about" element={<ClientAbout />} />
+        </Route>
 
-          {/* Admin routes */}
-          <Route path="admin/*" element={<AdminLayout />}>
-            <Route index element={<AdminDashboard />} />
-            <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="rooms" element={<RoomList />} />
-            <Route path="rooms/create" element={<RoomCreate />} />
-            <Route path="rooms/edit/:id" element={<RoomEdit />} />
-            <Route path="amenities" element={<Amenities />} />
-            {/* Thêm các route admin khác ở đây */}
-          </Route>
-        </Routes>
+        {/* 🚀 Admin routes */}
+        <Route path="admin/*" element={<AdminLayout />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="rooms" element={<RoomList />} />
+          <Route path="rooms/create" element={<RoomCreate />} />
+          <Route path="rooms/edit/:id" element={<RoomEdit />} />
+          <Route path="services" element={<ServiceList />} />
+          <Route path="services/create" element={<ServicesCreate />} />
+          <Route path="services/edit/:id" element={<ServicesEdit />} />
+          <Route path="gallery" element={<GalleryList />} />
+          <Route path="gallery/create" element={<GalleryCreate />} />
+          <Route path="gallery/edit/:id" element={<GalleryEdit />} />
+          <Route path="gallery/show/:id" element={<GalleryShow />} />
+          <Route path="events" element={<EventList />} />
+          <Route path="events/create" element={<EventCreate />} />
+          <Route path="events/edit/:id" element={<EventEdit />} />
+          <Route path="events/show/:id" element={<EventShow />} />
+          <Route path="amenities" element={<Amenities />} />
+        </Route>
       </Refine>
     </BrowserRouter>
   );
