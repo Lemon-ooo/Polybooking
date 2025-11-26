@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
 
 
 class AuthController extends Controller
@@ -202,4 +205,43 @@ class AuthController extends Controller
             'message' => 'Password changed successfully',
         ]);
     }
+
+     // 🔸 Lấy thông tin user đang đăng nhập
+    public function profile(Request $request)
+    {
+        return response()->json([
+            'success' => true,
+            'user' => $request->user()
+        ]);
+    }
+    public function forgotPassword(Request $request)
+{
+    $request->validate([
+        'email' => 'required|email'
+    ]);
+
+    $user = User::where('email', $request->email)->first();
+
+    if (!$user) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Email không tồn tại trong hệ thống.'
+        ], 404);
+    }
+
+    // Tạo mật khẩu mới
+    $newPassword = Str::random(length: 8);
+
+    // Cập nhật DB
+    $user->password = Hash::make($newPassword);
+    $user->save();
+
+    // Gửi email
+    Mail::to($user->email)->send(new \App\Mail\ResetPasswordMail($newPassword));
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Mật khẩu mới đã được gửi đến email của bạn!'
+    ]);
+}
 }
