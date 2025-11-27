@@ -45,6 +45,7 @@ import ClientServices from "./components/pages/client/services/ClientServices";
 import { ClientAbout } from "./components/pages/client/about";
 import { ForgotPassword } from "./components/pages/share/forgotPassword";
 import { RoomDetail } from "./components/pages/client/rooms/roomDetail";
+import ClientBooking from "./components/pages/client/booking/ClientBooking";
 
 export default function App() {
   return (
@@ -86,6 +87,7 @@ export default function App() {
             <Route path="client/galleries" element={<ClientGallery />} />
             <Route path="client/events" element={<ClientEvent />} />
             <Route path="client/about" element={<ClientAbout />} />
+            <Route path="client/booking" element={<ClientBooking />} />
           </Route>
 
           {/* 🚀 Admin routes */}
