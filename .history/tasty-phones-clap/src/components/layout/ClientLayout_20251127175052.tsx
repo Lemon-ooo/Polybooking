@@ -29,7 +29,13 @@ export const ClientLayout: React.FC = () => {
     { name: "about", path: "/client/about", key: "/client/about" },
     { name: "Services", path: "/client/services", key: "/client/services" },
     { name: "Events", path: "/client/events", key: "/client/events" },
+    {
+      name: "Experience",
+      path: "/client/experience",
+      key: "/client/experience",
+    },
     { name: "Gallery", path: "/client/galleries", key: "/client/galleries" },
+    { name: "Contact", path: "/client/contact", key: "/client/contact" },
   ];
 
   // Scroll effect

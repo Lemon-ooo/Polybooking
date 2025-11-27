@@ -47,7 +47,6 @@ import { EventShow } from "./components/pages/admin/event/show";
 import { EventEdit } from "./components/pages/admin/event/edit";
 
 import Amenities from "./components/pages/admin/amenities";
-import { ClientAbout } from "./components/pages/client/about";
 
 // ======================================================
 // 🚀 APP CHÍNH
@@ -88,12 +87,11 @@ export default function App() {
             }
           >
             <Route index element={<ClientDashboard />} />
-            <Route path="about" element={<ClientAbout />} />
             <Route path="rooms" element={<ClientRooms />} />
             <Route path="rooms/:id" element={<RoomDetail />} />
             <Route path="services" element={<ClientServices />} />
             <Route path="services/:id" element={<ServicesDetail />} />
-            <Route path="galleries" element={<ClientGallery />} />
+            <Route path="gallery" element={<ClientGallery />} />
             <Route path="events" element={<ClientEvent />} />
           </Route>
 

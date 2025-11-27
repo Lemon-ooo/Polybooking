@@ -1,6 +1,6 @@
-// src/layouts/PublicLayout.tsx
+// src/layouts/ClientLayout.tsx
 import React, { useState, useEffect, useMemo } from "react";
-import { Layout, Button, Avatar, Dropdown } from "antd";
+import { Layout, Button, Avatar, Space, Dropdown } from "antd";
 import { Link, useNavigate, useLocation, Outlet } from "react-router-dom";
 import { UserOutlined } from "@ant-design/icons";
 import { useGetIdentity, useLogout } from "@refinedev/core";
@@ -9,7 +9,13 @@ import { Footer } from "./Footer";
 
 const { Header, Content } = Layout;
 
-export const PublicLayout: React.FC = () => {
+interface NavLink {
+  name: string;
+  path: string;
+  key: string;
+}
+
+export const ClientLayout: React.FC = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [scrolled, setScrolled] = useState(false);
@@ -17,21 +23,13 @@ export const PublicLayout: React.FC = () => {
   const { data: identity } = useGetIdentity<any>();
   const { mutate: logout } = useLogout();
 
-  const navLinks = [
+  const navLinks: NavLink[] = [
     { name: "Home", path: "/client", key: "/client" },
-    {
-      name: "Rooms & Suites",
-      path: "/client/room-types",
-      key: "/client/room-types",
-    },
+    { name: "Rooms & Suites", path: "/client/rooms", key: "/client/rooms" },
+    { name: "about", path: "/client/about", key: "/client/about" },
     { name: "Services", path: "/client/services", key: "/client/services" },
-    {
-      name: "Experience",
-      path: "/client/experience",
-      key: "/client/experience",
-    },
+    { name: "Events", path: "/client/events", key: "/client/events" },
     { name: "Gallery", path: "/client/galleries", key: "/client/galleries" },
-    { name: "Contact", path: "/client/contact", key: "/client/contact" },
   ];
 
   // Scroll effect
@@ -44,6 +42,7 @@ export const PublicLayout: React.FC = () => {
 
   const colors = useMemo(
     () => ({
+      // Khi scroll → ĐEN THUẦN (#000)
       bg: scrolled ? "#000" : "rgba(10, 10, 10, 0.3)",
       text: "#fff",
       accent: "#c9a96e",
@@ -52,6 +51,7 @@ export const PublicLayout: React.FC = () => {
     [scrolled]
   );
 
+  // Header style - vẫn giữ glass effect khi chưa scroll
   const headerStyle: React.CSSProperties = {
     position: "fixed",
     top: 0,
@@ -66,17 +66,13 @@ export const PublicLayout: React.FC = () => {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    backdropFilter: scrolled ? "none" : "blur(10px)",
+    backdropFilter: scrolled ? "none" : "blur(10px)", // Tắt blur khi scroll
     WebkitBackdropFilter: scrolled ? "none" : "blur(10px)",
   };
 
-  const isAuthPage = pathname === "/login" || pathname === "/register";
-
   return (
-    <Layout
-      style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
-    >
-      {/* Header */}
+    <Layout style={{ minHeight: "100vh", background: "#f8f5f2" }}>
+      {/* ================== HEADER (DESKTOP) ================== */}
       <Header style={headerStyle}>
         <div
           style={{
@@ -89,7 +85,7 @@ export const PublicLayout: React.FC = () => {
             height: "100%",
           }}
         >
-          {/* Left nav */}
+          {/* LEFT NAV */}
           <nav
             style={{
               display: "flex",
@@ -112,13 +108,21 @@ export const PublicLayout: React.FC = () => {
                   transition: "color 0.3s ease",
                   whiteSpace: "nowrap",
                 }}
+                onMouseEnter={(e) => {
+                  if (pathname !== link.key)
+                    e.currentTarget.style.color = colors.accent;
+                }}
+                onMouseLeave={(e) => {
+                  if (pathname !== link.key)
+                    e.currentTarget.style.color = colors.text;
+                }}
               >
                 {link.name}
               </Link>
             ))}
           </nav>
 
-          {/* Logo */}
+          {/* LOGO */}
           <Link
             to="/client"
             style={{ flex: "0 0 auto", display: "flex", alignItems: "center" }}
@@ -132,10 +136,16 @@ export const PublicLayout: React.FC = () => {
                 objectFit: "contain",
                 transition: "transform 0.3s ease",
               }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.transform = "scale(1.05)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.transform = "scale(1)")
+              }
             />
           </Link>
 
-          {/* Right nav */}
+          {/* RIGHT NAV */}
           <nav
             style={{
               display: "flex",
@@ -158,13 +168,21 @@ export const PublicLayout: React.FC = () => {
                   transition: "color 0.3s ease",
                   whiteSpace: "nowrap",
                 }}
+                onMouseEnter={(e) => {
+                  if (pathname !== link.key)
+                    e.currentTarget.style.color = colors.accent;
+                }}
+                onMouseLeave={(e) => {
+                  if (pathname !== link.key)
+                    e.currentTarget.style.color = colors.text;
+                }}
               >
                 {link.name}
               </Link>
             ))}
           </nav>
 
-          {/* Actions */}
+          {/* RIGHT ACTIONS - Chỉ còn Avatar / Sign In */}
           <div
             style={{
               display: "flex",
@@ -223,25 +241,15 @@ export const PublicLayout: React.FC = () => {
         </div>
       </Header>
 
-      {/* Content */}
-      <Content
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: isAuthPage ? "center" : "flex-start",
-          alignItems: "center",
-          padding: isAuthPage ? 0 : "2rem",
-          background: "#f8f5f2",
-          marginTop: 100, // offset header
-        }}
-      >
-        {!isAuthPage && pathname === "/client" && <HeroSection />}
-        <Outlet />
+      {/* ================== CONTENT ================== */}
+      <Content>
+        {pathname === "/client" && <HeroSection />}
+        <div style={{ minHeight: "60vh", background: "#f8f5f2" }}>
+          <Outlet />
+        </div>
       </Content>
 
-      {/* Footer */}
-      {!isAuthPage && <Footer />}
+      <Footer />
     </Layout>
   );
 };

@@ -15,50 +15,43 @@ import { ProtectedRoute } from "./components/protected-route";
 import { HomePage } from "./components/pages/share/homePage";
 import { Login } from "./components/pages/share/login";
 import { Register } from "./components/pages/share/register";
-import { ForgotPassword } from "./components/pages/share/forgotPassword";
 
-// Client pages
 import { ClientDashboard } from "./components/pages/client/dashboard";
 import { ClientRooms } from "./components/pages/client/rooms";
-import { RoomDetail } from "./components/pages/client/rooms/roomDetail";
-import ClientServices from "./components/pages/client/services/ClientServices";
-import ServicesDetail from "./components/pages/client/services/ServicesDetail";
-import { ClientGallery } from "./components/pages/client/Gallery";
-import { ClientEvent } from "./components/pages/client/events/ClientEvent";
-
-// Admin pages
 import { AdminDashboard } from "./components/pages/admin/dashboard";
 import { RoomList } from "./components/pages/admin/rooms/list";
-import { RoomCreate } from "./components/pages/admin/rooms/create";
-import { RoomEdit } from "./components/pages/admin/rooms/edit";
-
 import { ServiceList } from "./components/pages/admin/services/list";
-import { ServicesCreate } from "./components/pages/admin/services/create";
-import ServicesEdit from "./components/pages/admin/services/edit";
-
+// ⚠️ Thêm import mới cho trang chi tiết dịch vụ của client
+import { ClientGallery } from "./components/pages/client/Gallery";
+import { RoomDetail } from "./components/pages/client/rooms/roomDetail";
+import ServicesDetail from "./components/pages/client/services/ServicesDetail";
 import { GalleryList } from "./components/pages/admin/Gallery/list";
 import { GalleryCreate } from "./components/pages/admin/Gallery/create";
 import { GalleryEdit } from "./components/pages/admin/Gallery/edit";
-import { GalleryShow } from "./components/pages/admin/Gallery/show";
-
+import { ClientEvent } from "./components/pages/client/events/ClientEvent";
 import { EventList } from "./components/pages/admin/event/list";
 import { EventCreate } from "./components/pages/admin/event/create";
+
+import { GalleryShow } from "./components/pages/admin/Gallery/show";
 import { EventShow } from "./components/pages/admin/event/show";
 import { EventEdit } from "./components/pages/admin/event/edit";
+import { ServicesCreate } from "./components/pages/admin/services/create";
+import { RoomCreate } from "./components/pages/admin/rooms/create";
+import { RoomEdit } from "./components/pages/admin/rooms/edit";
 
+// ✅ Thêm import cho trang Tiện Ích (admin)
 import Amenities from "./components/pages/admin/amenities";
-import { ClientAbout } from "./components/pages/client/about";
+import ServicesEdit from "./components/pages/admin/services/edit";
+import ClientServices from "./components/pages/client/services/ClientServices";
+import { ForgotPassword } from "./components/pages/share/forgotPassword";
 
-// ======================================================
-// 🚀 APP CHÍNH
-// ======================================================
 export default function App() {
   return (
     <BrowserRouter>
       <Refine
         dataProvider={dataProvider}
-        authProvider={authProvider}
-        accessControlProvider={accessControlProvider}
+        // authProvider={authProvider}
+        // accessControlProvider={accessControlProvider}
         notificationProvider={useNotificationProvider()}
         options={{
           syncWithLocation: true,
@@ -66,9 +59,7 @@ export default function App() {
         }}
       >
         <Routes>
-          {/* --------------------------------------------- */}
-          {/* 🚀 PUBLIC ROUTES (Không cần đăng nhập) */}
-          {/* --------------------------------------------- */}
+          {/* 🚀 Public routes */}
           <Route element={<PublicLayout />}>
             <Route index element={<HomePage />} />
             <Route path="login" element={<Login />} />
@@ -76,42 +67,22 @@ export default function App() {
             <Route path="forgot-password" element={<ForgotPassword />} />
           </Route>
 
-          {/* --------------------------------------------- */}
-          {/* 🚀 CLIENT ROUTES (CẦN LOGIN, ROLE = CLIENT) */}
-          {/* --------------------------------------------- */}
-          <Route
-            path="client"
-            element={
-              <ProtectedRoute allowedRoles={["customer"]}>
-                <ClientLayout />
-              </ProtectedRoute>
-            }
-          >
+          {/* 🚀 Client routes */}
+          <Route path="client" element={<ClientLayout />}>
             <Route index element={<ClientDashboard />} />
-            <Route path="about" element={<ClientAbout />} />
             <Route path="rooms" element={<ClientRooms />} />
             <Route path="rooms/:id" element={<RoomDetail />} />
             <Route path="services" element={<ClientServices />} />
             <Route path="services/:id" element={<ServicesDetail />} />
+            <Route path="gallery" element={<ClientGallery />} />
             <Route path="galleries" element={<ClientGallery />} />
             <Route path="events" element={<ClientEvent />} />
           </Route>
 
-          {/* --------------------------------------------- */}
-          {/* 🚀 ADMIN ROUTES (CẦN LOGIN, ROLE = ADMIN) */}
-          {/* --------------------------------------------- */}
-          <Route
-            path="admin"
-            element={
-              <ProtectedRoute allowedRoles={["admin"]}>
-                <AdminLayout />
-              </ProtectedRoute>
-            }
-          >
+          {/* 🚀 Admin routes */}
+          <Route path="admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
             <Route path="dashboard" element={<AdminDashboard />} />
-
-            {/* Rooms */}
             <Route path="rooms" element={<RoomList />} />
             <Route path="rooms/create" element={<RoomCreate />} />
             <Route path="rooms/edit/:id" element={<RoomEdit />} />
@@ -137,9 +108,7 @@ export default function App() {
             <Route path="amenities" element={<Amenities />} />
           </Route>
 
-          {/* --------------------------------------------- */}
-          {/* 🚀 FALLBACK */}
-          {/* --------------------------------------------- */}
+          {/* 🚀 Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Refine>
