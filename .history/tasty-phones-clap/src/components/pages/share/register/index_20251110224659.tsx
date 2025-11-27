@@ -6,7 +6,7 @@ import { authProvider } from "../../../../providers/auth/authProvider";
 const { Title, Text } = Typography;
 
 interface IRegisterForm {
-  user_name: string;
+  name: string;
   email: string;
   password: string;
   password_confirmation: string;
@@ -14,7 +14,7 @@ interface IRegisterForm {
 
 export const Register: React.FC = () => {
   const navigate = useNavigate();
-  const [form] = Form.useForm();
+  const [form] = Form.useForm<IRegisterForm>();
 
   const onFinish = async (values: IRegisterForm) => {
     if (!authProvider.register) {
@@ -23,32 +23,26 @@ export const Register: React.FC = () => {
     }
 
     try {
-      const payload = {
-        user_name: values.user_name,
-        email: values.email,
-        password: values.password,
-        password_confirmation: values.password_confirmation,
-      };
-
-      const result = await authProvider.register(payload);
+      const result = await authProvider.register(values);
 
       if (result?.success) {
         message.success("Đăng ký thành công!");
         navigate(result.redirectTo || "/client");
       }
     } catch (error: any) {
-      const errors = error?.response?.errors || error?.errors;
-      if (errors) {
-        Object.keys(errors).forEach((field) => {
-          form.setFields([
-            {
-              name: field as keyof IRegisterForm,
-              errors: errors[field],
-            },
-          ]);
-        });
+      const errorMessage = error?.message || "Đăng ký thất bại";
+
+      // Nếu lỗi liên quan email (ví dụ email đã tồn tại)
+      if (errorMessage.toLowerCase().includes("email")) {
+        form.setFields([
+          {
+            name: "email",
+            errors: [errorMessage],
+          },
+        ]);
       } else {
-        message.error(error?.message || "Đăng ký thất bại");
+        // Các lỗi khác hiển thị toast
+        message.error(errorMessage);
       }
     }
   };
@@ -64,22 +58,16 @@ export const Register: React.FC = () => {
       }}
     >
       <Card
-        title={<Title level={2}>Tạo tài khoản mới</Title>}
+        title={<Title level={3}>Tạo tài khoản mới</Title>}
         style={{ width: 400 }}
       >
-        <Form
-          form={form}
-          name="register"
-          onFinish={onFinish}
-          layout="vertical"
-          autoComplete="off"
-        >
+        <Form form={form} layout="vertical" onFinish={onFinish}>
           <Form.Item
             label="Họ và tên"
-            name="user_name"
+            name="name"
             rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
           >
-            <Input placeholder="Nhập họ và tên" />
+            <Input placeholder="Nguyễn Văn A" />
           </Form.Item>
 
           <Form.Item
