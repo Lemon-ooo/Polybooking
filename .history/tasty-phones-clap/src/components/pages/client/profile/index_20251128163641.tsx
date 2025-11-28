@@ -9,6 +9,8 @@ import {
   Modal,
   Typography,
   Avatar,
+  Upload,
+  Divider,
   Row,
   Col,
   Tag,
@@ -16,6 +18,7 @@ import {
 } from "antd";
 import {
   UserOutlined,
+  CameraOutlined,
   LockOutlined,
   MailOutlined,
   PhoneOutlined,
@@ -24,6 +27,7 @@ import {
   SaveOutlined,
 } from "@ant-design/icons";
 import { useGetIdentity } from "@refinedev/core";
+import type { UploadProps } from "antd";
 
 const { Title, Text } = Typography;
 
@@ -46,6 +50,7 @@ export const ProfileClient: React.FC = () => {
   const [changingPassword, setChangingPassword] = useState(false);
   const [openPasswordModal, setOpenPasswordModal] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string>("");
 
   const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
 
@@ -61,10 +66,11 @@ export const ProfileClient: React.FC = () => {
         address: user.address || "",
         avatar: user.avatar || "",
       });
+      setAvatarUrl(user.avatar || "");
     }
   }, [user, profileForm]);
 
-  // Cập nhật profile - DÙNG ENDPOINT TỪ ProfileController
+  // Cập nhật profile
   const handleUpdateProfile = async (values: any) => {
     try {
       setSaving(true);
@@ -77,12 +83,7 @@ export const ProfileClient: React.FC = () => {
           "Content-Type": "application/json",
           Authorization: auth.token,
         },
-        body: JSON.stringify({
-          user_name: values.user_name,
-          phone_number: values.phone_number,
-          address: values.address,
-          // KHÔNG gửi email vì ProfileController không cho đổi email
-        }),
+        body: JSON.stringify(values),
       });
 
       const data = await response.json();
@@ -111,37 +112,25 @@ export const ProfileClient: React.FC = () => {
     }
   };
 
-  // Đổi mật khẩu - DÙNG ENDPOINT TỪ ProfileController
+  // Đổi mật khẩu
   const handleChangePassword = async (values: any) => {
     try {
       setChangingPassword(true);
 
       const auth = JSON.parse(localStorage.getItem("auth") || "{}");
 
-      // SỬA: Dùng endpoint từ ProfileController
       const response = await fetch(`${API_BASE}/profile/password`, {
-        method: "PUT", // ProfileController dùng PUT
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: auth.token,
         },
-        body: JSON.stringify({
-          current_password: values.current_password,
-          password: values.new_password, // ProfileController dùng 'password' thay vì 'new_password'
-          password_confirmation: values.new_password_confirmation, // ProfileController dùng 'password_confirmation'
-        }),
+        body: JSON.stringify(values),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        // Hiển thị lỗi từ backend
-        if (data.errors) {
-          const firstError = Object.values(data.errors)[0];
-          throw new Error(
-            Array.isArray(firstError) ? firstError[0] : firstError
-          );
-        }
         throw new Error(data.message || "Đổi mật khẩu thất bại!");
       }
 
@@ -152,6 +141,19 @@ export const ProfileClient: React.FC = () => {
       message.error(error.message || "Lỗi server");
     } finally {
       setChangingPassword(false);
+    }
+  };
+
+  // Upload avatar
+  const handleAvatarUpload: UploadProps["onChange"] = (info) => {
+    if (info.file.status === "done") {
+      // Giả sử BE trả về URL của ảnh
+      const newAvatarUrl = info.file.response?.data?.url;
+      if (newAvatarUrl) {
+        setAvatarUrl(newAvatarUrl);
+        profileForm.setFieldValue("avatar", newAvatarUrl);
+        message.success("Cập nhật ảnh đại diện thành công!");
+      }
     }
   };
 
@@ -200,13 +202,9 @@ export const ProfileClient: React.FC = () => {
             <div style={{ textAlign: "center", marginBottom: 24 }}>
               <Avatar
                 size={100}
-                src={user?.avatar}
+                src={avatarUrl}
                 icon={<UserOutlined />}
-                style={{
-                  marginBottom: 16,
-                  border: "3px solid #f0f0f0",
-                  backgroundColor: user?.avatar ? "transparent" : "#87d068",
-                }}
+                style={{ marginBottom: 16, border: "3px solid #f0f0f0" }}
               />
               <Title level={4} style={{ margin: 0 }}>
                 {user?.user_name}
@@ -217,6 +215,25 @@ export const ProfileClient: React.FC = () => {
               >
                 {getRoleText(user?.role || "")}
               </Tag>
+
+              <Upload
+                showUploadList={false}
+                action={`${API_BASE}/upload-avatar`}
+                headers={{
+                  Authorization: JSON.parse(
+                    localStorage.getItem("auth") || "{}"
+                  ).token,
+                }}
+                onChange={handleAvatarUpload}
+              >
+                <Button
+                  type="link"
+                  icon={<CameraOutlined />}
+                  style={{ marginTop: 8 }}
+                >
+                  Đổi ảnh đại diện
+                </Button>
+              </Upload>
             </div>
 
             <Descriptions column={1} size="small">
@@ -317,12 +334,15 @@ export const ProfileClient: React.FC = () => {
                 </Col>
 
                 <Col xs={24} md={12}>
-                  <Form.Item label="Email" name="email">
-                    <Input
-                      prefix={<MailOutlined />}
-                      placeholder="Email (không thể thay đổi)"
-                      disabled={true}
-                    />
+                  <Form.Item
+                    label="Email"
+                    name="email"
+                    rules={[
+                      { required: true, message: "Vui lòng nhập email" },
+                      { type: "email", message: "Email không hợp lệ" },
+                    ]}
+                  >
+                    <Input prefix={<MailOutlined />} placeholder="Nhập email" />
                   </Form.Item>
                 </Col>
               </Row>
@@ -347,6 +367,17 @@ export const ProfileClient: React.FC = () => {
                 </Col>
               </Row>
 
+              <Form.Item
+                label="Ảnh đại diện (URL)"
+                name="avatar"
+                extra="Nhập URL ảnh đại diện hoặc sử dụng nút upload bên cạnh"
+              >
+                <Input
+                  placeholder="https://example.com/avatar.jpg"
+                  onChange={(e) => setAvatarUrl(e.target.value)}
+                />
+              </Form.Item>
+
               {editMode && (
                 <Form.Item>
                   <Button
@@ -357,7 +388,7 @@ export const ProfileClient: React.FC = () => {
                     block
                     size="large"
                   >
-                    Lưu thông tin
+                    Lưu thay đổi
                   </Button>
                 </Form.Item>
               )}

@@ -48,7 +48,6 @@ import { EventEdit } from "./components/pages/admin/event/edit";
 
 import Amenities from "./components/pages/admin/amenities";
 import { ClientAbout } from "./components/pages/client/about";
-import { ProfileClient } from "./components/pages/client/profile";
 
 // ======================================================
 // 🚀 APP CHÍNH

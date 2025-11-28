@@ -1,0 +1,11 @@
+.profile-client-container {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+.profile-card {
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
