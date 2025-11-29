@@ -164,12 +164,7 @@ const ClientServices: React.FC = () => {
                       </p>
 
                       <Text strong style={{ fontSize: 16 }}>
-                        {" "}
-                        Price:{" "}
-                        {service.service_price !== null &&
-                        service.service_price !== undefined
-                          ? service.service_price.toLocaleString("vi-VN") + "₫"
-                          : "Chưa có giá"}{" "}
+                        Price: {Number(price).toLocaleString("vi-VN")}₫
                       </Text>
 
                       <div style={{ textAlign: "right", marginTop: 12 }}>

@@ -12,25 +12,29 @@ class ServiceController extends Controller
     /** Lấy danh sách dịch vụ */
     public function index()
     {
-        $services = Service::all();
+        $services = Service::paginate(20);
 
-        // Chuẩn hóa dữ liệu trả về giống format room-types
+        // Chuẩn hóa dữ liệu trả về
         $data = $services->map(function ($item) {
             return [
-                'service_id'    => $item->service_id,
-                'service_name'  => $item->service_name,
-                'service_price' => $item->service_price,
-                'description'   => $item->description,
-                'service_image' => $item->service_image,
-                'created_at'    => $item->created_at,
-                'updated_at'    => $item->updated_at,
-                'image_url'     => $item->service_image ? url('storage/' . $item->service_image) : null,
+                'id'          => $item->service_id,
+                'name'        => $item->service_name,
+                'description' => $item->description,
+                'price'       => $item->service_price,
+                'image'       => $item->service_image,
+                'created_at'  => $item->created_at,
+                'updated_at'  => $item->updated_at,
+                'image_url'   => $item->service_image ? url('storage/' . $item->service_image) : null,
             ];
         });
 
         return response()->json([
-            'data' => $data,
-            'total' => $services->count()
+            'success' => true,
+            'data'    => $data,
+            'message' => 'Services retrieved successfully',
+            'meta'    => [
+                'total' => $services->total(),
+            ],
         ], 200);
     }
 
@@ -52,17 +56,20 @@ class ServiceController extends Controller
         $service = Service::create($validated);
 
         return response()->json([
-            'data' => [
-                'service_id'    => $service->service_id,
-                'service_name'  => $service->service_name,
-                'service_price' => $service->service_price,
-                'description'   => $service->description,
-                'service_image' => $service->service_image,
-                'created_at'    => $service->created_at,
-                'updated_at'    => $service->updated_at,
-                'image_url'     => $service->service_image ? url('storage/' . $service->service_image) : null,
+            'success' => true,
+            'data'    => [
+                'id'          => $service->service_id,
+                'name'        => $service->service_name,
+                'description' => $service->description,
+                'price'       => $service->service_price,
+                'created_at'  => $service->created_at,
+                'updated_at'  => $service->updated_at,
+                'image_url'   => $service->service_image ? url('storage/' . $service->service_image) : null,
             ],
-            'message' => 'Service created successfully'
+            'message' => 'Service created successfully',
+            'meta'    => [
+                'total' => 1
+            ]
         ], 201);
     }
 
@@ -73,20 +80,26 @@ class ServiceController extends Controller
 
         if (! $service) {
             return response()->json([
+                'success' => false,
                 'message' => 'Service not found',
             ], 404);
         }
 
         return response()->json([
-            'data' => [
-                'service_id'    => $service->service_id,
-                'service_name'  => $service->service_name,
-                'service_price' => $service->service_price,
-                'description'   => $service->description,
-                'service_image' => $service->service_image,
-                'created_at'    => $service->created_at,
-                'updated_at'    => $service->updated_at,
-                'image_url'     => $service->service_image ? url('storage/' . $service->service_image) : null,
+            'success' => true,
+            'data'    => [
+                'id'          => $service->service_id,
+                'name'        => $service->service_name,
+                'description' => $service->description,
+                'price'       => $service->service_price,
+                'image'       => $service->service_image,
+                'created_at'  => $service->created_at,
+                'updated_at'  => $service->updated_at,
+                'image_url'   => $service->service_image ? url('storage/' . $service->service_image) : null,
+            ],
+            'message' => 'Service retrieved successfully',
+            'meta'    => [
+                'total' => 1
             ]
         ], 200);
     }
@@ -98,6 +111,7 @@ class ServiceController extends Controller
 
         if (! $service) {
             return response()->json([
+                'success' => false,
                 'message' => 'Service not found',
             ], 404);
         }
@@ -120,17 +134,21 @@ class ServiceController extends Controller
         $service->update($validated);
 
         return response()->json([
-            'data' => [
-                'service_id'    => $service->service_id,
-                'service_name'  => $service->service_name,
-                'service_price' => $service->service_price,
-                'description'   => $service->description,
-                'service_image' => $service->service_image,
-                'created_at'    => $service->created_at,
-                'updated_at'    => $service->updated_at,
-                'image_url'     => $service->service_image ? url('storage/' . $service->service_image) : null,
+            'success' => true,
+            'data'    => [
+                'id'          => $service->service_id,
+                'name'        => $service->service_name,
+                'description' => $service->description,
+                'price'       => $service->service_price,
+                'image'       => $service->service_image,
+                'created_at'  => $service->created_at,
+                'updated_at'  => $service->updated_at,
+                'image_url'   => $service->service_image ? url('storage/' . $service->service_image) : null,
             ],
-            'message' => 'Service updated successfully'
+            'message' => 'Service updated successfully',
+            'meta'    => [
+                'total' => 1,
+            ]
         ], 200);
     }
 
@@ -141,6 +159,7 @@ class ServiceController extends Controller
 
         if (! $service) {
             return response()->json([
+                'success' => false,
                 'message' => 'Service not found',
             ], 404);
         }
@@ -152,7 +171,11 @@ class ServiceController extends Controller
         $service->delete();
 
         return response()->json([
-            'message' => 'Service deleted successfully'
+            'success' => true,
+            'message' => 'Service deleted successfully',
+            'meta'    => [
+                'total' => 0
+            ]
         ], 200);
     }
 }

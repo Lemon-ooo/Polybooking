@@ -10,7 +10,7 @@ import {
   InputNumber,
   message,
   Form,
-  Input,
+  Input
 } from "antd";
 import { DownOutlined } from "@ant-design/icons";
 import axios from "axios";
@@ -51,9 +51,7 @@ export default function ClientBooking() {
   const [servicesLoading, setServicesLoading] = useState(true);
   const [servicesError, setServicesError] = useState<string | null>(null);
   const [selectedServices, setSelectedServices] = useState<any[]>([]);
-  const [serviceQuantities, setServiceQuantities] = useState<
-    Record<number, number>
-  >({});
+  const [serviceQuantities, setServiceQuantities] = useState<Record<number, number>>({});
 
   // ===============================
   // GET SERVICE IMAGE URL
@@ -96,9 +94,7 @@ export default function ClientBooking() {
       .get(`${API_URL}/api/room-types`)
       .then((res) => {
         const data = res.data?.data || [];
-        const filtered = data.filter(
-          (room: any) => room.max_guests >= totalGuests
-        );
+        const filtered = data.filter((room: any) => room.max_guests >= totalGuests);
 
         const mappedRooms = filtered.map((room: any) => ({
           room_type_id: room.room_type_id,
@@ -164,19 +160,8 @@ export default function ClientBooking() {
     const exists = selectedServices.some((s) => s.id === sv.id);
     if (exists) {
       setSelectedServices((prev) => prev.filter((s) => s.id !== sv.id));
-      // Xóa quantity khi bỏ chọn
-      setServiceQuantities((prev) => {
-        const newQuantities = { ...prev };
-        delete newQuantities[sv.id];
-        return newQuantities;
-      });
     } else {
       setSelectedServices((prev) => [...prev, sv]);
-      // Set default quantity = 1 khi chọn
-      setServiceQuantities((prev) => ({
-        ...prev,
-        [sv.id]: 1,
-      }));
     }
   };
 
@@ -185,7 +170,7 @@ export default function ClientBooking() {
   };
 
   // ===============================
-  // BOOKING FUNCTION - ĐƠN GIẢN KHÔNG CẦN USER
+  // BOOKING FUNCTION - QUAN TRỌNG
   // ===============================
   const handleBooking = async (values: any) => {
     if (!selectedRoom || !filters.dates) {
@@ -198,91 +183,51 @@ export default function ClientBooking() {
     try {
       // Tính số đêm
       const nights = filters.dates[1].diff(filters.dates[0], "days");
-
-      // Tạo booking data đơn giản - KHÔNG CẦN user_id
+      
+      // Tạo booking data theo API format
       const bookingData = {
-        user_id: 1, // Vẫn giữ tạm user_id = 1 để API hoạt động
+        user_id: 1, // Tạm thời fix user_id, bạn có thể lấy từ authentication
         check_in: filters.dates[0].format("YYYY-MM-DD"),
         check_out: filters.dates[1].format("YYYY-MM-DD"),
         guest_number: filters.adults + filters.children,
         room_type_ids: [selectedRoom.room_type_id],
-        quantities: [1],
-        // Thêm thông tin khách hàng
+        quantities: [1], // Mỗi lần đặt 1 phòng
+        // Thêm thông tin khách hàng nếu API hỗ trợ
         customer_name: `${values.lastName} ${values.firstName}`,
         customer_phone: values.phone,
         customer_email: values.email,
-        special_requests: values.specialRequests || "",
-        // GỘP LUÔN DỊCH VỤ VÀO BOOKING DATA
-        services: selectedServices.map((service) => ({
-          service_id: service.id,
-          quantity: serviceQuantities[service.id] || 1,
-        })),
+        special_requests: values.specialRequests || ""
       };
 
-      console.log("Booking data:", bookingData);
-
-      // Chỉ cần gọi API một lần - dịch vụ được gửi kèm luôn
+      // Gọi API tạo booking
       const response = await axios.post(`${API_URL}/api/bookings`, bookingData);
+      
+      const booking = response.data.data;
 
-      message.success(
-        "Đặt phòng thành công! Chúng tôi sẽ liên hệ với bạn để xác nhận."
-      );
+      // Nếu có dịch vụ được chọn, thêm vào booking
+      if (selectedServices.length > 0) {
+        const servicesData = {
+          services: selectedServices.map(service => ({
+            service_id: service.id,
+            quantity: serviceQuantities[service.id] || 1
+          }))
+        };
 
+        await axios.post(`${API_URL}/api/bookings/${booking.booking_id}/services`, servicesData);
+      }
+
+      message.success("Đặt phòng thành công! Chúng tôi sẽ liên hệ với bạn để xác nhận.");
+      
       // Reset form và trở về step 1
       setStep(1);
       setSelectedRoom(null);
       setSelectedServices([]);
       setServiceQuantities({});
       form.resetFields();
+
     } catch (error: any) {
       console.error("Booking error:", error);
-      const errorMessage = error.response?.data?.message || error.message;
-
-      if (
-        errorMessage.includes("services") ||
-        errorMessage.includes("service")
-      ) {
-        // Nếu lỗi liên quan đến services, thử booking không có services
-        try {
-          const fallbackBookingData = {
-            user_id: 1,
-            check_in: filters.dates[0].format("YYYY-MM-DD"),
-            check_out: filters.dates[1].format("YYYY-MM-DD"),
-            guest_number: filters.adults + filters.children,
-            room_type_ids: [selectedRoom.room_type_id],
-            quantities: [1],
-            customer_name: `${form.getFieldValue(
-              "lastName"
-            )} ${form.getFieldValue("firstName")}`,
-            customer_phone: form.getFieldValue("phone"),
-            customer_email: form.getFieldValue("email"),
-            special_requests: form.getFieldValue("specialRequests") || "",
-            // KHÔNG gửi services
-          };
-
-          const fallbackResponse = await axios.post(
-            `${API_URL}/api/bookings`,
-            fallbackBookingData
-          );
-          message.success(
-            "Đặt phòng thành công! Dịch vụ sẽ được thêm sau khi xác nhận."
-          );
-
-          // Reset form
-          setStep(1);
-          setSelectedRoom(null);
-          setSelectedServices([]);
-          setServiceQuantities({});
-          form.resetFields();
-        } catch (fallbackError: any) {
-          message.error(
-            "Đặt phòng thất bại: " +
-              (fallbackError.response?.data?.message || fallbackError.message)
-          );
-        }
-      } else {
-        message.error("Đặt phòng thất bại: " + errorMessage);
-      }
+      message.error("Đặt phòng thất bại: " + (error.response?.data?.message || error.message));
     } finally {
       setBookingLoading(false);
     }
@@ -300,12 +245,12 @@ export default function ClientBooking() {
 
   const calcTotal = () => {
     if (!selectedRoom || !filters.dates) return 0;
-
+    
     const roomPrice = selectedRoom.price;
     const nights = filters.dates[1].diff(filters.dates[0], "days");
     const totalRoom = roomPrice * nights;
     const totalServices = calcTotalServices();
-
+    
     return Math.max(totalRoom + totalServices - discountAmount, 0);
   };
 
@@ -362,82 +307,31 @@ export default function ClientBooking() {
                     <div className="row">
                       <span>Người lớn</span>
                       <div className="counter">
-                        <button
-                          onClick={() =>
-                            setFilters({
-                              ...filters,
-                              adults: Math.max(1, filters.adults - 1),
-                            })
-                          }
-                        >
-                          -
-                        </button>
+                        <button onClick={() => setFilters({ ...filters, adults: Math.max(1, filters.adults - 1) })}>-</button>
                         <span>{filters.adults}</span>
-                        <button
-                          onClick={() =>
-                            setFilters({
-                              ...filters,
-                              adults: filters.adults + 1,
-                            })
-                          }
-                        >
-                          +
-                        </button>
+                        <button onClick={() => setFilters({ ...filters, adults: filters.adults + 1 })}>+</button>
                       </div>
                     </div>
                     <div className="row">
                       <span>Trẻ em dưới 12 tuổi</span>
                       <div className="counter">
-                        <button
-                          onClick={() =>
-                            setFilters({
-                              ...filters,
-                              children: Math.max(0, filters.children - 1),
-                            })
-                          }
-                        >
-                          -
-                        </button>
+                        <button onClick={() => setFilters({ ...filters, children: Math.max(0, filters.children - 1) })}>-</button>
                         <span>{filters.children}</span>
-                        <button
-                          onClick={() =>
-                            setFilters({
-                              ...filters,
-                              children: filters.children + 1,
-                            })
-                          }
-                        >
-                          +
-                        </button>
+                        <button onClick={() => setFilters({ ...filters, children: filters.children + 1 })}>+</button>
                       </div>
                     </div>
                     {filters.children > 0 && (
                       <div className="age-row">
                         <span>Tuổi trẻ</span>
-                        <select
-                          value={filters.childAge}
-                          onChange={(e) =>
-                            setFilters({
-                              ...filters,
-                              childAge: Number(e.target.value),
-                            })
-                          }
-                        >
+                        <select value={filters.childAge} onChange={(e) => setFilters({ ...filters, childAge: Number(e.target.value) })}>
                           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((age) => (
-                            <option key={age} value={age}>
-                              {age} tuổi
-                            </option>
+                            <option key={age} value={age}>{age} tuổi</option>
                           ))}
                         </select>
                       </div>
                     )}
                     <div className="popup-actions">
-                      <button
-                        className="done"
-                        onClick={() => setOpenGuestPopup(false)}
-                      >
-                        Hoàn tất
-                      </button>
+                      <button className="done" onClick={() => setOpenGuestPopup(false)}>Hoàn tất</button>
                     </div>
                   </div>
                 )}
@@ -449,24 +343,15 @@ export default function ClientBooking() {
               <div className="best-price-left">
                 <div className="best-title">ĐẶT PHÒNG Ở GIÁ TỐT NHẤT!</div>
                 <div className="best-items">
-                  <div className="bp-item">
-                    <span className="bp-icon">✔</span> Đặt phòng trực tiếp
-                  </div>
-                  <div className="bp-item">
-                    <span className="bp-icon">✔</span> Đảm bảo giá tốt nhất
-                  </div>
-                  <div className="bp-item">
-                    <span className="bp-icon">✔</span> Dữ liệu được bảo mật
-                  </div>
+                  <div className="bp-item"><span className="bp-icon">✔</span> Đặt phòng trực tiếp</div>
+                  <div className="bp-item"><span className="bp-icon">✔</span> Đảm bảo giá tốt nhất</div>
+                  <div className="bp-item"><span className="bp-icon">✔</span> Dữ liệu được bảo mật</div>
                 </div>
               </div>
               <div className="best-price-right">
                 <div className="best-label">Giá tốt nhất của chúng tôi</div>
                 <div className="best-value">
-                  {rooms.length > 0
-                    ? Math.min(...rooms.map((r) => r.price)).toLocaleString()
-                    : "0"}{" "}
-                  ₫
+                  {rooms.length > 0 ? Math.min(...rooms.map((r) => r.price)).toLocaleString() : "0"} ₫
                 </div>
               </div>
             </div>
@@ -474,12 +359,7 @@ export default function ClientBooking() {
             {/* STEPS HEADER */}
             <div className="steps-header">
               {step > 1 ? (
-                <button
-                  className="steps-btn back"
-                  onClick={() => setStep(step - 1)}
-                >
-                  ⟵ Quay lại
-                </button>
+                <button className="steps-btn back" onClick={() => setStep(step - 1)}>⟵ Quay lại</button>
               ) : (
                 <div style={{ width: 80 }}></div>
               )}
@@ -491,84 +371,44 @@ export default function ClientBooking() {
               </div>
 
               {step < 3 ? (
-                <button
-                  className="steps-btn next"
-                  onClick={() => setStep(step + 1)}
-                >
-                  Tiếp tục đặt phòng ⟶
-                </button>
+                <button className="steps-btn next" onClick={() => setStep(step + 1)}>Tiếp tục đặt phòng ⟶</button>
               ) : (
                 <div style={{ width: 120 }}></div>
               )}
             </div>
 
             <div className="steps-progress">
-              <div
-                className={`progress-bar ${
-                  step === 1 ? "level-1" : step === 2 ? "level-2" : "level-3"
-                }`}
-              ></div>
+              <div className={`progress-bar ${step === 1 ? "level-1" : step === 2 ? "level-2" : "level-3"}`}></div>
             </div>
 
             {/* STEP 1 — CHỌN PHÒNG */}
             {step === 1 && (
               <>
                 {loading ? (
-                  <div className="loading">
-                    <Spin size="large" />
-                  </div>
+                  <div className="loading"><Spin size="large" /></div>
                 ) : rooms.length === 0 ? (
-                  <Empty
-                    description="Không có phòng phù hợp"
-                    style={{ marginTop: 20 }}
-                  />
+                  <Empty description="Không có phòng phù hợp" style={{ marginTop: 20 }} />
                 ) : (
                   <div className="room-list-grid">
                     {rooms.map((room) => (
                       <Card className="room-card" key={room.room_type_id}>
                         <div className="room-img-wrap">
                           <img
-                            src={
-                              room.images?.[0]?.image_url
-                                ? `${API_URL}/storage/${room.images[0].image_url}`
-                                : "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop"
-                            }
+                            src={room.images?.[0]?.image_url ? `${API_URL}/storage/${room.images[0].image_url}` : "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop"}
                             className="room-img"
                             alt={room.room_type_name}
                           />
-                          {room.soldOut && (
-                            <div className="soldout-badge">Hết phòng</div>
-                          )}
+                          {room.soldOut && <div className="soldout-badge">Hết phòng</div>}
                         </div>
                         <h3 className="room-title">{room.room_type_name}</h3>
-                        <p className="room-desc">
-                          Sức chứa: {room.maxGuests} khách
-                        </p>
-                        <p className="room-price">
-                          Từ <strong>{room.price.toLocaleString()} ₫</strong> /
-                          đêm
-                        </p>
+                        <p className="room-desc">Sức chứa: {room.maxGuests} khách</p>
+                        <p className="room-price">Từ <strong>{room.price.toLocaleString()} ₫</strong> / đêm</p>
                         <div className="room-actions">
-                          <Button
-                            className="detail-btn"
-                            onClick={() => {
-                              setDetailRoom(room);
-                              setOpenDetail(true);
-                            }}
-                          >
-                            Xem chi tiết
-                          </Button>
+                          <Button className="detail-btn" onClick={() => { setDetailRoom(room); setOpenDetail(true); }}>Xem chi tiết</Button>
                           {room.soldOut ? (
-                            <Button disabled className="room-btn soldout">
-                              Đã bán hết
-                            </Button>
+                            <Button disabled className="room-btn soldout">Đã bán hết</Button>
                           ) : (
-                            <Button
-                              className="room-btn"
-                              onClick={() => handleSelectRoom(room)}
-                            >
-                              Chọn phòng
-                            </Button>
+                            <Button className="room-btn" onClick={() => handleSelectRoom(room)}>Chọn phòng</Button>
                           )}
                         </div>
                       </Card>
@@ -582,53 +422,28 @@ export default function ClientBooking() {
             {step === 2 && (
               <div className="card-box">
                 <div className="container">
-                  <p className="step2-sub">
-                    (Chọn dịch vụ bạn muốn thêm vào phòng - có thể bỏ qua)
-                  </p>
+                  <p className="step2-sub">(Chọn dịch vụ bạn muốn thêm vào phòng)</p>
                   {servicesLoading ? (
-                    <div className="loading">
-                      <Spin size="large" />
-                    </div>
+                    <div className="loading"><Spin size="large" /></div>
                   ) : servicesError ? (
-                    <Alert
-                      message="Lỗi"
-                      description={servicesError}
-                      type="error"
-                      showIcon
-                    />
+                    <Alert message="Lỗi" description={servicesError} type="error" showIcon />
                   ) : services.length === 0 ? (
                     <Empty description="Chưa có dịch vụ nào" />
                   ) : (
                     <div className="addon-list-grid">
                       {services.map((service) => (
                         <div
-                          className={`addon-card selectable ${
-                            selectedServices.some((s) => s.id === service.id)
-                              ? "active"
-                              : ""
-                          }`}
+                          className={`addon-card selectable ${selectedServices.some((s) => s.id === service.id) ? "active" : ""}`}
                           key={service.id}
                           onClick={() => toggleService(service)}
                         >
-                          <img
-                            src={getImageUrl(service.image)}
-                            className="addon-img"
-                            alt={service.name}
-                          />
+                          <img src={getImageUrl(service.image)} className="addon-img" alt={service.name} />
                           <div className="addon-content">
-                            <h3 className="addon-title">
-                              {service.name?.toUpperCase() || ""}
-                            </h3>
+                            <h3 className="addon-title">{service.name?.toUpperCase() || ""}</h3>
                             <p className="addon-desc">{service.description}</p>
-                            <p className="addon-price">
-                              Từ {Number(service.price).toLocaleString()}₫
-                            </p>
-                            {selectedServices.some(
-                              (s) => s.id === service.id
-                            ) ? (
-                              <button className="addon-selected">
-                                Bỏ Chọn
-                              </button>
+                            <p className="addon-price">Từ {Number(service.price).toLocaleString()}₫</p>
+                            {selectedServices.some((s) => s.id === service.id) ? (
+                              <button className="addon-selected">Bỏ Chọn</button>
                             ) : (
                               <button className="addon-btn">Thêm</button>
                             )}
@@ -637,14 +452,6 @@ export default function ClientBooking() {
                       ))}
                     </div>
                   )}
-                  <div className="step2-actions">
-                    <Button type="primary" onClick={() => setStep(3)}>
-                      Tiếp tục{" "}
-                      {selectedServices.length > 0
-                        ? `(${selectedServices.length} dịch vụ)`
-                        : "(Không chọn dịch vụ)"}
-                    </Button>
-                  </div>
                 </div>
               </div>
             )}
@@ -660,101 +467,43 @@ export default function ClientBooking() {
                     <div className="booking-section">
                       <h3 className="label-title">Tôi đang đặt</h3>
                       <div className="booking-tabs">
-                        <div
-                          className={`tab ${
-                            activeTab === "me" ? "active" : ""
-                          }`}
-                          onClick={() => setActiveTab("me")}
-                        >
-                          Cho tôi
-                        </div>
-                        <div
-                          className={`tab ${
-                            activeTab === "other" ? "active" : ""
-                          }`}
-                          onClick={() => setActiveTab("other")}
-                        >
-                          Cho người khác
-                        </div>
+                        <div className={`tab ${activeTab === "me" ? "active" : ""}`} onClick={() => setActiveTab("me")}>Cho tôi</div>
+                        <div className={`tab ${activeTab === "other" ? "active" : ""}`} onClick={() => setActiveTab("other")}>Cho người khác</div>
                       </div>
                     </div>
 
                     <p className="sub-note">
-                      Nhập thông tin của bạn để nhận phòng. Thông tin của các
-                      khách khác có thể cung cấp lúc nhận phòng.
+                      Nhập thông tin của bạn để nhận phòng. Thông tin của các khách khác có thể cung cấp lúc nhận phòng.
                     </p>
 
                     <div className="input-grid">
-                      <Form.Item
-                        name="firstName"
-                        label="Tên"
-                        rules={[
-                          { required: true, message: "Vui lòng nhập tên" },
-                        ]}
-                      >
+                      <Form.Item name="firstName" label="Tên" rules={[{ required: true, message: 'Vui lòng nhập tên' }]}>
                         <Input placeholder="Nhập tên của bạn..." />
                       </Form.Item>
-                      <Form.Item
-                        name="lastName"
-                        label="Họ"
-                        rules={[
-                          { required: true, message: "Vui lòng nhập họ" },
-                        ]}
-                      >
+                      <Form.Item name="lastName" label="Họ" rules={[{ required: true, message: 'Vui lòng nhập họ' }]}>
                         <Input placeholder="Nhập họ đầy đủ của bạn..." />
                       </Form.Item>
                     </div>
 
                     <div className="input-grid">
-                      <Form.Item
-                        name="phone"
-                        label="SĐT"
-                        rules={[
-                          {
-                            required: true,
-                            message: "Vui lòng nhập số điện thoại",
-                          },
-                        ]}
-                      >
+                      <Form.Item name="phone" label="SĐT" rules={[{ required: true, message: 'Vui lòng nhập số điện thoại' }]}>
                         <Input placeholder="Nhập số điện thoại liên hệ..." />
                       </Form.Item>
-                      <Form.Item
-                        name="email"
-                        label="Email"
-                        rules={[
-                          {
-                            required: true,
-                            type: "email",
-                            message: "Vui lòng nhập email hợp lệ",
-                          },
-                        ]}
-                      >
+                      <Form.Item name="email" label="Email" rules={[{ required: true, type: 'email', message: 'Vui lòng nhập email hợp lệ' }]}>
                         <Input placeholder="Nhập địa chỉ email của bạn..." />
                       </Form.Item>
                     </div>
 
                     <Form.Item name="specialRequests" label="Thông tin bổ sung">
-                      <Input.TextArea
-                        placeholder="Nếu bạn có nhu cầu đặc biệt..."
-                        rows={4}
-                      />
+                      <Input.TextArea placeholder="Nếu bạn có nhu cầu đặc biệt..." rows={4} />
                     </Form.Item>
 
                     <div className="booking-actions">
-                      <Button
-                        type="primary"
-                        htmlType="submit"
-                        loading={bookingLoading}
-                        size="large"
-                        className="book-confirm-btn"
-                      >
-                        {bookingLoading
-                          ? "Đang xử lý..."
-                          : "Xác nhận đặt phòng"}
+                      <Button type="primary" htmlType="submit" loading={bookingLoading} size="large" className="book-confirm-btn">
+                        {bookingLoading ? "Đang xử lý..." : "Xác nhận đặt phòng"}
                       </Button>
                       <p className="booking-note">
-                        * Chúng tôi sẽ liên hệ với bạn trong vòng 24h để xác
-                        nhận đặt phòng
+                        * Chúng tôi sẽ liên hệ với bạn trong vòng 24h để xác nhận đặt phòng
                       </p>
                     </div>
                   </Form>
@@ -767,14 +516,8 @@ export default function ClientBooking() {
                   {filters?.dates && (
                     <div className="summary-section">
                       <div className="date-detail">
-                        <div>
-                          <strong>Nhận phòng:</strong>{" "}
-                          {filters.dates[0].format("DD MMM YYYY")}
-                        </div>
-                        <div>
-                          <strong>Trả phòng:</strong>{" "}
-                          {filters.dates[1].format("DD MMM YYYY")}
-                        </div>
+                        <div><strong>Nhận phòng:</strong> {filters.dates[0].format("DD MMM YYYY")}</div>
+                        <div><strong>Trả phòng:</strong> {filters.dates[1].format("DD MMM YYYY")}</div>
                       </div>
                       <div className="night-count">{getNights()} đêm</div>
                     </div>
@@ -782,37 +525,24 @@ export default function ClientBooking() {
 
                   <div className="summary-item">
                     <span>Phòng:</span>
-                    <strong>
-                      {selectedRoom?.room_type_name || "Chưa chọn phòng"}
-                    </strong>
-                    <div className="price">
-                      {selectedRoom ? selectedRoom.price.toLocaleString() : "0"}{" "}
-                      ₫ / đêm
-                    </div>
+                    <strong>{selectedRoom?.room_type_name || "Chưa chọn phòng"}</strong>
+                    <div className="price">{selectedRoom ? selectedRoom.price.toLocaleString() : "0"} ₫ / đêm</div>
                   </div>
 
                   {selectedServices.length > 0 && (
                     <>
                       <span>Dịch vụ thêm:</span>
-                      <br />
-                      <br />
+                      <br /><br />
                       {selectedServices.map((s) => (
                         <div className="summary-item" key={s.id}>
                           <span>{s.name}</span>
                           <InputNumber
                             min={1}
                             value={serviceQuantities[s.id] || 1}
-                            onChange={(v) =>
-                              changeQuantity(s.id, Number(v || 1))
-                            }
+                            onChange={(v) => changeQuantity(s.id, Number(v || 1))}
                             style={{ width: 60 }}
                           />
-                          <strong>
-                            {(
-                              Number(s.price) * (serviceQuantities[s.id] || 1)
-                            ).toLocaleString()}{" "}
-                            ₫
-                          </strong>
+                          <strong>{(Number(s.price) * (serviceQuantities[s.id] || 1)).toLocaleString()} ₫</strong>
                         </div>
                       ))}
                     </>
@@ -821,21 +551,12 @@ export default function ClientBooking() {
                   <div className="summary-total-box">
                     <div className="summary-line">
                       <span>Tiền phòng ({getNights()} đêm)</span>
-                      <strong>
-                        {selectedRoom
-                          ? (selectedRoom.price * getNights()).toLocaleString()
-                          : "0"}{" "}
-                        ₫
-                      </strong>
+                      <strong>{selectedRoom ? (selectedRoom.price * getNights()).toLocaleString() : "0"} ₫</strong>
                     </div>
-                    {selectedServices.length > 0 && (
-                      <div className="summary-line">
-                        <span>Dịch vụ</span>
-                        <strong>
-                          {calcTotalServices().toLocaleString()} ₫
-                        </strong>
-                      </div>
-                    )}
+                    <div className="summary-line">
+                      <span>Dịch vụ</span>
+                      <strong>{calcTotalServices().toLocaleString()} ₫</strong>
+                    </div>
                     {discountAmount > 0 && (
                       <div className="summary-line">
                         <span>Giảm giá</span>
