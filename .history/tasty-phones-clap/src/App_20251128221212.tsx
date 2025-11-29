@@ -48,6 +48,8 @@ import { EventEdit } from "./components/pages/admin/event/edit";
 
 import Amenities from "./components/pages/admin/amenities";
 import { ClientAbout } from "./components/pages/client/about";
+import { ForgotPassword } from "./components/pages/share/forgotPassword";
+import { RoomDetail } from "./components/pages/client/rooms/roomDetail";
 import ClientBooking from "./components/pages/client/booking/ClientBooking";
 import { ProfileClient } from "./components/pages/client/profile";
 
@@ -90,6 +92,16 @@ export default function App() {
             }
           >
             <Route path="client" element={<ClientDashboard />} />
+            <Route path="client/room-types" element={<ClientRooms />} />
+            <Route path="client/room-types/:id" element={<RoomDetail />} />
+            <Route path="client/services" element={<ClientServices />} />
+            <Route path="client/gallery" element={<ClientGallery />} />
+            <Route path="client/events" element={<ClientEvent />} />
+            <Route path="client/services/:id" element={<ServicesDetail />} />
+            <Route path="client/galleries" element={<ClientGallery />} />
+            <Route path="client/events" element={<ClientEvent />} />
+            <Route path="client/about" element={<ClientAbout />} />
+            <Route path="client/booking" element={<ClientBooking />} />
             <Route index element={<ClientDashboard />} />
             <Route path="about" element={<ClientAbout />} />
             <Route path="rooms" element={<ClientRooms />} />
@@ -99,7 +111,6 @@ export default function App() {
             <Route path="galleries" element={<ClientGallery />} />
             <Route path="events" element={<ClientEvent />} />
             <Route path="profile" element={<ProfileClient />} />
-            <Route path="bookings" element={<ClientBooking />} />
           </Route>
 
           {/* --------------------------------------------- */}
