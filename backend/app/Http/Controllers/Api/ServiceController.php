@@ -17,7 +17,7 @@ class ServiceController extends Controller
         // Chuẩn hóa dữ liệu trả về
         $data = $services->map(function ($item) {
             return [
-                'id'          => $item->id,
+                'id'          => $item->service_id,
                 'name'        => $item->service_name,
                 'description' => $item->description,
                 'price'       => number_format($item->service_price, 2),
@@ -58,7 +58,7 @@ class ServiceController extends Controller
         return response()->json([
             'success' => true,
             'data'    => [
-                'id'          => $service->id,
+                'id'          => $service->service_id,
                 'name'        => $service->service_name,
                 'description' => $service->description,
                 'price'       => number_format($service->service_price, 2),
@@ -89,7 +89,7 @@ class ServiceController extends Controller
         return response()->json([
             'success' => true,
             'data'    => [
-                'id'          => $service->id,
+                'id'          => $service->service_id,
                 'name'        => $service->service_name,
                 'description' => $service->description,
                 'price'       => number_format($service->service_price, 2),
@@ -106,9 +106,9 @@ class ServiceController extends Controller
     }
 
     /** Cập nhật dịch vụ */
-    public function update(Request $request, $id)
+    public function update(Request $request, $service_id)
     {
-        $service = Service::find($id);
+        $service = Service::find($service_id);
 
         if (! $service) {
             return response()->json([
@@ -137,7 +137,7 @@ class ServiceController extends Controller
         return response()->json([
             'success' => true,
             'data'    => [
-                'id'          => $service->id,
+                'id'          => $service->service_id,
                 'name'        => $service->service_name,
                 'description' => $service->description,
                 'price'       => number_format($service->service_price, 2),
@@ -154,9 +154,9 @@ class ServiceController extends Controller
     }
 
     /** Xóa dịch vụ */
-    public function destroy($id)
+    public function destroy($service_id)
     {
-        $service = Service::find($id);
+        $service = Service::find($service_id);
 
         if (! $service) {
             return response()->json([
