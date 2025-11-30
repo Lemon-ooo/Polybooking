@@ -46,6 +46,9 @@ import { ClientAbout } from "./components/pages/client/about";
 import { ForgotPassword } from "./components/pages/share/forgotPassword";
 import { RoomDetail } from "./components/pages/client/rooms/roomDetail";
 import ClientBooking from "./components/pages/client/booking/ClientBooking";
+import { RoomTypeList } from "./components/pages/admin/room-types/list";
+import { RoomTypeCreate } from "./components/pages/admin/room-types/create";
+import { RoomTypeEdit } from "./components/pages/admin/room-types/edit";
 
 export default function App() {
   return (
@@ -133,6 +136,11 @@ export default function App() {
             <Route path="rooms" element={<RoomList />} />
             <Route path="rooms/create" element={<RoomCreate />} />
             <Route path="rooms/edit/:id" element={<RoomEdit />} />
+            <Route path="room-types" element={<RoomTypeList />} />
+            {/* <Route path="room-types/show/:id" element={<RoomTypeShow />} /> */}
+            <Route path="room-types/create" element={<RoomTypeCreate />} />
+            <Route path="room-types/edit/:id" element={<RoomTypeEdit />} />
+
             <Route path="amenities" element={<Amenities />} />
           </Route>
 

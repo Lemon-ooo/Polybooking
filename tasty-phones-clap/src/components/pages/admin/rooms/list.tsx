@@ -70,7 +70,7 @@ export const RoomList: React.FC = () => {
           Làm mới dữ liệu
         </Button>
         <Text style={{ marginLeft: 16 }}>
-          Tổng số: {data?.total || 0} phòng
+          Tổng số: {data?.meta?.total || 0} phòng
         </Text>
       </div>
 
@@ -83,24 +83,17 @@ export const RoomList: React.FC = () => {
       >
         <Table.Column dataIndex="room_number" title="Số phòng" sorter />
         <Table.Column
-          dataIndex={["room_type", "name"]}
+          dataIndex={["room_type", "room_type_name"]}
           title="Loại phòng"
           render={(value, record: Room) => (
-            <Tooltip title={record.room_type.description}>
+            <Tooltip title={record.room_type?.description}>
               <span>{value}</span>
             </Tooltip>
           )}
         />
+
         <Table.Column
-          dataIndex="price"
-          title="Giá"
-          render={(price: string) => formatPrice(price)}
-          sorter={(a: Room, b: Room) =>
-            parseFloat(a.price) - parseFloat(b.price)
-          }
-        />
-        <Table.Column
-          dataIndex="status"
+          dataIndex="room_status"
           title="Trạng thái"
           render={(status: string) => (
             <Tag color={getRoomStatusColor(status)}>
@@ -108,11 +101,11 @@ export const RoomList: React.FC = () => {
             </Tag>
           )}
           filters={[
-            { text: "Trống", value: "trống" },
+            { text: "Trống", value: "available" },
             { text: "Đang sử dụng", value: "occupied" },
             { text: "Bảo trì", value: "maintenance" },
           ]}
-          onFilter={(value, record: Room) => record.status === value}
+          onFilter={(value, record: Room) => record.room_status === value}
         />
         <Table.Column
           dataIndex="description"
@@ -121,23 +114,6 @@ export const RoomList: React.FC = () => {
           render={(description: string) => (
             <Tooltip title={description}>
               <span>{description || "Không có mô tả"}</span>
-            </Tooltip>
-          )}
-        />
-        <Table.Column
-          dataIndex="amenities"
-          title="Tiện nghi"
-          render={(amenities: any[]) => (
-            <Tooltip
-              title={
-                amenities?.map((a) => a.name).join(", ") || "Không có tiện nghi"
-              }
-            >
-              <span>
-                {amenities?.length > 0
-                  ? `${amenities.length} tiện nghi`
-                  : "Không có"}
-              </span>
             </Tooltip>
           )}
         />

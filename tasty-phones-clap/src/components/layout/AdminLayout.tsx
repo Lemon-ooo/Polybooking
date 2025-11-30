@@ -70,16 +70,15 @@ export const AdminLayout: React.FC = () => {
   // Menu sidebar
   const menuItems = [
     { key: "dashboard", icon: <HomeOutlined />, label: "Dashboard" },
+    { key: "room-types", icon: <ApartmentOutlined />, label: "Loại Phòng" },
     { key: "rooms", icon: <ApartmentOutlined />, label: "Phòng" },
-    { key: "gallery", icon: <FolderOpenOutlined />, label: "Bộ sự tập ảnh" },
+    { key: "gallery", icon: <FolderOpenOutlined />, label: "Bộ sưu tập ảnh" },
     { key: "events", icon: <ScheduleOutlined />, label: "Sự kiện " },
     { key: "services", icon: <CustomerServiceOutlined />, label: "Dịch vụ" },
-    { key: "gallery", icon: <ApartmentOutlined />, label: "Bộ sự tập ảnh" },
     { key: "bookings", icon: <BookOutlined />, label: "Đặt Phòng" },
     { key: "amenities", icon: <ToolOutlined />, label: "Tiện Ích" },
     { key: "customers", icon: <TeamOutlined />, label: "Khách Hàng" },
     { key: "revenue", icon: <DollarOutlined />, label: "Doanh Thu" },
-    { key: "calendar", icon: <CalendarOutlined />, label: "Lịch Làm Việc" },
     { key: "settings", icon: <SettingOutlined />, label: "Cài Đặt" },
   ];
 

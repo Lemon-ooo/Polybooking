@@ -9,6 +9,8 @@ const getPrimaryKey = (resource: string) => {
       return "gallery_id";
     case "rooms":
       return "room_id";
+    case "room-types":
+      return "room_type_id";  
     // Thêm các tài nguyên khác nếu cần (ví dụ: 'users' -> 'id')
     default:
       return "id";

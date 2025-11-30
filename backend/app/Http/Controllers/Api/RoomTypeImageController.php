@@ -33,27 +33,25 @@ class RoomTypeImageController extends Controller
     /**
      * Upload ảnh mới (Refine useCreate)
      */
-    public function store(Request $request, $roomTypeId)
-    {
+public function store(Request $request, $roomTypeId)
+{
+    // Nếu là ảnh chính → chỉ nhận 1 file
+    if ($request->image_type === 'main') {
         $request->validate([
             'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:4096',
-            'image_type' => 'required|in:main,secondary',
-            'sort_order' => 'nullable|integer|min:0',
         ]);
 
         // Nếu chọn main, các ảnh khác chuyển thành secondary
-        if ($request->image_type === 'main') {
-            RoomTypeImage::where('room_type_id', $roomTypeId)
-                ->where('image_type', 'main')
-                ->update(['image_type' => 'secondary']);
-        }
+        RoomTypeImage::where('room_type_id', $roomTypeId)
+            ->where('image_type', 'main')
+            ->update(['image_type' => 'secondary']);
 
         $path = $request->file('image')->store('room_type_images', 'public');
 
         $image = RoomTypeImage::create([
             'room_type_id' => $roomTypeId,
             'image_url' => $path,
-            'image_type' => $request->image_type,
+            'image_type' => 'main',
             'sort_order' => $request->sort_order ?? 0,
         ]);
 
@@ -61,6 +59,35 @@ class RoomTypeImageController extends Controller
             'data' => $image,
         ], 201);
     }
+
+    // Nếu là ảnh phụ → có thể nhận mảng files
+    $request->validate([
+        'images.*' => 'required|image|mimes:jpeg,png,jpg,webp|max:4096',
+        'sort_order' => 'nullable|integer|min:0',
+    ]);
+
+    $uploadedImages = [];
+
+    if ($request->hasFile('images')) {
+        foreach ($request->file('images') as $index => $imageFile) {
+            $path = $imageFile->store('room_type_images', 'public');
+
+            $image = RoomTypeImage::create([
+                'room_type_id' => $roomTypeId,
+                'image_url' => $path,
+                'image_type' => 'secondary',
+                'sort_order' => $request->sort_order ?? ($index + 1),
+            ]);
+
+            $uploadedImages[] = $image;
+        }
+    }
+
+    return response()->json([
+        'data' => $uploadedImages,
+    ], 201);
+}
+
 
     /**
      * Cập nhật ảnh (Refine useUpdate)
@@ -121,4 +148,20 @@ class RoomTypeImageController extends Controller
             'data' => null,
         ]);
     }
+
+    public function destroyMainImage($roomTypeId)
+{
+    $roomType = RoomType::findOrFail($roomTypeId);
+
+    if ($roomType->room_type_image && Storage::disk('public')->exists($roomType->room_type_image)) {
+        Storage::disk('public')->delete($roomType->room_type_image);
+        $roomType->room_type_image = null;
+        $roomType->save();
+    }
+
+    return response()->json([
+        'message' => 'Xóa ảnh đại diện thành công',
+    ]);
+}
+
 }

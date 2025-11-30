@@ -1,143 +1,117 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Create, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, InputNumber, Select, Checkbox, Spin, Alert } from "antd";
+import { Form, Input, InputNumber, Select, Button, message } from "antd";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import {
-  CreateRoomRequest,
-  RoomType,
-  Amenity,
-} from "../../../../interfaces/rooms";
 
 export const RoomCreate: React.FC = () => {
+  const { formProps, saveButtonProps } = useForm();
   const navigate = useNavigate();
 
-  const { form, onFinish, formProps, saveButtonProps } =
-    useForm<CreateRoomRequest>({
-      resource: "rooms",
-    });
+  const [roomTypes, setRoomTypes] = useState<
+    { room_type_id: number; room_type_name: string }[]
+  >([]);
+  const [loadingRoomTypes, setLoadingRoomTypes] = useState(true);
 
-  // Room type dropdown
-  const { selectProps: roomTypeSelectProps } = useSelect<RoomType>({
-    resource: "room-types",
-    optionLabel: "name",
-    optionValue: "id",
-  });
-
-  // Amenities checkbox
-  const { selectProps: amenitiesSelectProps, queryResult: amenitiesQuery } =
-    useSelect<Amenity>({
-      resource: "amenities",
-      optionLabel: "name",
-      optionValue: "amenity_id",
-    });
-
-  const amenitiesOptions =
-    amenitiesSelectProps?.options?.map((opt) => ({
-      label: opt.label,
-      value: opt.value,
-    })) || [];
-
-  const isLoadingAmenities = amenitiesQuery?.isLoading || false;
-  const isErrorAmenities = amenitiesQuery?.isError || false;
-
-  // Submit form
-  const handleFormSubmit = async (values: any) => {
-    const formattedValues: CreateRoomRequest = {
-      room_number: values.room_number,
-      room_type_id: values.room_type_id,
-      price: Number(values.price),
-      status: values.status,
-      description: values.description || "",
-      amenities: (values.amenities || []).map((id: number) => ({
-        amenity_id: id,
-      })),
+  useEffect(() => {
+    const fetchRoomTypes = async () => {
+      try {
+        const res = await axios.get("http://localhost:8000/api/room-types");
+        setRoomTypes(res.data.data);
+      } catch (error) {
+        console.error(error);
+        message.error("Lấy danh sách loại phòng thất bại!");
+      } finally {
+        setLoadingRoomTypes(false);
+      }
     };
 
+    fetchRoomTypes();
+  }, []);
+
+  const onFinish = async (values: any) => {
     try {
-      await onFinish(formattedValues);
+      const payload = {
+        ...values,
+        room_number: String(values.room_number),
+      };
+
+      await axios.post("http://localhost:8000/api/rooms", payload);
+      message.success("Thêm phòng thành công!");
       navigate("/admin/rooms");
     } catch (error: any) {
-      console.error("Submit error:", error.response?.data || error);
+      console.error(error);
+      if (error.response?.data?.errors) {
+        Object.values(error.response.data.errors).forEach((err: any) =>
+          message.error(err as string)
+        );
+      } else {
+        message.error("Thêm phòng thất bại!");
+      }
     }
   };
 
   return (
-    <Create title="Thêm phòng mới" saveButtonProps={saveButtonProps}>
-      <Form
-        {...formProps}
-        layout="vertical"
-        form={form}
-        onFinish={handleFormSubmit}
-      >
-        {/* Room number */}
+    <Create title="Thêm phòng" saveButtonProps={saveButtonProps}>
+      <Form {...formProps} layout="vertical" onFinish={onFinish}>
         <Form.Item
           label="Số phòng"
           name="room_number"
-          rules={[{ required: true, message: "Vui lòng nhập số phòng" }]}
+          rules={[{ required: true, message: "Vui lòng nhập số phòng..." }]}
         >
-          <Input placeholder="VD: 101" />
+          <InputNumber
+            style={{ width: "100%" }}
+            min={1}
+            placeholder="Nhập số phòng..."
+            onKeyPress={(event) => {
+              if (!/[0-9]/.test(event.key)) {
+                event.preventDefault();
+              }
+            }}
+            onPaste={(event) => {
+              const pasteData = event.clipboardData.getData("text");
+              if (!/^\d+$/.test(pasteData)) {
+                event.preventDefault();
+              }
+            }}
+          />
         </Form.Item>
 
-        {/* Room type */}
         <Form.Item
           label="Loại phòng"
           name="room_type_id"
-          rules={[{ required: true, message: "Vui lòng chọn loại phòng" }]}
-        >
-          <Select {...roomTypeSelectProps} placeholder="Chọn loại phòng" />
-        </Form.Item>
-
-        {/* Price */}
-        <Form.Item
-          label="Giá phòng"
-          name="price"
-          rules={[{ required: true, message: "Vui lòng nhập giá" }]}
-        >
-          <InputNumber
-            min={0}
-            className="w-full"
-            formatter={(value) =>
-              `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-            }
-            parser={(value) => value?.replace(/,/g, "") || ""}
-            placeholder="Nhập giá (VNĐ)"
-          />
-        </Form.Item>
-
-        {/* Status */}
-        <Form.Item
-          label="Trạng thái"
-          name="status"
-          rules={[{ required: true, message: "Vui lòng chọn trạng thái" }]}
+          rules={[{ required: true, message: "Vui lòng chọn loại phòng..." }]}
         >
           <Select
-            options={[
-              { label: "Trống", value: "available" },
-              { label: "Đang sử dụng", value: "occupied" },
-              { label: "Bảo trì", value: "maintenance" },
-            ]}
-            placeholder="Chọn trạng thái"
+            placeholder={
+              loadingRoomTypes ? "Đang tải..." : "Chọn loại phòng..."
+            }
+            loading={loadingRoomTypes}
+            options={roomTypes.map((type) => ({
+              label: type.room_type_name,
+              value: type.room_type_id,
+            }))}
           />
         </Form.Item>
 
-        {/* Description */}
-        <Form.Item label="Mô tả" name="description">
-          <Input.TextArea placeholder="Nhập mô tả (nếu có)" rows={3} />
+        <Form.Item
+          label="Trạng thái phòng"
+          name="room_status"
+          rules={[{ required: true, message: "Vui lòng chọn trạng thái..." }]}
+        >
+          <Select placeholder="Chọn trạng thái phòng...">
+            <Select.Option value="available">Available</Select.Option>
+            <Select.Option value="occupied">Occupied</Select.Option>
+            <Select.Option value="maintenance">Maintenance</Select.Option>
+          </Select>
         </Form.Item>
 
-        {/* Amenities */}
-        <Form.Item label="Tiện nghi" name="amenities">
-          {isLoadingAmenities ? (
-            <Spin />
-          ) : isErrorAmenities ? (
-            <Alert
-              message="Lỗi tải danh sách tiện nghi"
-              type="error"
-              showIcon
-            />
-          ) : (
-            <Checkbox.Group options={amenitiesOptions} />
-          )}
+        <Form.Item
+          label="Mô tả"
+          name="description"
+          rules={[{ required: true, message: "Vui lòng nhập mô tả..." }]}
+        >
+          <Input.TextArea rows={4} placeholder="Nhập mô tả phòng..." />
         </Form.Item>
       </Form>
     </Create>
