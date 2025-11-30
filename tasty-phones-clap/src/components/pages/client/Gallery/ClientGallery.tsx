@@ -1,5 +1,3 @@
-// src/components/pages/client/gallery/ClientGallery.tsx
-
 import React, { useState } from "react";
 import { useTable } from "@refinedev/antd";
 import { Row, Col, Typography, Spin, Alert, Button, Pagination } from "antd";
@@ -59,11 +57,11 @@ export const ClientGallery: React.FC = () => {
 
   return (
     <div className="client-gallery-container">
-      {/* HERO BANNER */}
-      <div className="gallery-hero-banner">
+      {/* HERO BANNER - ĐÃ SỬA */}
+      <div className="event-hero-banner">
         <div className="hero-overlay" />
         <div className="hero-content">
-          <h1 className="hero-title">Thư Viện Hình Ảnh</h1>
+          <h1 className="hero-title">THƯ VIỆN HÌNH ẢNH</h1>
         </div>
       </div>
 
