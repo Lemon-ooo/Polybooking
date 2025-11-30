@@ -1,0 +1,45 @@
+/* src/components/pages/client/dashboard/ClientDashboard.css */
+
+/* ========================================================= */
+/* HIỆU ỨNG FADE-IN KHI CUỘN XUỐNG (SCROLL ANIMATION)         */
+/* ========================================================= */
+
+.fade-in-section {
+  /* Trạng thái ban đầu: Vô hình và dịch chuyển nhẹ lên trên */
+  opacity: 0;
+  transform: translateY(25px);
+
+  /* Thiết lập chuyển đổi: Kéo dài 1.2s với độ trễ 0.2s */
+  transition: opacity 1.2s ease-out, transform 1s cubic-bezier(0.19, 1, 0.22, 1);
+
+  /* Tối ưu hóa hiệu suất (Performance Optimization) */
+  will-change: opacity, transform;
+
+  /* Đảm bảo nội dung không bị cắt khi chưa hiện ra */
+  overflow: hidden;
+}
+
+.fade-in-section.is-visible {
+  /* Trạng thái khi được nhìn thấy (Triggered by useInView) */
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ========================================================= */
+/* TÙY CHỈNH CHUNG (Tùy chọn)                                */
+/* ========================================================= */
+
+/* Đảm bảo font UTM-Yen-Tu đã được import trong file fonts.css */
+h1,
+h2,
+h3,
+h4 {
+  /* Tùy chỉnh font cho các tiêu đề lớn */
+  /* Nếu UTM-Yen-Tu không hiển thị, sẽ fallback về serif */
+  font-family: "UTM-Yen-Tu", "Playfair Display", serif !important;
+}
+
+/* Ẩn thanh cuộn của Carousel trong một số trường hợp (tùy chọn) */
+.ant-carousel .slick-track > div {
+  display: flex;
+}
