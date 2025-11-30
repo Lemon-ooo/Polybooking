@@ -1,6 +1,5 @@
 // authProvider-simple.ts
 import { message } from "antd";
-import { IRegisterForm } from "../../interfaces/auth";
 
 const API_URL = import.meta.env.DEV
   ? "/api"

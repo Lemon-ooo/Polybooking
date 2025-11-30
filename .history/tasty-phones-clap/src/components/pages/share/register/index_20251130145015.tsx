@@ -2,7 +2,7 @@ import React from "react";
 import { Form, Input, Button, Card, Typography, message, Layout } from "antd";
 import { useNavigate } from "react-router-dom";
 import { authProvider } from "../../../../providers/auth/authProvider";
-import "./Register.css";
+import "./Register.css"; // 🚨 IMPORT CSS
 
 const { Title, Text } = Typography;
 const { Content } = Layout;
@@ -76,15 +76,7 @@ export const Register: React.FC = () => {
               name="user_name"
               rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
             >
-              <Input
-                placeholder="Nhập họ và tên"
-                className="register-input"
-                style={{
-                  background: "#fff",
-                  color: "#000",
-                  borderRadius: "6px",
-                }}
-              />
+              <Input placeholder="Nhập họ và tên" className="register-input" />
             </Form.Item>
 
             <Form.Item
@@ -98,11 +90,6 @@ export const Register: React.FC = () => {
               <Input
                 placeholder="example@email.com"
                 className="register-input"
-                style={{
-                  background: "#fff",
-                  color: "#000",
-                  borderRadius: "6px",
-                }}
               />
             </Form.Item>
 

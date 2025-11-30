@@ -60,7 +60,7 @@ export default function App() {
       <Refine
         dataProvider={dataProvider}
         authProvider={authProvider}
-        // accessControlProvider={accessControlProvider}
+        accessControlProvider={accessControlProvider}
         notificationProvider={useNotificationProvider()}
         options={{
           syncWithLocation: true,

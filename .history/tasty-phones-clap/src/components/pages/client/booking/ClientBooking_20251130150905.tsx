@@ -210,7 +210,7 @@ export default function ClientBooking() {
         special_requests: values.specialRequests || "",
       };
 
-      console.log("📦 Booking data:", bookingData);
+      console.log("📦 Booking data (without services):", bookingData);
 
       // Gọi API tạo booking
       const bookingResponse = await axios.post(
@@ -234,34 +234,23 @@ export default function ClientBooking() {
             quantity: serviceQuantities[service.id] || 1,
           }));
 
-          console.log("🛎️ Services data to add:", servicesData);
-          console.log(
-            "🔗 API URL:",
-            `${API_URL}/api/bookings/${bookingId}/add-services`
-          );
+          console.log("🛎️ Adding services:", servicesData);
 
-          // 🚨 SỬA: DÙNG PUT METHOD THAY VÌ POST
-          const serviceResponse = await axios.put(
+          // Gọi API thêm services
+          await axios.post(
             `${API_URL}/api/bookings/${bookingId}/add-services`,
             {
               services: servicesData,
             }
           );
 
-          console.log("✅ Services added successfully:", serviceResponse.data);
           servicesAdded = true;
+          console.log("✅ Services added successfully");
         } catch (serviceError: any) {
           console.error("❌ Failed to add services:", serviceError);
-          console.error(
-            "❌ Service error response:",
-            serviceError.response?.data
-          );
-
-          // Hiển thị lỗi chi tiết
-          const serviceErrorMessage =
-            serviceError.response?.data?.message || serviceError.message;
+          // Vẫn tiếp tục xử lý booking dù services thất bại
           message.warning(
-            `Đặt phòng thành công nhưng thêm dịch vụ thất bại: ${serviceErrorMessage}`
+            "Đặt phòng thành công nhưng thêm dịch vụ thất bại. Vui lòng liên hệ quản lý để thêm dịch vụ sau."
           );
         }
       }

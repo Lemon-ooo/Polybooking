@@ -3,7 +3,7 @@ import { Form, Input, Button, Card, Alert, Typography, Layout } from "antd";
 import { MailOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import { authProvider } from "../../../../providers";
-import "./ForgotPassword.css";
+import "./ForgotPassword.css"; // 🚨 IMPORT CSS
 
 const { Title } = Typography;
 const { Content } = Layout;
@@ -30,7 +30,7 @@ export const ForgotPassword: React.FC = () => {
 
   return (
     <Layout className="forgot-password-container">
-      <Content className="forgot-password-content">
+      <Content>
         <Card className="forgot-password-card">
           <Title level={3} className="forgot-password-title">
             Quên mật khẩu
@@ -54,11 +54,7 @@ export const ForgotPassword: React.FC = () => {
             />
           )}
 
-          <Form
-            layout="vertical"
-            onFinish={onFinish}
-            className="forgot-password-form"
-          >
+          <Form layout="vertical" onFinish={onFinish}>
             <Form.Item
               name="email"
               label="Email"
@@ -72,18 +68,16 @@ export const ForgotPassword: React.FC = () => {
               />
             </Form.Item>
 
-            <Form.Item>
-              <Button
-                type="primary"
-                htmlType="submit"
-                loading={loading}
-                block
-                size="large"
-                className="forgot-password-button"
-              >
-                Gửi mật khẩu mới
-              </Button>
-            </Form.Item>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={loading}
+              block
+              size="large"
+              className="forgot-password-button"
+            >
+              Gửi mật khẩu mới
+            </Button>
           </Form>
 
           <div className="forgot-password-link">
