@@ -1,3 +1,4 @@
+// src/pages/rooms/list.tsx
 import React from "react";
 import { List, useTable, DateField } from "@refinedev/antd";
 import { useDelete } from "@refinedev/core";
@@ -5,31 +6,30 @@ import {
   Table,
   Tag,
   Typography,
-  Alert,
   Button,
   Tooltip,
   Popconfirm,
   message,
   Space,
+  Alert,
 } from "antd";
 import { useNavigate } from "react-router-dom";
-import {
-  Room,
-  getRoomStatusColor,
-  getRoomStatusLabel,
-  formatPrice,
-} from "../../../../interfaces/rooms";
 
 const { Text } = Typography;
 
 export const RoomList: React.FC = () => {
   const navigate = useNavigate();
-  const { tableProps, queryResult } = useTable<Room>({
-    resource: "rooms",
-  });
-  const { data, isLoading, isError, error } = queryResult || {};
 
-  const { mutate: deleteRoom } = useDelete<Room>();
+  // DÙNG CÙNG CÁCH VỚI SERVICES → CHẮC CHẮN HIỂN THỊ
+  const { tableProps, tableQueryResult } = useTable({
+    resource: "rooms",
+    pagination: { mode: "off" },
+  });
+
+  const { mutate: deleteRoom } = useDelete();
+
+  // DÙNG tableProps.dataSource NHƯ SERVICES → CÓ DATA NGAY
+  const dataSource = tableProps.dataSource || [];
 
   const handleDelete = (id: number) => {
     deleteRoom(
@@ -37,19 +37,18 @@ export const RoomList: React.FC = () => {
       {
         onSuccess: () => {
           message.success("Xóa phòng thành công");
+          tableQueryResult?.refetch?.();
         },
-        onError: () => {
-          message.error("Xóa phòng thất bại");
-        },
+        onError: () => message.error("Xóa thất bại"),
       }
     );
   };
 
-  if (isError) {
+  if (tableQueryResult?.isError) {
     return (
       <Alert
         message="Lỗi tải dữ liệu"
-        description={error?.message || "Không thể kết nối đến API."}
+        description={tableQueryResult.error?.message || "Không thể kết nối API"}
         type="error"
         showIcon
       />
@@ -57,13 +56,27 @@ export const RoomList: React.FC = () => {
   }
 
   return (
-    <List>
-      <div style={{ marginBottom: 16, display: "flex", alignItems: "center" }}>
-        <Button
-          type="primary"
-          onClick={() => navigate("/admin/rooms/create")}
-          style={{ marginRight: 16 }}
-        >
+    <List title="Danh sách phòng">
+      <div
+        style={{
+          marginBottom: 16,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <div>
+          <Button
+            onClick={() => tableQueryResult?.refetch?.()}
+            loading={tableQueryResult?.isLoading}
+          >
+            Làm mới
+          </Button>
+          <Text style={{ marginLeft: 16 }}>
+            Tổng: {dataSource.length} phòng
+          </Text>
+        </div>
+        <Button type="primary" onClick={() => navigate("/admin/rooms/create")}>
           Thêm phòng mới
         </Button>
         <Button onClick={() => queryResult?.refetch?.()} loading={isLoading}>
@@ -77,11 +90,12 @@ export const RoomList: React.FC = () => {
       <Table
         {...tableProps}
         rowKey="room_id"
-        loading={isLoading}
-        dataSource={tableProps.dataSource || []}
-        scroll={{ x: 1000 }}
+        loading={tableQueryResult?.isLoading}
+        dataSource={dataSource}
+        scroll={{ x: 1200 }}
       >
-        <Table.Column dataIndex="room_number" title="Số phòng" sorter />
+        <Table.Column dataIndex="room_number" title="Số phòng" />
+
         <Table.Column
           dataIndex={["room_type", "room_type_name"]}
           title="Loại phòng"
@@ -107,40 +121,41 @@ export const RoomList: React.FC = () => {
           ]}
           onFilter={(value, record: Room) => record.room_status === value}
         />
+
         <Table.Column
           dataIndex="description"
           title="Mô tả"
           ellipsis
-          render={(description: string) => (
-            <Tooltip title={description}>
-              <span>{description || "Không có mô tả"}</span>
-            </Tooltip>
-          )}
+          render={(text: string) => text || "Không có mô tả"}
         />
         <Table.Column
           dataIndex="created_at"
           title="Ngày tạo"
-          render={(value: string) => <DateField value={value} />}
-          sorter
+          render={(value: string) => (
+            <DateField value={value} format="DD/MM/YYYY" />
+          )}
         />
-        {/* Cột Hành động */}
+
         <Table.Column
           title="Hành động"
-          render={(_, record: Room) => (
+          fixed="right"
+          render={(_, record: any) => (
             <Space>
               <Button
-                type="default"
+                size="small"
                 onClick={() => navigate(`/admin/rooms/edit/${record.room_id}`)}
               >
                 Sửa
               </Button>
               <Popconfirm
-                title="Bạn có chắc muốn xóa phòng này không?"
+                title="Xóa phòng này?"
                 onConfirm={() => handleDelete(record.room_id)}
                 okText="Xóa"
                 cancelText="Hủy"
               >
-                <Button danger>Xóa</Button>
+                <Button danger size="small">
+                  Xóa
+                </Button>
               </Popconfirm>
             </Space>
           )}
@@ -149,3 +164,5 @@ export const RoomList: React.FC = () => {
     </List>
   );
 };
+
+export default RoomList;

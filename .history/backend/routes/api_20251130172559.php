@@ -16,7 +16,7 @@ use App\Http\Controllers\Api\ProfileController;
 Route::apiResource('amenities', AmenityController::class);
 Route::apiResource('bookings', BookingController::class);
 Route::apiResource('events', EventController::class);
-Route::apiResource('rooms', RoomController::class);
+Route::apiResource('poly.rooms', RoomController::class);
 Route::apiResource('galleries', GalleryController::class);
 Route::apiResource('roomimages', RoomImageController::class);
 Route::apiResource('room-types', RoomTypeController::class);
