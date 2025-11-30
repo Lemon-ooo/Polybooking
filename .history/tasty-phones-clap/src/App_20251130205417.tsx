@@ -59,7 +59,6 @@ import { RoomTypeShow } from "./components/pages/admin/room-types/show";
 import { RoomShow } from "./components/pages/admin/rooms/show";
 import { ServicesShow } from "./components/pages/admin/services/show";
 import { AmenitiesShow } from "./components/pages/admin/amenities/show";
-import AdminBookingManagement from "./components/pages/admin/bookings";
 
 // ======================================================
 // 🚀 APP CHÍNH - ĐÃ SỬA
@@ -123,7 +122,6 @@ export default function App() {
           >
             <Route index element={<AdminDashboard />} />
             <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="bookings" element={<AdminBookingManagement />} />
 
             {/* Rooms */}
             <Route path="rooms" element={<RoomList />} />

@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import axiosInstance from "../../../../providers/data/axiosConfig";
-import { Card, Typography, Spin, Button, Tag } from "antd";
+import { Card, Typography, Spin, Button, Tag, Image } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 
 const { Title, Paragraph, Text } = Typography;
 
 const BASE_URL = "http://localhost:8000/storage/";
 
-export const ServicesShow: React.FC = () => {
+export const AmenitiesShow: React.FC = () => {
   const { id } = useParams();
-  const [service, setService] = useState<any>(null);
+  const [amenity, setAmenity] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,17 +19,13 @@ export const ServicesShow: React.FC = () => {
     setLoading(true);
 
     axiosInstance
-      .get(`/services/${id}`)
+      .get(`/amenities/${id}`)
       .then((res) => {
         const item = res.data.data || res.data;
-        if (!item || typeof item !== "object") {
-          console.error("❌ Dữ liệu API không hợp lệ");
-          return;
-        }
-        setService(item);
+        setAmenity(item);
       })
       .catch((err) => {
-        console.log("❌ Lỗi API: ", err);
+        console.error("❌ Lỗi API:", err);
       })
       .finally(() => {
         setLoading(false);
@@ -43,10 +39,10 @@ export const ServicesShow: React.FC = () => {
       </div>
     );
 
-  if (!service)
+  if (!amenity)
     return (
       <div style={{ textAlign: "center", marginTop: 40 }}>
-        <Title level={4}>❌ Không tìm thấy dịch vụ</Title>
+        <Title level={4}>❌ Không tìm thấy tiện ích</Title>
       </div>
     );
 
@@ -59,41 +55,35 @@ export const ServicesShow: React.FC = () => {
         padding: 24,
       }}
     >
-      <Title level={2}>Chi tiết dịch vụ</Title>
+      <Title level={2}>Chi tiết tiện ích</Title>
 
       <Paragraph>
-        <Text strong>ID:</Text> {service.service_id}
+        <Text strong>ID:</Text> {amenity.amenity_id}
       </Paragraph>
 
       <Paragraph>
-        <Text strong>Tên dịch vụ:</Text> {service.service_name}
+        <Text strong>Tên tiện ích:</Text> {amenity.amenity_name}
       </Paragraph>
 
       <Paragraph>
         <Text strong>Mô tả:</Text>
         <br />
-        {service.description || "Không có mô tả"}
-      </Paragraph>
-
-      <Paragraph>
-        <Text strong>Giá:</Text>{" "}
-        <Tag color="green">
-          {Number(service.service_price).toLocaleString()} VNĐ
-        </Tag>
+        {amenity.description || "Không có mô tả"}
       </Paragraph>
 
       <div style={{ marginTop: 16 }}>
-        <Text strong>Ảnh dịch vụ:</Text>
+        <Text strong>Ảnh tiện ích:</Text>
         <br />
-        <img
-          src={`${BASE_URL}${service.service_image}`}
-          alt="Service"
-          style={{ width: 300, borderRadius: 10, marginTop: 10 }}
+        <Image
+          src={`${BASE_URL}${amenity.amenity_image}`}
+          width={260}
+          style={{ borderRadius: 10, marginTop: 10 }}
+          alt="Amenity"
+          fallback="/no-image.png"
         />
       </div>
-
       <div style={{ marginTop: 32 }}>
-        <Link to="/admin/services">
+        <Link to="/admin/amenities">
           <Button
             type="primary"
             icon={<ArrowLeftOutlined />}
@@ -110,3 +100,5 @@ export const ServicesShow: React.FC = () => {
     </Card>
   );
 };
+
+export default AmenitiesShow;

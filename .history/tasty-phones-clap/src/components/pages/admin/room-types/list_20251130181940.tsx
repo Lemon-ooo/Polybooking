@@ -14,7 +14,6 @@ import {
   Carousel,
 } from "antd";
 import { useNavigate } from "react-router-dom";
-import { DeleteOutlined, EditOutlined, EyeOutlined } from "@ant-design/icons";
 
 const { Text } = Typography;
 
@@ -168,34 +167,22 @@ export const RoomTypeList: React.FC = () => {
           title="Hành động"
           render={(_, record: RoomType) => (
             <Space>
-              <Tooltip title="Chi tiết">
-                <Button
-                  icon={<EyeOutlined />}
-                  onClick={() =>
-                    navigate(`/admin/room-types/show/${record.room_type_id}`)
-                  }
-                />
-              </Tooltip>
-
-              <Tooltip title="Sửa">
-                <Button
-                  icon={<EditOutlined />}
-                  onClick={() =>
-                    navigate(`/admin/room-types/edit/${record.room_type_id}`)
-                  }
-                />
-              </Tooltip>
-
-              <Tooltip title="Xóa">
-                <Popconfirm
-                  title="Bạn có chắc muốn xóa loại phòng này không?"
-                  onConfirm={() => handleDelete(record.room_type_id)}
-                  okText="Xóa"
-                  cancelText="Hủy"
-                >
-                  <Button danger icon={<DeleteOutlined />} />
-                </Popconfirm>
-              </Tooltip>
+              <Button
+                type="default"
+                onClick={() =>
+                  navigate(`/admin/room-types/edit/${record.room_type_id}`)
+                }
+              >
+                Sửa
+              </Button>
+              <Popconfirm
+                title="Bạn có chắc muốn xóa loại phòng này không?"
+                onConfirm={() => handleDelete(record.room_type_id)}
+                okText="Xóa"
+                cancelText="Hủy"
+              >
+                <Button danger>Xóa</Button>
+              </Popconfirm>
             </Space>
           )}
         />
