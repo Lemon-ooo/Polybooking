@@ -6,6 +6,7 @@ import {
   Spin,
   Alert,
   Empty,
+  Modal,
   InputNumber,
   message,
   Form,
@@ -18,51 +19,19 @@ import { ConfigProvider } from "antd";
 import viVN from "antd/locale/vi_VN";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
-
+// Giả sử bạn có AuthContext
 dayjs.locale("vi");
 
 const { RangePicker } = DatePicker;
 const API_URL = "http://localhost:8000";
-
-// ===============================
-// CUSTOM AUTH HOOK - Lấy từ localStorage
-// ===============================
-const useAuth = () => {
-  const getAuthData = () => {
-    try {
-      const authStr = localStorage.getItem("auth");
-      if (!authStr) return null;
-
-      const authData = JSON.parse(authStr);
-      console.log("🔍 Auth data from localStorage:", authData);
-      return authData;
-    } catch (error) {
-      console.error("Error parsing auth data:", error);
-      return null;
-    }
-  };
-
-  const authData = getAuthData();
-
-  return {
-    user: authData,
-    isAuthenticated: !!authData,
-    token: authData?.token || null,
-    userId: authData?.user_id || authData?.id || null,
-  };
-};
 
 export default function ClientBooking() {
   const [step, setStep] = useState(1);
   const [selectedRoom, setSelectedRoom] = useState<any>(null);
   const [form] = Form.useForm();
 
-  // Sử dụng auth hook của chúng ta
-  const { user, isAuthenticated, token, userId } = useAuth();
-
-  console.log("📱 ClientBooking - Current user:", user);
-  console.log("📱 ClientBooking - Is authenticated:", isAuthenticated);
-  console.log("📱 ClientBooking - User ID:", userId);
+  // Lấy thông tin user từ context/auth
+  const { user, isAuthenticated } = useAuth(); // Giả sử bạn có AuthContext
 
   const [filters, setFilters] = useState({
     dates: null as any,
@@ -166,6 +135,20 @@ export default function ClientBooking() {
   }, [step]);
 
   // ===============================
+  // APPLY DISCOUNT
+  // ===============================
+  const applyDiscount = () => {
+    if (discountCode === "GIAM10") {
+      setDiscountAmount(1000000);
+    } else if (discountCode === "VIP") {
+      setDiscountAmount(5000000);
+    } else {
+      alert("Mã giảm giá không hợp lệ");
+      setDiscountAmount(0);
+    }
+  };
+
+  // ===============================
   // SELECT ROOM
   // ===============================
   const handleSelectRoom = (room: any) => {
@@ -175,10 +158,10 @@ export default function ClientBooking() {
     }
 
     // Kiểm tra đăng nhập trước khi cho phép đặt phòng
-    if (!isAuthenticated || !user) {
+    if (!isAuthenticated) {
       message.warning("Vui lòng đăng nhập để đặt phòng!");
-      // Có thể redirect đến trang login
-      window.location.href = "/login";
+      // Có thể redirect đến trang login ở đây
+      // navigate('/login');
       return;
     }
 
@@ -224,9 +207,10 @@ export default function ClientBooking() {
     }
 
     // Kiểm tra đăng nhập
-    if (!isAuthenticated || !user || !userId) {
+    if (!isAuthenticated || !user) {
       message.error("Vui lòng đăng nhập để đặt phòng!");
-      window.location.href = "/login";
+      // Có thể redirect đến trang login
+      // navigate('/login');
       return;
     }
 
@@ -235,7 +219,7 @@ export default function ClientBooking() {
     try {
       // 1. TẠO BOOKING TRƯỚC (KHÔNG CÓ SERVICES)
       const bookingData = {
-        user_id: userId, // Sử dụng userId từ auth
+        user_id: user.user_id || user.id, // Lấy user_id từ user object
         check_in: filters.dates[0].format("YYYY-MM-DD"),
         check_out: filters.dates[1].format("YYYY-MM-DD"),
         guest_number: filters.adults + filters.children,
@@ -249,28 +233,11 @@ export default function ClientBooking() {
 
       console.log("📦 Booking data:", bookingData);
 
-      // Gọi API tạo booking với token nếu có
-      const config = token
-        ? {
-            headers: {
-              Authorization: token,
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-          }
-        : {
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-          };
-
+      // Gọi API tạo booking
       const bookingResponse = await axios.post(
         `${API_URL}/api/bookings`,
-        bookingData,
-        config
+        bookingData
       );
-
       const bookingId =
         bookingResponse.data.data?.booking_id ||
         bookingResponse.data.booking_id;
@@ -289,14 +256,17 @@ export default function ClientBooking() {
           }));
 
           console.log("🛎️ Services data to add:", servicesData);
+          console.log(
+            "🔗 API URL:",
+            `${API_URL}/api/bookings/${bookingId}/add-services`
+          );
 
           // 🚨 SỬA: DÙNG PUT METHOD THAY VÌ POST
           const serviceResponse = await axios.put(
             `${API_URL}/api/bookings/${bookingId}/add-services`,
             {
               services: servicesData,
-            },
-            config
+            }
           );
 
           console.log("✅ Services added successfully:", serviceResponse.data);
@@ -748,7 +718,7 @@ export default function ClientBooking() {
                       <div className="logged-in-user-info">
                         <Alert
                           message={`Bạn đang đặt phòng với tư cách: ${
-                            user.user_name || user.name || user.email
+                            user.name || user.email
                           }`}
                           type="info"
                           showIcon
@@ -764,9 +734,7 @@ export default function ClientBooking() {
                         rules={[
                           { required: true, message: "Vui lòng nhập tên" },
                         ]}
-                        initialValue={
-                          user?.user_name ? user.user_name.split(" ")[0] : ""
-                        }
+                        initialValue={user?.firstName || ""}
                       >
                         <Input placeholder="Nhập tên của bạn..." />
                       </Form.Item>
@@ -776,11 +744,7 @@ export default function ClientBooking() {
                         rules={[
                           { required: true, message: "Vui lòng nhập họ" },
                         ]}
-                        initialValue={
-                          user?.user_name
-                            ? user.user_name.split(" ").slice(1).join(" ")
-                            : ""
-                        }
+                        initialValue={user?.lastName || ""}
                       >
                         <Input placeholder="Nhập họ đầy đủ của bạn..." />
                       </Form.Item>
@@ -796,7 +760,7 @@ export default function ClientBooking() {
                             message: "Vui lòng nhập số điện thoại",
                           },
                         ]}
-                        initialValue={user?.phone_number || ""}
+                        initialValue={user?.phone || ""}
                       >
                         <Input placeholder="Nhập số điện thoại liên hệ..." />
                       </Form.Item>

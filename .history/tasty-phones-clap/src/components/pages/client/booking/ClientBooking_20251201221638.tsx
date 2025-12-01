@@ -18,51 +18,26 @@ import { ConfigProvider } from "antd";
 import viVN from "antd/locale/vi_VN";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
+import { useAuth } from "@refinedev/core"; // Sử dụng auth từ Refine
 
 dayjs.locale("vi");
 
 const { RangePicker } = DatePicker;
 const API_URL = "http://localhost:8000";
 
-// ===============================
-// CUSTOM AUTH HOOK - Lấy từ localStorage
-// ===============================
-const useAuth = () => {
-  const getAuthData = () => {
-    try {
-      const authStr = localStorage.getItem("auth");
-      if (!authStr) return null;
-
-      const authData = JSON.parse(authStr);
-      console.log("🔍 Auth data from localStorage:", authData);
-      return authData;
-    } catch (error) {
-      console.error("Error parsing auth data:", error);
-      return null;
-    }
-  };
-
-  const authData = getAuthData();
-
-  return {
-    user: authData,
-    isAuthenticated: !!authData,
-    token: authData?.token || null,
-    userId: authData?.user_id || authData?.id || null,
-  };
-};
-
 export default function ClientBooking() {
   const [step, setStep] = useState(1);
   const [selectedRoom, setSelectedRoom] = useState<any>(null);
   const [form] = Form.useForm();
 
-  // Sử dụng auth hook của chúng ta
-  const { user, isAuthenticated, token, userId } = useAuth();
+  // Sử dụng auth từ Refine
+  const { data: authData } = useAuth();
+  const user = authData?.user || authData;
 
-  console.log("📱 ClientBooking - Current user:", user);
-  console.log("📱 ClientBooking - Is authenticated:", isAuthenticated);
-  console.log("📱 ClientBooking - User ID:", userId);
+  const isAuthenticated = !!user;
+
+  console.log("📱 ClientBooking - User:", user);
+  console.log("📱 ClientBooking - Auth data:", authData);
 
   const [filters, setFilters] = useState({
     dates: null as any,
@@ -224,7 +199,7 @@ export default function ClientBooking() {
     }
 
     // Kiểm tra đăng nhập
-    if (!isAuthenticated || !user || !userId) {
+    if (!isAuthenticated || !user) {
       message.error("Vui lòng đăng nhập để đặt phòng!");
       window.location.href = "/login";
       return;
@@ -235,7 +210,7 @@ export default function ClientBooking() {
     try {
       // 1. TẠO BOOKING TRƯỚC (KHÔNG CÓ SERVICES)
       const bookingData = {
-        user_id: userId, // Sử dụng userId từ auth
+        user_id: user.user_id || user.id, // Lấy user_id từ user object
         check_in: filters.dates[0].format("YYYY-MM-DD"),
         check_out: filters.dates[1].format("YYYY-MM-DD"),
         guest_number: filters.adults + filters.children,
@@ -250,20 +225,14 @@ export default function ClientBooking() {
       console.log("📦 Booking data:", bookingData);
 
       // Gọi API tạo booking với token nếu có
+      const token = localStorage.getItem("token");
       const config = token
         ? {
             headers: {
-              Authorization: token,
-              "Content-Type": "application/json",
-              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
             },
           }
-        : {
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-          };
+        : {};
 
       const bookingResponse = await axios.post(
         `${API_URL}/api/bookings`,
