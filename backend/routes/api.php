@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\RoomTypeImageController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\ChatbotController;
 
 Route::apiResource('amenities', AmenityController::class);
 Route::apiResource('bookings', BookingController::class);
@@ -48,3 +49,6 @@ Route::put('/bookings/{booking}/assign-rooms', [BookingController::class, 'assig
 Route::put('/bookings/{booking}/add-services', [BookingController::class, 'addServices']);
 Route::put('/bookings/{booking}/add-penalties', [BookingController::class, 'addPenalties']);
 Route::put('/bookings/{booking}/confirm-payment', [BookingController::class, 'confirmPayment']);
+
+//chatbot
+Route::post('/chatbot', [ChatbotController::class, 'handle']);
