@@ -203,7 +203,7 @@ export const ClientLayout: React.FC = () => {
                     {
                       key: "bookings",
                       label: "My Bookings",
-                      onClick: () => navigate("/my-bookings"),
+                      onClick: () => navigate("/client/my-bookings"),
                     },
                     { key: "logout", label: "Logout", onClick: () => logout() },
                   ],

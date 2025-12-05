@@ -60,6 +60,8 @@ import { RoomShow } from "./components/pages/admin/rooms/show";
 import { ServicesShow } from "./components/pages/admin/services/show";
 import { AmenitiesShow } from "./components/pages/admin/amenities/show";
 import AdminBookingManagement from "./components/pages/admin/bookings";
+import MyBookings from "./components/pages/client/booking/MyBookings";
+import BookingDetail from "./components/pages/client/booking/BookingDetail";
 
 // ======================================================
 // 🚀 APP CHÍNH - ĐÃ SỬA
@@ -108,6 +110,8 @@ export default function App() {
             <Route path="events" element={<ClientEvent />} />
             <Route path="profile" element={<ProfileClient />} />
             <Route path="bookings" element={<ClientBooking />} />
+            <Route path="my-bookings" element={<MyBookings />} />
+            <Route path="my-bookings/:id" element={<BookingDetail />} />
           </Route>
 
           {/* --------------------------------------------- */}
