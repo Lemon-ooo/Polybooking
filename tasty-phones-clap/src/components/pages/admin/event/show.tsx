@@ -1,145 +1,123 @@
-import React from "react";
-import { Show, ImageField, TextField, DateField } from "@refinedev/antd";
-import { useShow, BaseRecord } from "@refinedev/core";
-import { Typography, Card, Row, Col, Alert, Space } from "antd";
-import { EnvironmentOutlined, CalendarOutlined } from "@ant-design/icons"; // Thêm icon
+import React, { useEffect, useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import axiosInstance from "../../../../providers/data/axiosConfig";
+import { Card, Typography, Spin, Button, Tag, Divider } from "antd";
+import { ArrowLeftOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
 
-// ✅ 1. SỬ DỤNG INTERFACE CỦA EVENT
-interface IEvent extends BaseRecord {
-  id: number;
-  name: string;
-  description: string;
-  date: string; // Ngày diễn ra sự kiện
-  location: string;
-  image: string | null; // Đường dẫn ảnh bìa
-  created_at: string;
-  updated_at: string;
-}
+const { Title, Paragraph, Text } = Typography;
 
-const { Title, Text } = Typography;
+const DATETIME_FORMAT = "DD/MM/YYYY HH:mm:ss";
 
 export const EventShow: React.FC = () => {
-  // ✅ 2. Đổi resource thành 'events' và dùng interface IEvent
-  const { queryResult } = useShow<IEvent>({
-    resource: "events",
-  });
+  const { id } = useParams();
+  const [event, setEvent] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const { data, isLoading, isError, error } = queryResult;
-  const record = data?.data;
+  useEffect(() => {
+    if (!id) return;
 
-  if (isLoading) {
-    return <Show isLoading={true} />;
-  }
+    setLoading(true);
 
-  if (isError || !record) {
-    return (
-      <Alert
-        message="Lỗi tải chi tiết"
-        description={
-          error?.message ||
-          "Không tìm thấy dữ liệu sự kiện hoặc có lỗi kết nối."
+    axiosInstance
+      .get(`/events/${id}`)
+      .then((res) => {
+        console.log("API trả về: ", res.data);
+
+        const item = res.data.data;
+
+        if (!item || typeof item !== "object") {
+          console.error("❌ Dữ liệu API không hợp lệ");
+          return;
         }
-        type="error"
-        showIcon
-      />
+
+        setEvent(item);
+      })
+      .catch((err) => {
+        console.log("❌ Lỗi API: ", err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [id]);
+
+  if (loading)
+    return (
+      <div style={{ textAlign: "center", marginTop: 40 }}>
+        <Spin size="large" tip="Đang tải chi tiết sự kiện..." />
+      </div>
     );
-  }
 
-  // ✅ Hàm Helper: Xây dựng URL ảnh từ 'image' (Nếu ảnh được lưu ở Laravel storage)
-  const getImageUrl = (path: string | null | undefined): string => {
-    if (!path) return "";
-    // Giả định đường dẫn Laravel Storage là http://127.0.0.1:8001/storage/
-    return `http://127.0.0.1:8001/storage/${path}`;
-  };
-
-  // Xử lý giá trị ngày API trả về (có thể có timestamp T00:00:00.000000Z)
-  const eventDate = record.date ? record.date.split("T")[0] : "N/A";
+  if (!event)
+    return (
+      <div style={{ textAlign: "center", marginTop: 40 }}>
+        <Title level={4}>❌ Không tìm thấy sự kiện</Title>
+      </div>
+    );
 
   return (
-    <Show title={`Chi tiết Sự kiện: ${record.name}`}>
-      <Row gutter={[16, 16]}>
-        {/* Cột trái: Ảnh Bìa Sự kiện */}
-        <Col xs={24} lg={10}>
-          <Card bordered={false} style={{ textAlign: "center" }}>
-            <Title level={4}>Ảnh Bìa</Title>
-            <ImageField
-              // ✅ Sử dụng trường 'image' và hàm helper
-              value={getImageUrl(record.image)}
-              width="100%"
-              height="auto"
-              style={{
-                objectFit: "contain",
-                maxHeight: 400,
-                borderRadius: 8,
-                // Hiển thị placeholder nếu không có ảnh
-                backgroundColor: record.image ? "transparent" : "#f0f0f0",
-              }}
-              preview={!!record.image}
-              alt={`Ảnh bìa của sự kiện ${record.name}`}
-            />
-            {!record.image && (
-              <Text type="secondary" style={{ marginTop: 8, display: "block" }}>
-                (Không có ảnh bìa)
-              </Text>
-            )}
-          </Card>
-        </Col>
+    <Card
+      style={{ maxWidth: 10000, margin: "0 auto", marginTop: 32, padding: 24 }}
+      title={<Title level={2}>Chi tiết Sự kiện: {event.name}</Title>}
+      extra={
+        <Link to="/admin/events">
+          {/* Cập nhật đường dẫn quay lại */}
+          <Button type="default" icon={<ArrowLeftOutlined />}>
+            Quay lại danh sách
+          </Button>
+        </Link>
+      }
+    >
+      {/* <Paragraph>
+        <Text strong>ID:</Text> {event.id}
+      </Paragraph>
+      <Divider dashed /> */}
 
-        {/* Cột phải: Thông tin chi tiết Sự kiện */}
-        <Col xs={24} lg={14}>
-          <Card bordered={false}>
-            {/* 1. Tên Sự kiện */}
-            <Title level={3} style={{ marginTop: 0 }}>
-              <TextField value={record.name} />
-            </Title>
-            <hr style={{ margin: "16px 0" }} />
+      <Paragraph>
+        <Text strong>Tên sự kiện:</Text> {event.name}
+      </Paragraph>
 
-            {/* 2. Ngày và Địa điểm */}
-            <Title level={5} style={{ marginBottom: 4 }}>
-              <CalendarOutlined /> Ngày Diễn ra
-            </Title>
-            {/* ✅ Sử dụng DateField hoặc TextField để hiển thị ngày */}
-            <Text style={{ fontSize: "1.2rem", fontWeight: "bold" }}>
-              {/* Định dạng ngày YYYY-MM-DD sang DD/MM/YYYY */}
-              <DateField value={eventDate} format="DD/MM/YYYY" />
-            </Text>
-            <br />
-            <Title level={5} style={{ marginBottom: 4, marginTop: 12 }}>
-              <EnvironmentOutlined /> Địa điểm
-            </Title>
-            <TextField value={record.location} />
-            <hr style={{ margin: "16px 0" }} />
+      <Paragraph>
+        <Text strong>Địa điểm:</Text> <Tag color="blue">{event.location}</Tag>
+      </Paragraph>
 
-            {/* 3. Mô tả Chi tiết */}
-            <Title level={5} style={{ marginBottom: 4 }}>
-              Mô tả Chi tiết
-            </Title>
-            <Text style={{ whiteSpace: "pre-wrap" }}>
-              {record.description || "Chưa có mô tả chi tiết."}
-            </Text>
-            <hr style={{ margin: "16px 0" }} />
+      <Paragraph>
+        <Text strong>Ngày diễn ra:</Text>{" "}
+        <Tag color="volcano">{dayjs(event.date).format(DATETIME_FORMAT)}</Tag>
+      </Paragraph>
+      <Divider dashed />
 
-            {/* 4. Ngày tạo và ID */}
-            <Row gutter={16}>
-              <Col span={12}>
-                <Title level={5} style={{ marginBottom: 4 }}>
-                  Ngày tạo
-                </Title>
-                <DateField
-                  value={record.created_at}
-                  format="DD/MM/YYYY HH:mm"
-                />
-              </Col>
-              <Col span={12}>
-                <Title level={5} style={{ marginBottom: 4 }}>
-                  ID
-                </Title>
-                <Text code>{record.id}</Text>
-              </Col>
-            </Row>
-          </Card>
-        </Col>
-      </Row>
-    </Show>
+      <Paragraph>
+        <Text strong>Mô tả chi tiết:</Text>
+        <br />
+        <Paragraph style={{ whiteSpace: "pre-wrap" }}>
+          {event.description}
+        </Paragraph>
+      </Paragraph>
+
+      <Divider dashed />
+
+      {/* HIỂN THỊ ẢNH BÌA */}
+      <div style={{ marginTop: 16 }}>
+        <Text strong>Ảnh Bìa Sự kiện:</Text>
+        <br />
+        {event.image ? (
+          <img
+            src={`http://localhost:8000/storage/${event.image}`}
+            alt={event.name}
+            style={{
+              width: 400,
+              borderRadius: 10,
+              marginTop: 10,
+              objectFit: "cover",
+            }}
+          />
+        ) : (
+          <Text italic type="secondary">
+            (Không có ảnh bìa)
+          </Text>
+        )}
+      </div>
+    </Card>
   );
 };

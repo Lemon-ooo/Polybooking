@@ -1,177 +1,132 @@
-import React, { useState } from "react";
-import { Create } from "@refinedev/antd";
-import {
-  useForm,
-  useApiUrl,
-  useNotification,
-  useNavigation,
-} from "@refinedev/core";
-import {
-  Form,
-  Input,
-  DatePicker,
-  Upload,
-  Button,
-  Row,
-  Col,
-  message,
-} from "antd";
+import React from "react";
+import { Create, useForm } from "@refinedev/antd";
+import { Form, Input, DatePicker, message, Upload, Button } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
-import {
-  RcFile,
-  UploadFile,
-  UploadChangeParam,
-} from "antd/lib/upload/interface";
+import { IResourceComponentsProps, useNavigation } from "@refinedev/core";
 
-const { TextArea } = Input;
+const EVENT_RESOURCE = "events";
 
-// Validate file upload
-const beforeUpload = (file: RcFile) => {
-  const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
-  if (!isJpgOrPng) message.error("Chỉ được upload JPG/PNG!");
-  const isLt5M = file.size / 1024 / 1024 < 5;
-  if (!isLt5M) message.error("Ảnh phải nhỏ hơn 5MB!");
-  return isJpgOrPng && isLt5M;
-};
+interface EventPayload {
+  name: string;
+  description?: string;
+  location: string;
+  date: string;
+  image?: any;
+}
 
-// Lấy fileList từ event
-const normFile = (e: any) => (Array.isArray(e) ? e : e?.fileList);
+export const EventCreate: React.FC<IResourceComponentsProps> = () => {
+  const { goBack, list } = useNavigation();
 
-export const EventCreate: React.FC = () => {
-  const apiUrl = useApiUrl();
-  const { open } = useNotification();
-  const { list } = useNavigation();
-
-  const [form] = Form.useForm();
-  const [previewImage, setPreviewImage] = useState<string>("");
-
-  const { formProps, saveButtonProps, onFinish } = useForm({
-    resource: "events",
-    action: "create",
-    form,
-    onMutationSuccess: () => {
-      message.success("Tạo sự kiện thành công!");
-      list("events");
-    },
+  const { formProps, saveButtonProps } = useForm<EventPayload>({
+    resource: EVENT_RESOURCE,
   });
 
-  // Upload ảnh trước, trả về image_path
-  const uploadImage = async (file: RcFile) => {
-    const formData = new FormData();
-    formData.append("image", file);
-
-    try {
-      const res = await fetch(`${apiUrl}/events/upload`, {
-        method: "POST",
-        body: formData,
-      });
-      const data = await res.json();
-      return data.path || ""; // backend trả về path hoặc URL
-    } catch (err) {
-      console.error(err);
-      open({
-        type: "error",
-        message: "Lỗi upload ảnh",
-        description: "Không thể upload ảnh bìa.",
-      });
-      return "";
-    }
+  const normFile = (e: any) => {
+    if (Array.isArray(e)) return e;
+    return e?.fileList?.slice(-1);
   };
 
   const handleFormSubmit = async (values: any) => {
-    let imagePath = "";
+    try {
+      const formattedDate = values.date
+        ? dayjs(values.date).format("YYYY-MM-DD")
+        : undefined;
 
-    if (values.file?.length > 0 && values.file[0].originFileObj) {
-      imagePath = await uploadImage(values.file[0].originFileObj);
+      const imageFile =
+        values.image && values.image[0]
+          ? values.image[0].originFileObj
+          : undefined;
+
+      const formData = new FormData();
+      formData.append("name", values.name);
+      formData.append("location", values.location);
+      formData.append("date", formattedDate || "");
+      formData.append("description", values.description || "");
+
+      if (imageFile) {
+        formData.append("image", imageFile);
+      }
+
+      // refine expects: onFinish(values)
+      await formProps.onFinish?.(formData);
+
+      message.success("Thêm sự kiện thành công!");
+      list(EVENT_RESOURCE);
+    } catch (error: any) {
+      console.error("Lỗi khi thêm sự kiện:", error);
+      message.error(error.message || "Thêm sự kiện thất bại!");
     }
-
-    // Submit object chuẩn cho Refine
-    onFinish?.({
-      name: values.name,
-      location: values.location,
-      description: values.description || "",
-      date: dayjs(values.date).format("YYYY-MM-DD"),
-      image: imagePath,
-    });
   };
 
   return (
-    <Create title="Tạo sự kiện mới" saveButtonProps={saveButtonProps}>
+    <Create
+      title="Thêm Sự kiện Mới"
+      onBack={goBack}
+      saveButtonProps={{
+        ...saveButtonProps,
+        onClick: () => formProps.form?.submit(),
+      }}
+    >
       <Form
         {...formProps}
-        form={form}
+        form={formProps.form}
         layout="vertical"
         onFinish={handleFormSubmit}
       >
-        <Row gutter={16}>
-          <Col xs={24} lg={12}>
-            <Form.Item
-              label="Tên sự kiện"
-              name="name"
-              rules={[
-                { required: true, message: "Vui lòng nhập tên sự kiện!" },
-              ]}
-            >
-              <Input placeholder="Ví dụ: Hội nghị khách hàng 2025" />
-            </Form.Item>
+        <Form.Item
+          label="Tên Sự kiện"
+          name="name"
+          rules={[{ required: true, message: "Vui lòng nhập tên sự kiện." }]}
+        >
+          <Input placeholder="Nhập tên sự kiện..." />
+        </Form.Item>
 
-            <Form.Item
-              label="Địa điểm"
-              name="location"
-              rules={[{ required: true, message: "Vui lòng nhập địa điểm!" }]}
-            >
-              <Input placeholder="Ví dụ: Khách sạn Mường Thanh" />
-            </Form.Item>
+        <Form.Item
+          label="Địa điểm"
+          name="location"
+          rules={[{ required: true, message: "Vui lòng nhập địa điểm." }]}
+        >
+          <Input placeholder="Nhập địa điểm tổ chức sự kiện..." />
+        </Form.Item>
 
-            <Form.Item
-              label="Ngày diễn ra"
-              name="date"
-              rules={[{ required: true, message: "Vui lòng chọn ngày!" }]}
-            >
-              <DatePicker format="DD/MM/YYYY" style={{ width: "100%" }} />
-            </Form.Item>
+        <Form.Item
+          label="Ngày Diễn ra"
+          name="date"
+          rules={[{ required: true, message: "Vui lòng chọn ngày." }]}
+          getValueProps={(value) => ({
+            value: value ? dayjs(value) : undefined,
+          })}
+        >
+          <DatePicker
+            style={{ width: "100%" }}
+            format="DD/MM/YYYY"
+            placeholder="Chọn ngày diễn ra"
+          />
+        </Form.Item>
 
-            <Form.Item label="Mô tả" name="description">
-              <TextArea rows={4} placeholder="Nhập mô tả chi tiết" />
-            </Form.Item>
-          </Col>
+        <Form.Item
+          label="Ảnh Sự kiện"
+          name="image"
+          valuePropName="fileList"
+          getValueFromEvent={normFile}
+        >
+          <Upload
+            name="image"
+            listType="picture"
+            maxCount={1}
+            beforeUpload={() => false}
+          >
+            <Button icon={<UploadOutlined />}>Tải ảnh lên (Max 5MB)</Button>
+          </Upload>
+        </Form.Item>
 
-          <Col xs={24} lg={12}>
-            <Form.Item
-              label="Ảnh bìa"
-              name="file"
-              valuePropName="fileList"
-              getValueFromEvent={normFile}
-            >
-              <Upload
-                listType="picture"
-                maxCount={1}
-                beforeUpload={beforeUpload}
-                customRequest={({ onSuccess }) => onSuccess?.({} as any)}
-                onChange={(info: UploadChangeParam<UploadFile>) => {
-                  form.setFieldsValue({ file: info.fileList });
-                  if (info.fileList[0]?.originFileObj) {
-                    setPreviewImage(
-                      URL.createObjectURL(info.fileList[0].originFileObj)
-                    );
-                  }
-                }}
-              >
-                <Button icon={<UploadOutlined />}>
-                  Chọn ảnh (JPG/PNG, max 5MB)
-                </Button>
-              </Upload>
-            </Form.Item>
-            {previewImage && (
-              <img
-                src={previewImage}
-                alt="preview"
-                style={{ width: "100%", marginTop: 16, borderRadius: 8 }}
-              />
-            )}
-          </Col>
-        </Row>
+        <Form.Item label="Mô tả" name="description">
+          <Input.TextArea
+            rows={4}
+            placeholder="Nhập mô tả sự kiện (Không bắt buộc)..."
+          />
+        </Form.Item>
       </Form>
     </Create>
   );

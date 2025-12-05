@@ -5,3 +5,9 @@
   font-weight: 400;
   font-style: normal;
 }
+.suite-room-title {
+  font-family: "Marck Script", cursive;
+  /* Các tùy chỉnh khác */
+  font-size: 48px;
+  color: #b89585; /* Hoặc màu nâu/hồng nhạt */
+}

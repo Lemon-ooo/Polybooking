@@ -1,42 +1,52 @@
 import React from "react";
 import { List, useTable, DateField } from "@refinedev/antd";
-import { useDelete, useNavigation } from "@refinedev/core";
-
+import { useDelete } from "@refinedev/core";
 import {
   Table,
   Typography,
-  Alert,
+  Tooltip,
   Button,
   Popconfirm,
   message,
+  Space,
+  Alert,
   Image,
 } from "antd";
-import { IEvent } from "../../../../interfaces/rooms";
+import { useNavigate } from "react-router-dom";
+import { DeleteOutlined, EditOutlined, EyeOutlined } from "@ant-design/icons";
+
+import { IEvent } from "../../../../interfaces/event";
 
 const { Text } = Typography;
 
+// Helper function to format the image URL
+const baseUrl = "http://localhost:8000/storage/";
+const getImageUrl = (path: string) => `${baseUrl}${path}`;
+
 export const EventList: React.FC = () => {
-  const { tableProps, queryResult } = useTable<IEvent>({
+  const navigate = useNavigate();
+
+  const { tableProps, queryResult, refetch } = useTable<IEvent>({
     resource: "events",
+    queryOptions: {
+      select: (response: any) => ({
+        ...response,
+        data: response.data,
+        total: response.total,
+      }),
+    },
   });
 
-  const { create, edit, show } = useNavigation();
   const { data, isLoading, isError, error } = queryResult || {};
-  const { mutate: deleteEvent } = useDelete();
 
-  // Hàm xử lý xóa sự kiện
+  const { mutate: deleteEvent } = useDelete<IEvent>();
+
   const handleDelete = (id: number) => {
     deleteEvent(
       { resource: "events", id: id.toString() },
       {
-        onSuccess: () => {
-          message.success("Xóa sự kiện thành công");
-          queryResult?.refetch?.(); // Tải lại bảng sau khi xóa
-        },
-        onError: (err) => {
-          console.error("Lỗi xóa sự kiện:", err);
-          message.error("Xóa sự kiện thất bại: " + err.message);
-        },
+        onSuccess: () => message.success("Xóa sự kiện thành công"),
+        onError: () => message.error("Xóa sự kiện thất bại"),
       }
     );
   };
@@ -45,33 +55,24 @@ export const EventList: React.FC = () => {
     return (
       <Alert
         message="Lỗi tải dữ liệu"
-        description={error?.message || "Không thể kết nối đến API sự kiện."}
+        description={error?.message || "Không thể kết nối đến API."}
         type="error"
         showIcon
       />
     );
   }
-  const getImageUrl = (path: string): string => {
-    return `/storage/${path}`;
-  };
 
   return (
     <List title="Danh sách Sự kiện">
-      <div style={{ marginBottom: 16 }}>
-        {/*  NÚT THÊM MỚI (CREATE) */}
+      <div style={{ marginBottom: 16, display: "flex", alignItems: "center" }}>
         <Button
-          type="default"
-          onClick={() => create("events")} // Chuyển hướng đến /events/create
+          type="primary"
+          onClick={() => navigate("/admin/events/create")}
           style={{ marginRight: 16 }}
         >
-          + Thêm mới Sự kiện
+          Thêm sự kiện mới
         </Button>
-
-        <Button
-          onClick={() => queryResult?.refetch?.()}
-          loading={isLoading}
-          type="primary"
-        >
+        <Button onClick={() => refetch?.()} loading={isLoading}>
           Làm mới dữ liệu
         </Button>
         <Text style={{ marginLeft: 16 }}>
@@ -86,102 +87,111 @@ export const EventList: React.FC = () => {
         dataSource={tableProps.dataSource || []}
         scroll={{ x: 1200 }}
       >
-        {/* ... Các cột dữ liệu ... */}
-        <Table.Column dataIndex="id" title="ID" width={70} />
+        {/* CỘT ID */}
+        {/* <Table.Column dataIndex="id" title="ID" width={70} sorter /> */}
+
+        {/* CỘT ẢNH BÌA */}
         <Table.Column
-          dataIndex="name"
-          title="Tên sự kiện"
-          width={200}
-          render={(value: string) => <Text strong>{value}</Text>}
+          title="Ảnh Bìa"
+          dataIndex="image"
+          width={100}
+          render={(image: string | null) => {
+            if (!image) {
+              return (
+                <Text type="secondary" style={{ fontSize: 10 }}>
+                  Không ảnh
+                </Text>
+              );
+            }
+            return (
+              <Image
+                src={getImageUrl(image)}
+                alt="Ảnh sự kiện"
+                style={{
+                  width: 80,
+                  height: 50,
+                  objectFit: "cover",
+                  borderRadius: 4,
+                }}
+                preview={{ mask: <EyeOutlined style={{ fontSize: 20 }} /> }}
+              />
+            );
+          }}
         />
-        <Table.Column dataIndex="location" title="Địa điểm" width={200} />
+
+        {/* CỘT TÊN SỰ KIỆN */}
+        <Table.Column dataIndex="name" title="Tên sự kiện" width={200} sorter />
+
+        {/* CỘT ĐỊA ĐIỂM */}
+        <Table.Column dataIndex="location" title="Địa điểm" width={150} />
+
+        {/* CỘT NGÀY DIỄN RA */}
         <Table.Column
           dataIndex="date"
           title="Ngày diễn ra"
-          width={120}
+          width={150}
           render={(value: string) => (
-            <DateField value={value} format="DD/MM/YYYY" />
+            <DateField value={value} format="DD/MM/YYYY HH:mm" />
           )}
           sorter
         />
+
+        {/* CỘT MÔ TẢ */}
         <Table.Column
           dataIndex="description"
           title="Mô tả"
-          width={300}
-          render={(value: string) => (
-            <Text ellipsis={{ tooltip: value }}>{value}</Text>
+          ellipsis
+          width={250}
+          render={(description: string) => (
+            <Tooltip title={description}>
+              <span>{description || "Không có mô tả"}</span>
+            </Tooltip>
           )}
         />
-        {/* 🆕 CỘT HÌNH ẢNH */}
-        <Table.Column
-          dataIndex="image"
-          title="Ảnh Bìa"
-          width={100}
-          render={(value: string | null) =>
-            value ? (
-              <Image
-                // Lúc này, getImageUrl đã được định nghĩa và có thể sử dụng
-                src={getImageUrl(value)}
-                alt="Ảnh sự kiện"
-                width={50}
-                height={50}
-                style={{ objectFit: "cover", borderRadius: 4 }}
-              />
-            ) : (
-              // Nếu bạn đang sử dụng Ant Design, hãy import Text từ 'antd'
-              <Text type="secondary">No Image</Text>
-            )
-          }
-        />
+
+        {/* CỘT NGÀY TẠO */}
         <Table.Column
           dataIndex="created_at"
           title="Ngày tạo"
           width={150}
           render={(value: string) => (
-            <DateField value={value} format="HH:mm DD/MM/YYYY" />
+            <DateField value={value} format="DD/MM/YYYY HH:mm" />
           )}
           sorter
         />
 
-        {/*  CỘT HÀNH ĐỘNG (SHOW, SỬA & XÓA) */}
+        {/* Cột Hành động */}
         <Table.Column
           title="Hành động"
-          width={220}
+          width={120}
           fixed="right"
           render={(_, record: IEvent) => (
-            <>
-              {/*  NÚT XEM CHI TIẾT (SHOW) */}
-              <Button
-                type="link"
-                size="small"
-                onClick={() => show("events", record.id)}
-                style={{ marginRight: 4, paddingLeft: 0 }}
-              >
-                Chi tiết
-              </Button>
+            <Space size="small">
+              <Tooltip title="Chi tiết">
+                <Button
+                  icon={<EyeOutlined />}
+                  onClick={() => navigate(`/admin/events/show/${record.id}`)}
+                />
+              </Tooltip>
 
-              {/* NÚT SỬA (EDIT) */}
-              <Button
-                type="dashed"
-                size="small"
-                onClick={() => edit("events", record.id)}
-                style={{ marginRight: 8 }}
-              >
-                Sửa
-              </Button>
+              <Tooltip title="Sửa">
+                <Button
+                  icon={<EditOutlined />}
+                  onClick={() => navigate(`/admin/events/edit/${record.id}`)}
+                />
+              </Tooltip>
 
-              {/* NÚT XÓA (DELETE) */}
-              <Popconfirm
-                title="Bạn có chắc muốn xóa sự kiện này không?"
-                onConfirm={() => handleDelete(record.id)}
-                okText="Xóa"
-                cancelText="Hủy"
-              >
-                <Button danger size="small">
-                  Xóa
-                </Button>
-              </Popconfirm>
-            </>
+              <Tooltip title="Xóa">
+                <Popconfirm
+                  title="Bạn có chắc muốn xóa sự kiện này không?"
+                  onConfirm={() => handleDelete(record.id)}
+                  okText="Xóa"
+                  cancelText="Hủy"
+                >
+                  <Button danger icon={<DeleteOutlined />} />
+                </Popconfirm>
+              </Tooltip>
+            </Space>
           )}
         />
       </Table>
