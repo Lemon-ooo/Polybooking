@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Amenity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -26,6 +27,7 @@ class ChatbotController extends Controller
         $rooms = Room::all();
         $bookings = Booking::all();
         $services = Service::all();
+        $amenities = Amenity::all();
 
         // Tạo prompt tự nhiên, không JSON encode để tránh bị escape ký tự
         $prompt = "
@@ -44,8 +46,12 @@ $bookings
 == SERVICES ==
 $services
 
+=== AMENITIES ===
+$amenities
+
 Hãy trả lời NGẮN GỌN – TỰ NHIÊN – DỄ HIỂU — hoàn toàn bằng tiếng Việt.
 Không được trả lời kiểu mô tả JSON.
+Trả lời nhí nhảnh 1 chút cho vui.
 
 Không được dùng dấu ngoặc kép và dấu \ xung quanh tên phòng.
 Khách hỏi gì liên quan về cách liên lạc để hỗ trợ thì hãy bảo gọi cho số 0904349668 (quản lý)
