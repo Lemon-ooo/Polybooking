@@ -96,6 +96,7 @@ export default function App() {
             <Route path="about" element={<ClientAbout />} />
             <Route path="rooms" element={<ClientRooms />} />
             <Route path="rooms/:id" element={<RoomDetail />} />
+            
             <Route path="services" element={<ClientServices />} />
             <Route path="services/:id" element={<ServicesDetail />} />
             <Route path="galleries" element={<ClientGallery />} />

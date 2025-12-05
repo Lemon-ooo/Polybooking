@@ -1,284 +1,247 @@
-/* === BASE & CONTAINER === */
+/* ===================== BASE ===================== */
 .client-rooms-container {
   min-height: 100vh;
   background: #f8f5f2;
   font-family: "Lora", serif;
 }
 
-/* === HERO BANNER === */
+/* ===================== HERO BANNER – GIỐNG HỆT SERVICES ===================== */
 .rooms-hero-banner {
   position: relative;
-  height: 90vh;
   width: 100%;
+  height: 650px;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
 }
 
-.rooms-hero-banner .hero-overlay {
+/* ẢNH BANNER – ĐẢM BẢO HIỆN 100% */
+.rooms-hero-banner::before {
+  content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6)),
-    url("https://ruedelamourhotel.com/wp-content/uploads/2025/05/QTX09567-copy-scaled.jpg");
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.75)),
+    url("https://ruedelamourhotel.com/wp-content/uploads/2025/05/1.png");
   background-size: cover;
-  background-position: center;
+  background-position: center 38%;
+  background-repeat: no-repeat;
   z-index: 1;
+  animation: zoomSlow 22s ease-in-out infinite alternate;
 }
 
-.rooms-hero-banner .hero-content {
+@keyframes zoomSlow {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.12);
+  }
+}
+
+/* CHỮ ROOMS & SUITES – ĐẸP NHƯ SERVICES */
+.hero-content {
   position: relative;
   z-index: 2;
   text-align: center;
   color: white;
-  animation: fadeUp 1.2s ease forwards 0.3s;
+  padding: 0 20px;
 }
 
-.rooms-hero-banner .hero-title {
-  font-family: "Lora", serif !important;
-  font-size: 5.5rem;
-  font-weight: 400;
-  color: #ffffff !important;
+.hero-title {
+  font-family: "Playfair Display", serif !important;
+  font-size: 82px;
+  font-weight: 700;
   margin: 0;
-  letter-spacing: 1px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  text-shadow: 0 6px 30px rgba(0, 0, 0, 0.8);
+  opacity: 0;
+  transform: translateY(60px);
+  animation: fadeUp 1.6s ease-out forwards;
 }
 
-/* Hero animation */
 @keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
-/* === CONTAINER === */
+/* ===================== PHẦN DANH SÁCH PHÒNG ===================== */
+.rooms-section {
+  padding: 120px 5% 140px;
+  background: #fff;
+}
+
 .container {
-  max-width: 1200px;
+  max-width: 1350px;
   margin: 0 auto;
-  padding: 0 20px;
 }
 
-/* === PREMIER & DELUXE HEADER === */
-.premier-deluxe-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 32px;
-  margin: 100px 0 70px;
+.section-header {
   text-align: center;
+  margin-bottom: 70px;
 }
 
-.premier-deluxe-title {
-  font-family: "UTM-Yen-Tu", sans-serif !important;
-  font-size: 70px !important; /* tương đương 5rem */
-  font-weight: 500 !important; /* weight bạn muốn */
-  color: #d9baac !important; /* giữ màu bạn đã chọn */
-  margin: 0 !important;
-  letter-spacing: 1.5px;
-  line-height: 1;
+.section-header h2 {
+  font-family: "Playfair Display", serif !important;
+  font-size: 52px;
+  color: #333;
+  margin: 0 0 16px 0;
+  font-weight: 600;
 }
 
-.star-icon {
-  width: 38px;
-  height: 38px;
-  object-fit: contain;
-  filter: brightness(0) saturate(100%) invert(73%) sepia(28%) saturate(433%)
-    hue-rotate(11deg) brightness(94%) contrast(90%);
+.section-header p {
+  font-size: 18px;
+  color: #666;
+  max-width: 700px;
+  margin: 0 auto;
+  line-height: 1.7;
 }
 
-/* === ROOM GRID === */
-.room-category-grid {
-  margin-bottom: 50px;
+/* ===================== CARD PHÒNG – GIỐNG CARD DỊCH VỤ ===================== */
+.room-card-wrapper {
+  height: 100%;
+  display: flex;
 }
 
-.room-item {
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border-radius: 12px;
+.room-card {
+  width: 100%;
+  border-radius: 20px;
   overflow: hidden;
   background: #fff;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.09);
+  transition: all 0.4s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
   height: 100%;
-  opacity: 1;
-  animation: fadeIn 0.8s ease forwards;
 }
 
-.room-item:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+.room-card:hover {
+  transform: translateY(-16px);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.18);
 }
 
-.room-image-wrapper {
-  height: 300px;
+.room-image {
+  width: 100%;
+  height: 270px;
   overflow: hidden;
-  position: relative;
 }
 
-.room-thumbnail {
+.room-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.5s ease;
+  transition: transform 0.8s ease;
 }
 
-.room-item:hover .room-thumbnail {
-  transform: scale(1.08);
+.room-card:hover .room-image img {
+  transform: scale(1.15);
 }
 
-.room-content {
-  padding: 24px;
-  background: #fff;
+.room-body {
+  padding: 32px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .room-name {
-  font-family: "Cinzel", serif !important;
-  font-size: 1.15rem !important;
-  font-weight: 600 !important;
-  color: #c9a96e !important;
-  margin: 0 0 14px 0 !important;
-  letter-spacing: 2.5px;
-  text-transform: uppercase;
+  font-family: "Playfair Display", serif;
+  font-size: 26px;
+  font-weight: 600;
+  color: #8a6e5b;
+  margin: 0 0 16px 0;
   line-height: 1.3;
 }
 
 .room-desc {
-  font-family: "Lora", serif;
-  font-size: 0.98rem;
+  font-size: 16px;
   color: #555;
-  line-height: 1.8;
-  letter-spacing: 0.3px;
-  margin: 0;
-  max-width: 90%;
+  line-height: 1.75;
+  flex-grow: 1;
+  margin-bottom: 20px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* === FADE IN ANIMATION === */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.room-price {
+  font-size: 21px;
+  font-weight: 700;
+  color: #a8765a;
+  margin: 20px 0;
 }
 
-/* === LOADING & EMPTY === */
-.loading-container,
-.empty-state {
+.details-btn {
+  margin-top: auto;
+  text-align: right;
+}
+
+.details-btn button {
+  background: none;
+  border: none;
+  color: #a8765a;
+  font-weight: 600;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.3s;
+}
+
+.details-btn button:hover {
+  color: #6d5548;
+  letter-spacing: 3px;
+}
+
+/* ===================== LOADING & EMPTY ===================== */
+.loading,
+.empty {
   text-align: center;
-  padding: 80px 20px;
+  padding: 100px 20px;
+  font-size: 18px;
+  color: #888;
 }
 
-.loading-container .ant-spin {
-  color: #c9a96e;
-}
-
-/* === PAGINATION === */
-.pagination-container {
-  margin: 60px 0 40px;
-  text-align: center;
-}
-
-.pagination-container .ant-pagination {
-  display: inline-flex;
-}
-
-.pagination-container .ant-pagination-item {
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-}
-
-.pagination-container .ant-pagination-item a {
-  color: #4a5568;
-}
-
-.pagination-container .ant-pagination-item-active {
-  border-color: #c9a96e;
-  background: #c9a96e;
-}
-
-.pagination-container .ant-pagination-item-active a {
-  color: white;
-}
-
-.pagination-container .ant-pagination-prev,
-.pagination-container .ant-pagination-next {
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-}
-
-/* === RESPONSIVE === */
+/* ===================== RESPONSIVE ===================== */
 @media (max-width: 992px) {
-  .premier-deluxe-title {
-    font-size: 4rem !important;
+  .rooms-hero-banner {
+    height: 550px;
   }
-  .star-icon {
-    width: 32px;
-    height: 32px;
-  }
-  .premier-deluxe-header {
-    gap: 24px;
-    margin: 80px 0 60px;
+  .hero-title {
+    font-size: 68px;
   }
 }
 
 @media (max-width: 768px) {
   .rooms-hero-banner {
-    height: 70vh;
+    height: 480px;
   }
   .hero-title {
-    font-size: 3.5rem;
+    font-size: 58px;
   }
-  .premier-deluxe-title {
-    font-size: 3.2rem !important;
-  }
-  .star-icon {
-    width: 28px;
-    height: 28px;
-  }
-  .premier-deluxe-header {
-    gap: 16px;
-    margin: 60px 0 50px;
-  }
-  .room-image-wrapper {
-    height: 240px;
-  }
-  .room-content {
-    padding: 20px;
+  .room-image {
+    height: 220px;
   }
 }
 
 @media (max-width: 576px) {
-  .container {
-    padding: 0 16px;
+  .rooms-hero-banner {
+    height: 420px;
   }
   .hero-title {
-    font-size: 2.8rem;
+    font-size: 48px;
   }
-  .premier-deluxe-title {
-    font-size: 2.6rem !important;
+  .section-header h2 {
+    font-size: 42px !important;
   }
-  .star-icon {
-    width: 24px;
-    height: 24px;
-  }
-  .room-image-wrapper {
+  .room-image {
     height: 200px;
-  }
-  .room-name {
-    font-size: 1rem !important;
-    letter-spacing: 1.5px;
-  }
-  .room-desc {
-    font-size: 0.9rem;
-    line-height: 1.6;
   }
 }

@@ -12,64 +12,63 @@ use App\Models\User;
 class ProfileController extends Controller
 {
     /**
-     * GET /api/profile
-     * Lấy thông tin user hiện tại
+     * GET /api/client/profile hoặc /api/profile
      */
-    public function show(Request $request)
-    {
-        /** @var User $user */
-        $user = $request->user();
+   public function show(Request $request)
+{
+    // LUÔN load lại user mới nhất từ DB
+    $user = $request->user()->fresh();
 
-        return response()->json([
-            'success' => true,
-            'data'    => $user,
-            'message' => 'Profile retrieved successfully.',
-        ]);
-    }
+    return response()->json([
+        'success' => true,
+        'data' => [
+            'id' => $user->id,
+            'user_name' => $user->user_name,
+            'email' => $user->email,
+            'phone_number' => $user->phone_number,
+            'address' => $user->address,
+            'role' => $user->role,
+            'avatar' => $user->avatar,
+            'avatar_url' => $user->avatar
+                ? asset('storage/' . $user->avatar)
+                : null,
+        ]
+    ]);
+}
+
 
     /**
-     * PUT /api/profile
-     * Cập nhật thông tin profile (không đổi email)
+     * PUT /api/client/profile
      */
-    public function update(Request $request)
-    {
-        /** @var User $user */
-        $user = $request->user();
+   public function update(Request $request)
+{
+    $user = $request->user();
 
-        $data = $request->validate([
-            'user_name'    => 'required|string|max:255',
-            'phone_number' => 'nullable|string|max:50',
-            'address'      => 'nullable|string|max:255',
-            'date_of_birth'=> 'nullable|date',
-            'avatar'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-        ]);
+    $user->update([
+        'user_name' => $request->user_name,
+        'phone_number' => $request->phone_number,
+        'address' => $request->address,
+    ]);
 
-        // Xử lý avatar
-        if ($request->hasFile('avatar')) {
-            if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
-                Storage::disk('public')->delete($user->avatar);
-            }
+    $user = $user->fresh();
 
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $data['avatar'] = $path;
-        }
+    return response()->json([
+        'success' => true,
+        'data' => [
+            'user_name' => $user->user_name,
+            'phone_number' => $user->phone_number,
+            'address' => $user->address,
+            'avatar_url' => $user->avatar ? asset('storage/'.$user->avatar) : null,
+        ]
+    ]);
+}
 
-        $user->update($data);
-
-        return response()->json([
-            'success' => true,
-            'data'    => $user,
-            'message' => 'Profile updated successfully.',
-        ]);
-    }
 
     /**
-     * PUT /api/profile/password
-     * Cập nhật mật khẩu
+     * PUT /api/client/profile/password
      */
     public function updatePassword(Request $request)
     {
-        /** @var User $user */
         $user = $request->user();
 
         $data = $request->validate([
@@ -94,12 +93,42 @@ class ProfileController extends Controller
     }
 
     /**
-     * DELETE /api/profile
-     * Xóa tài khoản hiện tại
+     * POST /api/client/profile/avatar – UPLOAD RIÊNG (frontend đang dùng)
+     */
+   public function uploadAvatar(Request $request)
+{
+    $request->validate([
+        'avatar' => 'required|image|max:2048',
+    ]);
+
+    $user = $request->user();
+
+    // Xóa avatar cũ
+    if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
+        Storage::disk('public')->delete($user->avatar);
+    }
+
+    // Lưu avatar mới
+    $path = $request->file('avatar')->store('avatars', 'public');
+
+    $user->avatar = $path;
+    $user->save();
+
+    // ⚡ SỬ DỤNG FRESH ĐỂ LOAD DỮ LIỆU MỚI NHẤT
+    $user = $user->fresh();
+
+    return response()->json([
+        'success' => true,
+        'avatar_url' => asset('storage/' . $user->avatar),
+    ]);
+}
+
+
+    /**
+     * DELETE /api/client/profile
      */
     public function destroy(Request $request)
     {
-        /** @var User $user */
         $user = $request->user();
 
         $request->validate([
@@ -113,16 +142,13 @@ class ProfileController extends Controller
             ], 422);
         }
 
-        // Xóa avatar nếu có
+        // Xóa avatar
         if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
             Storage::disk('public')->delete($user->avatar);
         }
 
-        Auth::logout();
+        Auth::guard('web')->logout();
         $user->delete();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
 
         return response()->json([
             'success' => true,

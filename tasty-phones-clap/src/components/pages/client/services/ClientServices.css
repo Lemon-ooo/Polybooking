@@ -5,232 +5,238 @@
   font-family: "Lora", serif;
 }
 
-/* ===================== HERO ===================== */
+/* ===================== HERO BANNER – NHỎ GỌN + CHỮ SERVICES HIỆN ĐẸP ===================== */
 .services-hero {
   position: relative;
-  height: 90vh;
   width: 100%;
-  min-height: 500px;
+  height: 650px;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
 }
 
-.services-hero .hero-overlay {
+/* Ảnh nền + overlay + hiệu ứng zoom chậm */
+.services-hero::before {
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6)),
-    url("https://ruedelamourhotel.com/wp-content/uploads/2025/05/1.png");
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.65) 80%),
+              url("https://ruedelamourhotel.com/wp-content/uploads/2025/05/QTX09567-copy-scaled.jpg");
   background-size: cover;
-  background-position: center;
+  background-position: center 38%;
   z-index: 1;
+  animation: zoomSlow 20s ease-in-out infinite alternate;
 }
 
+@keyframes zoomSlow {
+  from { transform: scale(1); }
+  to   { transform: scale(1.1); }
+}
+
+/* Chữ Services */
 .services-hero .hero-content {
   position: relative;
   z-index: 2;
   text-align: center;
   color: white;
-  animation: fadeUp 1.2s ease forwards 0.3s;
+  padding: 0 20px;
 }
 
 .services-title {
-  font-family: "Lora", serif !important;
-  font-size: 5rem;
-  font-weight: 400;
+  font-family: "Playfair Display", serif !important;
+  font-size: 82px;
+  font-weight: 700;
   margin: 0;
-  letter-spacing: 1px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  text-shadow: 0 6px 30px rgba(0,0,0,0.7);
+  opacity: 0;
+  transform: translateY(50px);
+  animation: titleFadeUp 1.6s ease-out forwards;
 }
 
-/* Fade animation (matching Rooms) */
-@keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-
+@keyframes titleFadeUp {
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
-/* ===================== SECTION ===================== */
+/* ===================== PHẦN DỊCH VỤ ===================== */
 .services-section {
-  padding: 100px 20px;
+  padding: 120px 5% 140px;
   background: #fff;
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1350px;
   margin: 0 auto;
 }
 
-/* ===================== TITLE ===================== */
-.section-title {
-  font-family: "UTM-Yen-Tu", sans-serif !important;
-  font-size: 70px !important;
+/* Tiêu đề "Our Services" */
+.services-section h2 {
+  font-family: "Playfair Display", serif !important;
+  font-size: 52px !important;
   text-align: center;
-  font-weight: 500 !important;
-  color: #d9baac !important;
-  margin-bottom: 50px;
-  letter-spacing: 1.5px;
+  color: #333;
+  margin-bottom: 20px;
+  font-weight: 600;
 }
 
-/* ===================== SERVICE CARD ===================== */
+.services-section p {
+  text-align: center;
+  color: #666;
+  font-size: 18px;
+  max-width: 700px;
+  margin: 0 auto 70px;
+  line-height: 1.7;
+}
+
+/* ===================== CARD DỊCH VỤ ===================== */
+.service-card-wrapper {
+  height: 100%;
+  display: flex;
+}
+
 .service-card {
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border-radius: 12px;
+  width: 100%;
+  border-radius: 20px;
   overflow: hidden;
   background: #fff;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 12px 35px rgba(0,0,0,0.09);
+  transition: all 0.4s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
   height: 100%;
-  animation: fadeIn 0.8s ease forwards;
 }
 
 .service-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+  transform: translateY(-16px);
+  box-shadow: 0 30px 60px rgba(0,0,0,0.18);
 }
 
 .card-image {
-  height: 240px;
+  width: 100%;
+  height: 270px;
   overflow: hidden;
-  position: relative;
 }
 
 .card-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.5s ease;
+  transition: transform 0.8s ease;
 }
 
 .service-card:hover .card-image img {
-  transform: scale(1.08);
+  transform: scale(1.15);
 }
 
 .card-body {
-  padding: 24px;
-  background: #fff;
+  padding: 32px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
 }
 
-/* ===================== TEXT ===================== */
 .card-title {
-  font-family: "Cinzel", serif !important;
-  font-size: 1.2rem !important;
-  font-weight: 600 !important;
-  color: #c9a96e !important;
-  margin: 0 0 14px 0 !important;
-  letter-spacing: 2px;
-  text-transform: uppercase;
+  font-family: "Playfair Display", serif;
+  font-size: 26px;
+  font-weight: 600;
+  color: #8a6e5b;
+  margin: 0 0 16px 0;
+  line-height: 1.3;
 }
 
 .card-desc {
-  font-family: "Lora", serif;
-  font-size: 0.95rem;
+  font-size: 16px;
   color: #555;
-  line-height: 1.7;
-  margin-bottom: 16px;
+  line-height: 1.75;
+  flex-grow: 1;
+  margin-bottom: 20px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* ===================== PRICE ===================== */
 .card-price {
-  font-size: 1rem;
-  margin-bottom: 16px;
-  color: #333;
+  font-size: 21px;
+  font-weight: 700;
+  color: #a8765a;
+  margin: 20px 0;
 }
 
-.card-price span.price {
-  font-weight: bold;
-  color: #c9a96e;
-  font-size: 1.4rem;
-}
-
-/* ===================== DETAILS BUTTON ===================== */
 .details-btn {
-  color: #c9a96e;
-  font-weight: 600;
-  text-transform: uppercase;
+  margin-top: auto;
+  text-align: right;
+}
+
+.details-btn button {
+  background: none;
   border: none;
-  background: transparent;
+  color: #a8765a;
+  font-weight: 600;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
   cursor: pointer;
-  font-size: 0.9rem;
-  letter-spacing: 1px;
-  margin-top: 10px;
+  padding: 0;
+  transition: all 0.3s ease;
 }
 
-.details-btn:hover {
-  opacity: 0.8;
-}
-
-/* ===================== FADE IN ===================== */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ===================== LOADING ===================== */
-.loading {
-  text-align: center;
-  padding: 80px 0;
+.details-btn button:hover {
+  color: #6d5548;
+  letter-spacing: 3px;
 }
 
 /* ===================== RESPONSIVE ===================== */
-@media (max-width: 992px) {
+@media (max-width: 1200px) {
   .services-title {
-    font-size: 4rem;
+    font-size: 74px;
   }
+}
 
-  .section-title {
-    font-size: 3.5rem !important;
+@media (max-width: 992px) {
+  .services-hero {
+    height: 550px;
+  }
+  .services-title {
+    font-size: 64px;
   }
 }
 
 @media (max-width: 768px) {
   .services-hero {
-    height: 70vh;
+    height: 480px;
   }
-
   .services-title {
-    font-size: 3rem;
+    font-size: 56px;
+    letter-spacing: 2px;
   }
-
   .card-image {
-    height: 200px;
-  }
-
-  .card-body {
-    padding: 20px;
+    height: 220px;
   }
 }
 
 @media (max-width: 576px) {
+  .services-hero {
+    height: 420px;
+  }
   .services-title {
-    font-size: 2.6rem;
+    font-size: 48px;
+    letter-spacing: 1.5px;
   }
-
-  .section-title {
-    font-size: 2.4rem !important;
+  .services-section h2 {
+    font-size: 42px !important;
   }
-
-  .card-title {
-    font-size: 1rem !important;
-  }
-
-  .card-desc {
-    font-size: 0.9rem;
+  .card-image {
+    height: 200px;
   }
 }

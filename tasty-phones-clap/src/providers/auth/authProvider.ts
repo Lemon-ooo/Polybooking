@@ -8,7 +8,7 @@ const API_URL = import.meta.env.DEV
 
 export const authProvider = {
   // ======================
-  // 🔐 LOGIN
+  // LOGIN
   // ======================
   login: async ({ email, password }: any) => {
     try {
@@ -22,30 +22,38 @@ export const authProvider = {
       });
 
       const res = await response.json();
+      console.log("Response từ /api/login:", res); // Debug để bạn thấy cấu trúc
 
       if (!response.ok) {
         throw new Error(res.message || "Email hoặc mật khẩu không đúng!");
       }
 
+      // Cấu trúc response hiện tại của bạn:
+      // { success: true, data: { user: {...}, token: "1|xxx", token_type: "Bearer" } }
       const apiData = res.data;
-      const token = `Bearer ${apiData.token}`;
-      const user = apiData.user;
+      const token = apiData.token;           // ← lấy token đúng chỗ
+      const user = apiData.user;             // ← lấy user đúng chỗ
 
-      localStorage.removeItem("auth");
+      if (!token || !user) {
+        throw new Error("Không nhận được token hoặc thông tin user từ server!");
+      }
+
+      // Lưu vào localStorage theo đúng format mà axiosInstance đang dùng
+      localStorage.setItem("token", token); // ← axiosInstance đọc cái này để gắn Bearer
 
       const authState = {
         ...user,
-        token,
+        role: user.role || "customer",
+        token: `Bearer ${token}`, // giữ lại cả Bearer nếu cần
       };
-
       localStorage.setItem("auth", JSON.stringify(authState));
 
-      const role = user.role;
-      let redirectTo = "/";
-      if (role === "admin") redirectTo = "/admin/dashboard";
-      if (role === "customer") redirectTo = "/client";
-
       message.success("Đăng nhập thành công!");
+
+      // Redirect theo role
+      let redirectTo = "/client";
+      if (user.role === "admin") redirectTo = "/admin/dashboard";
+
       return { success: true, redirectTo };
     } catch (error: any) {
       message.error(error.message || "Đăng nhập thất bại!");
@@ -54,50 +62,61 @@ export const authProvider = {
   },
 
   // ======================
-  // 🔓 LOGOUT
+  // LOGOUT
   // ======================
   logout: async () => {
     try {
       const auth = localStorage.getItem("auth");
       if (auth) {
-        const { token } = JSON.parse(auth);
+        const parsed = JSON.parse(auth);
         await fetch(`${API_URL}/logout`, {
           method: "POST",
           headers: {
-            Authorization: token,
+            Authorization: parsed.token || "",
             Accept: "application/json",
           },
         });
       }
-    } catch (_) {}
+    } catch (_) {
+      // Ignore lỗi logout
+    }
 
     localStorage.removeItem("auth");
+    localStorage.removeItem("token"); // ← xóa luôn token
     message.success("Đăng xuất thành công!");
     return { success: true, redirectTo: "/login" };
   },
 
   // ======================
-  // 🧩 CHECK - SIMPLE
+  // CHECK
   // ======================
   check: async () => {
-    const auth = localStorage.getItem("auth");
-    console.log("🔐 SIMPLE CHECK - Auth exists:", !!auth);
-    return { authenticated: !!auth };
+    const token = localStorage.getItem("token");
+    const authenticated = !!token;
+    console.log("CHECK AUTH:", authenticated ? "Yes" : "No");
+    return { authenticated };
   },
 
   // ======================
-  // 👤 GET IDENTITY
+  // GET IDENTITY
   // ======================
   getIdentity: async () => {
     const auth = localStorage.getItem("auth");
     if (!auth) return null;
-
     try {
-      return JSON.parse(auth);
+      const parsed = JSON.parse(auth);
+      return {
+        ...parsed,
+        name: parsed.user_name || parsed.email,
+      };
     } catch {
       return null;
     }
   },
+
+  // ======================
+  // REGISTER (giữ nguyên, chỉ tinh chỉnh nhỏ)
+  // ======================
   register: async ({
     user_name,
     email,
@@ -122,81 +141,54 @@ export const authProvider = {
       const data = await response.json();
 
       if (!response.ok) {
-        console.log("Backend validation errors:", data);
-
         let errorMessage = "Đăng ký thất bại!";
-        let backendErrors: any = {};
-
         if (data.errors) {
-          backendErrors = data.errors;
-          const firstErrorKey = Object.keys(data.errors)[0];
-          if (firstErrorKey && data.errors[firstErrorKey]?.[0]) {
-            errorMessage = data.errors[firstErrorKey][0];
-          }
+          const firstError = Object.values(data.errors)[0] as string[];
+          errorMessage = firstError?.[0] || errorMessage;
         } else if (data.message) {
           errorMessage = data.message;
         }
-
-        const error = new Error(errorMessage);
-        (error as any).errors = backendErrors;
-        (error as any).response = { errors: backendErrors };
-
-        throw error;
+        throw new Error(errorMessage);
       }
 
-      // Xử lý thành công
       const apiData = data.data;
-      const token = apiData?.token || data.token;
-      const user = apiData?.user || data.user;
+      const token = apiData.token;
+      const user = apiData.user;
 
-      if (!token) {
-        throw new Error("Không nhận được token từ server");
-      }
+      if (!token) throw new Error("Không nhận được token sau khi đăng ký!");
 
-      const formattedToken = token.startsWith("Bearer ")
-        ? token
-        : `Bearer ${token}`;
+      localStorage.setItem("token", token);
+      localStorage.setItem("auth", JSON.stringify({ ...user, token: `Bearer ${token}` }));
 
-      const authState = {
-        ...user,
-        token: formattedToken,
+      message.success("Đăng ký thành công!");
+      return {
+        success: true,
+        redirectTo: user.role === "admin" ? "/admin/dashboard" : "/client",
       };
-
-      localStorage.setItem("auth", JSON.stringify(authState));
-
-      // Điều hướng dựa trên role
-      const role = user?.role || "customer";
-      let redirectTo = "/";
-      if (role === "admin") redirectTo = "/admin/dashboard";
-      if (role === "customer" || role === "client") redirectTo = "/client";
-
-      return { success: true, redirectTo };
     } catch (error: any) {
-      console.error("Register error:", error);
+      message.error(error.message);
       throw error;
     }
   },
+
   // ======================
-  // 🔄 FORGOT PASSWORD
+  // FORGOT PASSWORD
   // ======================
   forgotPassword: async (email: string) => {
     try {
       const response = await fetch(`${API_URL}/forgot-password`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Không thể reset mật khẩu!");
+        throw new Error(data.message || "Không thể gửi mật khẩu mới!");
       }
 
-      message.success("Mật khẩu mới đã được gửi qua email!");
+      message.success("Mật khẩu mới đã được gửi đến email của bạn!");
       return { success: true, redirectTo: "/login" };
     } catch (error: any) {
       message.error(error.message || "Có lỗi xảy ra!");
@@ -205,12 +197,13 @@ export const authProvider = {
   },
 
   // ======================
-  // ⚠️ ON ERROR
+  // ON ERROR (401 → tự động logout)
   // ======================
   onError: async (error: any) => {
     if (error?.status === 401 || error?.status === 403) {
       localStorage.removeItem("auth");
-      return { logout: true, redirectTo: "/login" };
+      localStorage.removeItem("token");
+      return { logout: true, redirectTo: "/login", error };
     }
     return { error };
   },
