@@ -1194,3 +1194,86 @@ textarea::placeholder {
   font-weight: 600;
   cursor: pointer;
 }
+
+
+/* ===================== HERO ===================== */
+.my-bookings-hero {
+  position: relative;
+  height: 90vh;
+  width: 100%;
+  min-height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.my-bookings-hero .hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6)),
+    url("https://cdn.tcdulichtphcm.vn/upload/2-2021/images/2021-06-24/1624496760-02_hqme.jpg");
+  background-size: cover;
+  background-position: center;
+  z-index: 1;
+}
+
+.my-bookings-hero .hero-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: white;
+  animation: fadeUp 1.2s ease forwards 0.3s;
+}
+
+.my-bookings-title {
+  font-family: "Lora", serif !important;
+  font-size: 5rem;
+  font-weight: 400;
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+/* ===================== HERO ===================== */
+.booking-detail-hero {
+  position: relative;
+  height: 90vh;
+  width: 100%;
+  min-height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.booking-detail-hero .hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6)),
+    url("https://cdn.tcdulichtphcm.vn/upload/2-2021/images/2021-06-24/1624496760-02_hqme.jpg");
+  background-size: cover;
+  background-position: center;
+  z-index: 1;
+}
+
+.booking-detail-hero .hero-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: white;
+  animation: fadeUp 1.2s ease forwards 0.3s;
+}
+
+.booking-detail-title {
+  font-family: "Lora", serif !important;
+  font-size: 5rem;
+  font-weight: 400;
+  margin: 0;
+  letter-spacing: 1px;
+}
