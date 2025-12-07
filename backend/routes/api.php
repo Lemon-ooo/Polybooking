@@ -38,10 +38,14 @@ Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 // Profile routes
-Route::get('profile', [ProfileController::class, 'show']);
-Route::put('profile', [ProfileController::class, 'update']);
-Route::put('profile/password', [ProfileController::class, 'updatePassword']);
-Route::delete('profile', [ProfileController::class, 'destroy']);
+// routes/api.php
+Route::middleware('auth:sanctum')->prefix('client')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::put('/profile', [ProfileController::class, 'update']);
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword']);
+    Route::post('/profile/avatar', [ProfileController::class, 'uploadAvatar']); // quan trọng
+    Route::delete('/profile', [ProfileController::class, 'destroy']);
+});
 
 
 Route::post('/bookings', [BookingController::class, 'store']);

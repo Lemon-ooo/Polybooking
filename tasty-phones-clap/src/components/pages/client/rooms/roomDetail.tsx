@@ -1,179 +1,104 @@
+// src/components/pages/client/rooms/RoomDetail.tsx
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axiosInstance from "../../../../providers/data/axiosConfig";
-import { Typography, Row, Col } from "antd";
+import { Typography, Row, Col, Button, Empty } from "antd";
+import { UserOutlined, DollarOutlined, WifiOutlined, CoffeeOutlined } from "@ant-design/icons";
+import "./RoomDetail.css";
 
 const { Title, Paragraph } = Typography;
-
 const BASE_URL = "http://localhost:8000/storage/";
 
 export const RoomDetail: React.FC = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const [room, setRoom] = useState<any>(null);
+  const [mainImage, setMainImage] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
-      const res = await axiosInstance.get(`/room-types/${id}`);
-      setRoom(res.data.data);
+      try {
+        const res = await axiosInstance.get(`/room-types/${id}`);
+        const data = res.data.data || res.data;
+        setRoom(data);
+        setMainImage(`${BASE_URL}${data.room_type_image}`);
+      } catch (err) {
+        console.error("Lỗi tải chi tiết loại phòng:", err);
+      }
     };
     fetchData();
   }, [id]);
 
-  if (!room) return <div>Loading...</div>;
+  if (!room) {
+    return <div style={{ textAlign: "center", padding: "120px", fontSize: "20px" }}>Đang tải...</div>;
+  }
 
-  const images =
-    room._newImages && room._newImages.length > 0
-      ? room._newImages
-      : room.images && room.images.length > 0
-      ? room.images.map((img: any) => BASE_URL + img.image_url)
-      : [BASE_URL + room.room_type_image];
+  // Tạo danh sách ảnh thumbnail (ảnh phòng + ảnh tiện nghi)
+  const thumbnailImages = [
+    `${BASE_URL}${room.room_type_image}`,
+    ...(room.amenities || [])
+      .map((a: any) => `${BASE_URL}${a.amenity_image}`)
+      .filter(Boolean)
+      .slice(0, 8),
+  ];
+
+  // Danh sách tiện nghi để hiển thị
+  const amenitiesList = room.amenities && room.amenities.length > 0 
+    ? room.amenities 
+    : []; // nếu null thì để mảng rỗng
 
   return (
-    <div style={{ width: "100%", background: "#fff", fontFamily: "serif" }}>
-      {/* ================== HERO BANNER ================== */}
+    <div className="room-detail-wrapper">
+      {/* Hero */}
       <div className="rooms-hero-banner">
         <div className="hero-overlay" />
         <div className="hero-content">
-          <h1 className="hero-title">Rooms & Suites Detail</h1>
+          <h1 className="hero-title">Rooms & Suites</h1>
         </div>
       </div>
 
-      {/* TITLE */}
-      <div style={{ textAlign: "center", paddingTop: 40 }}>
-        <Title
-          style={{
-            fontWeight: 600,
-            fontSize: 36,
-            letterSpacing: 0.5,
-            color: "#333",
-          }}
-        >
-          {room.room_type_name}
-        </Title>
-
-        {/* ICON LIST */}
-        <div
-          style={{
-            marginTop: 25,
-            display: "flex",
-            justifyContent: "center",
-            gap: 90,
-            flexWrap: "wrap",
-            color: "#5b5b5b",
-            fontSize: 16,
-          }}
-        >
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 32 }}>🧑‍🤝‍🧑</div>
-            {room.max_guests} guests
-          </div>
-
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 32 }}>💵</div>
-            {Number(room.base_price).toLocaleString("vi-VN")} VND / night
-          </div>
-
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 32 }}>📶</div>
-            Free wifi
-          </div>
-
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 32 }}>❄️</div>
-            Air conditioner
-          </div>
-        </div>
+      <div className="room-main-title">
+        <h2>{room.room_type_name}</h2>
       </div>
 
-      {/* OVERVIEW */}
-      <div style={{ width: "70%", margin: "60px auto" }}>
-        <Row gutter={50}>
-          <Col span={12}>
-            <Paragraph
-              style={{
-                fontSize: 18,
-                lineHeight: 1.9,
-                color: "#555",
-                letterSpacing: 0.2,
-              }}
-            >
-              {room.description}
-            </Paragraph>
+      <div className="room-features-grid">
+        <div className="feature-box"><span className="icon"><UserOutlined /></span><div className="text">{room.max_guests} khách</div></div>
+        <div className="feature-box"><span className="icon"><DollarOutlined /></span><div className="text">{Number(room.base_price).toLocaleString("vi-VN")} ₫ / đêm</div></div>
+        <div className="feature-box"><span className="icon"><WifiOutlined /></span><div className="text">Wi-Fi miễn phí</div></div>
+        <div className="feature-box"><span className="icon"><CoffeeOutlined /></span><div className="text">Bữa sáng tự chọn</div></div>
+      </div>
 
-            <div
-              style={{
-                marginTop: 35,
-                lineHeight: 2.2,
-                fontSize: 18,
-                color: "#444",
-              }}
-            >
-              <div>📐 Room Size: 35 – 45 sqm</div>
-              <div>🌇 Basic city view</div>
-              <div>🛏️ 1 King-size or 2 Twin beds</div>
-              <div>🛁 Private bathroom with shower</div>
+      <div className="room-overview">
+        <Row gutter={[60, 60]}>
+          <Col xs={24} lg={12}>
+            <Paragraph className="room-info-text">{room.description || "Phòng được thiết kế sang trọng với đầy đủ tiện nghi hiện đại."}</Paragraph>
+
+            <div className="room-highlight-list">
+              <div>Phòng rộng rãi từ 35 – 45 m²</div>
+              <div>Tầm nhìn thành phố hoặc vườn</div>
+              <div>Giường King-size hoặc 2 giường đơn</div>
+              <div>Phòng tắm riêng với vòi sen đứng</div>
             </div>
 
-            <button
-              style={{
-                marginTop: 35,
-                padding: "12px 30px",
-                background: "#a8765a",
-                color: "#fff",
-                border: "none",
-                fontSize: 17,
-                fontWeight: 500,
-                letterSpacing: 0.4,
-                borderRadius: 6,
-                cursor: "pointer",
-              }}
-            >
-              BOOK NOW
-            </button>
+            <Button className="book-now-btn" size="large">
+              ĐẶT PHÒNG NGAY
+            </Button>
           </Col>
 
-          <Col span={12}>
-            <img
-              src={images[0]}
-              style={{
-                width: "100%",
-                height: "430px",
-                objectFit: "cover",
-                borderRadius: 8,
-              }}
-            />
+          <Col xs={24} lg={12}>
+            <div className="room-image-main">
+              <img src={mainImage} alt={room.room_type_name} />
+            </div>
 
-            <div
-              style={{
-                display: "flex",
-                gap: 12,
-                marginTop: 18,
-                overflowX: "auto",
-                paddingBottom: 6,
-              }}
-            >
-              {images.map((url: string, idx: number) => (
+            <div className="room-thumbnails">
+              {thumbnailImages.map((url, idx) => (
                 <img
                   key={idx}
                   src={url}
-                  style={{
-                    width: 110,
-                    height: 75,
-                    objectFit: "cover",
-                    borderRadius: 8,
-                    cursor: "pointer",
-                    transition: "0.25s",
-                    border:
-                      idx === 0 ? "3px solid #a8765a" : "2px solid transparent",
-                  }}
-                  onClick={() => {
-                    const newOrder = [...images];
-                    const selected = newOrder.splice(idx, 1)[0];
-                    newOrder.unshift(selected);
-                    setRoom((prev: any) => ({
-                      ...prev,
-                      _newImages: newOrder,
-                    }));
+                  alt={`thumb ${idx + 1}`}
+                  className={url === mainImage ? "active" : ""}
+                  onClick={() => setMainImage(url)}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1618776188272-8c596a1f85b8?w=800";
                   }}
                 />
               ))}
@@ -182,84 +107,35 @@ export const RoomDetail: React.FC = () => {
         </Row>
       </div>
 
-      {/* AMENITIES */}
-      <div style={{ marginTop: 60 }}>
-        <div
-          style={{
-            width: "70%",
-            margin: "0 auto",
+      {/* PHẦN TIỆN NGHI – ĐÃ SỬA ĐẸP + KHÔNG LỖI NỮA */}
+    {/* PHẦN TIỆN NGHI ĐI KÈM - SIÊU ĐẸP */}
+<div className="included-amenities-section">
+  <h2 className="included-amenities-title">Tiện Nghi Đi Kèm</h2>
+
+  <div className="included-amenities-grid">
+    {amenitiesList.map((am: any) => (
+      <div className="included-amenity-card" key={am.amenity_id}>
+        <img 
+          src={`${BASE_URL}${am.amenity_image}`}
+          alt={am.amenity_name}
+          className="included-amenity-image"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1582719471384-8949374d3c8b?w=600";
           }}
-        >
-          <Title
-            level={3}
-            style={{
-              fontWeight: 600,
-              fontSize: 28,
-              marginBottom: 25,
-              color: "#333",
-              textAlign: "center",
-            }}
-          >
-            Amenities Included
-          </Title>
-
-          <Row gutter={[30, 30]}>
-            {room.amenities && room.amenities.length > 0 ? (
-              room.amenities.map((am: any) => (
-                <Col key={am.amenity_id} xs={24} sm={12} md={8} lg={6}>
-                  <div
-                    style={{
-                      border: "1px solid #e6e6e6",
-                      borderRadius: 10,
-                      padding: 18,
-                      textAlign: "center",
-                      transition: "0.3s",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <img
-                      src={BASE_URL + am.amenity_image}
-                      alt={am.amenity_name}
-                      style={{
-                        width: "100%",
-                        height: 130,
-                        objectFit: "cover",
-                        borderRadius: 8,
-                        marginBottom: 12,
-                      }}
-                    />
-
-                    <div
-                      style={{
-                        fontWeight: 600,
-                        fontSize: 17,
-                        marginBottom: 8,
-                        color: "#444",
-                      }}
-                    >
-                      {am.amenity_name}
-                    </div>
-
-                    <Paragraph
-                      style={{
-                        fontSize: 14,
-                        color: "#666",
-                        lineHeight: 1.6,
-                        marginBottom: 0,
-                        whiteSpace: "normal",
-                      }}
-                    >
-                      {am.description}
-                    </Paragraph>
-                  </div>
-                </Col>
-              ))
-            ) : (
-              <Paragraph>No amenities available.</Paragraph>
-            )}
-          </Row>
-        </div>
+        />
+        <h4>{am.amenity_name}</h4>
+        <p>{am.description || "Tiện nghi cao cấp, miễn phí cho mọi đặt phòng"}</p>
       </div>
+    ))}
+  </div>
+
+  {/* Nếu không có tiện nghi nào thì vẫn đẹp */}
+  {amenitiesList.length === 0 && (
+    <Empty description="Chưa có tiện nghi đi kèm" style={{ margin: "60px 0" }} />
+  )}
+</div>
     </div>
   );
 };
+
+export default RoomDetail;
