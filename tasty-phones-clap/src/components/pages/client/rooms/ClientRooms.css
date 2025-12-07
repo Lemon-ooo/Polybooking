@@ -5,7 +5,7 @@
   font-family: "Lora", serif;
 }
 
-/* ===================== HERO BANNER – GIỐNG HỆT SERVICES ===================== */
+/* ===================== HERO BANNER – GIỐNG HỆT TRANG CHÍNH ===================== */
 .rooms-hero-banner {
   position: relative;
   width: 100%;
@@ -16,7 +16,6 @@
   justify-content: center;
 }
 
-/* ẢNH BANNER – ĐẢM BẢO HIỆN 100% */
 .rooms-hero-banner::before {
   content: "";
   position: absolute;
@@ -31,15 +30,10 @@
 }
 
 @keyframes zoomSlow {
-  from {
-    transform: scale(1);
-  }
-  to {
-    transform: scale(1.12);
-  }
+  from { transform: scale(1); }
+  to { transform: scale(1.12); }
 }
 
-/* CHỮ ROOMS & SUITES – ĐẸP NHƯ SERVICES */
 .hero-content {
   position: relative;
   z-index: 2;
@@ -68,20 +62,21 @@
   }
 }
 
-/* ===================== PHẦN DANH SÁCH PHÒNG ===================== */
+/* ===================== PHẦN DANH SÁCH PHÒNG – BỐ CỤC 2 CỘT NHƯ ẢNH ===================== */
 .rooms-section {
-  padding: 120px 5% 140px;
+  padding: 140px 5% 160px;
   background: #fff;
 }
 
 .container {
-  max-width: 1350px;
+  max-width: 1480px;
   margin: 0 auto;
+  padding: 0 15px;
 }
 
 .section-header {
   text-align: center;
-  margin-bottom: 70px;
+  margin-bottom: 100px;
 }
 
 .section-header h2 {
@@ -100,148 +95,254 @@
   line-height: 1.7;
 }
 
-/* ===================== CARD PHÒNG – GIỐNG CARD DỊCH VỤ ===================== */
-.room-card-wrapper {
-  height: 100%;
-  display: flex;
+/* ===================== GRID 2 CỘT – CHỈ 2 PHÒNG MỖI HÀNG ===================== */
+.rooms-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 80px 60px;
+  margin-top: 60px;
 }
 
-.room-card {
-  width: 100%;
-  border-radius: 20px;
-  overflow: hidden;
-  background: #fff;
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.09);
-  transition: all 0.4s ease;
-  cursor: pointer;
+/* ===================== MỖI PHÒNG – ĐẸP NHƯ TRANG CHÍNH ===================== */
+.room-item {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  transition: all 0.5s ease;
 }
 
-.room-card:hover {
-  transform: translateY(-16px);
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.18);
+.room-item:hover {
+  transform: translateY(-12px);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15);
 }
 
-.room-image {
-  width: 100%;
-  height: 270px;
+/* Ảnh phòng – chiếm toàn bộ chiều rộng */
+.room-item-image {
+  position: relative;
+  height: 420px;
   overflow: hidden;
 }
 
-.room-image img {
+.room-item-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.8s ease;
+  transition: transform 1s ease;
 }
 
-.room-card:hover .room-image img {
-  transform: scale(1.15);
+.room-item:hover .room-item-image img {
+  transform: scale(1.08);
 }
 
-.room-body {
-  padding: 32px;
+/* Nội dung phòng */
+.room-item-content {
+  padding: 48px 50px 60px;
+  background: #fff;
   flex-grow: 1;
   display: flex;
   flex-direction: column;
 }
 
-.room-name {
+.room-item-title {
   font-family: "Playfair Display", serif;
-  font-size: 26px;
+  font-size: 36px;
   font-weight: 600;
   color: #8a6e5b;
-  margin: 0 0 16px 0;
-  line-height: 1.3;
+  margin: 0 0 20px 0;
+  line-height: 1.2;
 }
 
-.room-desc {
-  font-size: 16px;
+.room-item-desc {
+  font-size: 17px;
   color: #555;
-  line-height: 1.75;
+  line-height: 1.8;
+  margin-bottom: 32px;
   flex-grow: 1;
-  margin-bottom: 20px;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+/* Thông số phòng – icon + text */
+.room-features {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px 40px;
+  margin-bottom: 40px;
+  font-size: 16px;
+  color: #444;
+}
+
+.room-feature-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.room-feature-item svg {
+  width: 20px;
+  height: 20px;
+  color: #a8765a;
+}
+
+/* Giá + Nút Xem chi tiết */
+.room-item-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 30px;
+  border-top: 1px solid #eee;
 }
 
 .room-price {
-  font-size: 21px;
+  font-size: 28px;
   font-weight: 700;
   color: #a8765a;
-  margin: 20px 0;
 }
 
-.details-btn {
-  margin-top: auto;
-  text-align: right;
-}
-
-.details-btn button {
-  background: none;
-  border: none;
+.room-details-btn {
+  background: transparent;
+  border: 2px solid #a8765a;
   color: #a8765a;
-  font-weight: 600;
+  padding: 12px 32px;
   font-size: 15px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
+  border-radius: 50px;
   cursor: pointer;
-  padding: 0;
-  transition: all 0.3s;
+  transition: all 0.4s ease;
 }
 
-.details-btn button:hover {
-  color: #6d5548;
-  letter-spacing: 3px;
+.room-details-btn:hover {
+  background: #a8765a;
+  color: white;
 }
 
 /* ===================== LOADING & EMPTY ===================== */
 .loading,
 .empty {
   text-align: center;
-  padding: 100px 20px;
-  font-size: 18px;
+  padding: 120px 20px;
+  font-size: 20px;
   color: #888;
 }
 
 /* ===================== RESPONSIVE ===================== */
+@media (max-width: 1200px) {
+  .rooms-grid {
+    gap: 60px 40px;
+  }
+  .room-item-content {
+    padding: 40px;
+  }
+}
+
 @media (max-width: 992px) {
-  .rooms-hero-banner {
-    height: 550px;
+  .rooms-grid {
+    grid-template-columns: 1fr;
+    gap: 80px;
   }
   .hero-title {
     font-size: 68px;
+  }
+  .room-item-image {
+    height: 380px;
   }
 }
 
 @media (max-width: 768px) {
   .rooms-hero-banner {
-    height: 480px;
+    height: 500px;
   }
   .hero-title {
-    font-size: 58px;
+    font-size: 56px;
   }
-  .room-image {
-    height: 220px;
+  .section-header h2 {
+    font-size: 44px !important;
+  }
+  .room-item-title {
+    font-size: 32px;
+  }
+  .room-features {
+    grid-template-columns: 1fr;
+  }
+  .room-item-content {
+    padding: 35px 30px;
   }
 }
 
 @media (max-width: 576px) {
-  .rooms-hero-banner {
-    height: 420px;
+  .rooms-section {
+    padding: 100px 5% 120px;
   }
   .hero-title {
     font-size: 48px;
   }
-  .section-header h2 {
-    font-size: 42px !important;
+  .room-item-image {
+    height: 300px;
   }
-  .room-image {
-    height: 200px;
+  .room-item-footer {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
   }
+}
+/* ===================== ĐẢM BẢO TẤT CẢ CARD CÓ CHIỀU CAO BẰNG NHAU ===================== */
+.rooms-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 80px 60px;
+  margin-top: 60px;
+  
+  /* Đây là dòng quan trọng nhất */
+  grid-auto-rows: 1fr; /* ← ép tất cả các row có cùng chiều cao */
+}
+
+.rooms-grid::before {
+  content: '';
+  width: 0;
+  grid-row: 1 / 1;
+  grid-column: 1 / 1;
+  visibility: hidden;
+}
+
+/* Đảm bảo mỗi room-item kéo dài 100% chiều cao của ô grid */
+.room-item {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  transition: all 0.5s ease;
+  
+  /* Quan trọng: chiếm toàn bộ chiều cao ô grid */
+  height: 100%;
+}
+
+.room-item-content {
+  padding: 48px 50px 60px;
+  background: #fff;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* giúp footer luôn nằm dưới cùng */
+}
+
+/* Giới hạn mô tả chỉ 4-5 dòng + hiện ... nếu dài */
+.room-item-desc {
+  font-size: 17px;
+  color: #555;
+  line-height: 1.8;
+  margin-bottom: 32px;
+  flex-grow: 1;
+
+  /* Giới hạn số dòng hiển thị */
+  display: -webkit-box;
+  -webkit-line-clamp: 5;      /* tối đa 5 dòng */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
