@@ -1,57 +1,38 @@
 import React from "react";
 import { useTable } from "@refinedev/antd";
-import {
-  Card,
-  Col,
-  Row,
-  Typography,
-  Spin,
-  Alert,
-  Pagination,
-  Button,
-} from "antd";
+import { Row, Col, Typography, Spin, Alert, Button, Card } from "antd";
+import { useNavigate } from "react-router-dom";
+
+import { EventType } from "../../../../interfaces/eventTypes";
 
 import "./ClientEvent.css";
 import "../../../../../src/assets/fonts/fonts.css";
 
 const { Title, Text, Paragraph } = Typography;
 
-interface Event {
-  id: number;
-  name: string;
-  date: string;
-  location: string;
-  description: string;
-  image: string;
-}
-
 export const ClientEvent: React.FC = () => {
-  const { tableProps, tableQueryResult, setCurrent } = useTable<Event>({
-    resource: "events", // Tên resource API
-    pagination: { pageSize: 6, mode: "server" },
-    sorters: { initial: [{ field: "date", order: "desc" }] },
+  const navigate = useNavigate();
+
+  const { tableProps, tableQueryResult } = useTable<EventType>({
+    resource: "events",
   });
 
   const events = tableProps?.dataSource || [];
-  const total = tableProps?.pagination?.total || 0;
-  const currentPage = tableProps?.pagination?.current || 1;
-  const pageSize = tableProps?.pagination?.pageSize || 6;
-
   const isLoading = tableQueryResult?.isLoading;
   const isError = tableQueryResult?.isError;
   const error = tableQueryResult?.error;
+  const API_URL = "http://localhost:8000/storage/";
 
-  const handlePageChange = (page: number) => setCurrent?.(page);
+  const getEventImage = (event: EventType) =>
+    event.event_image
+      ? `${API_URL}${event.event_image}`
+      : "https://images.unsplash.com/photo-1533174072545-7a46c2fe5e44?w=600&h=400&fit=crop"; // Ảnh mặc định cho sự kiện
 
-  // Định dạng ngày tháng
-  const formatDate = (date: string) =>
-    new Date(date).toLocaleDateString("vi-VN", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+  const handleViewDetails = (eventId: number) => {
+    navigate(`/client/events/${eventId}`);
+    window.scrollTo(0, 0);
+  };
 
-  // --- RENDERING LỖI ---
   if (isError) {
     return (
       <div style={{ padding: "80px 20px" }}>
@@ -71,98 +52,138 @@ export const ClientEvent: React.FC = () => {
   }
 
   return (
-    <div className="client-event-container">
-      {/* HERO BANNER*/}
-      <div className="event-hero-banner">
+    <div className="client-events-container">
+      {/* ================== HERO BANNER ================== */}
+      <div className="events-hero-banner">
         <div className="hero-overlay" />
         <div className="hero-content">
-          <h1 className="hero-title">SỰ KIỆN & ƯU ĐÃI</h1>
+          <h1 className="hero-title">Events & Meetings</h1>
         </div>
       </div>
 
-      {/* GALLERY CONTENT */}
-      <div className="event-content-section container">
-        <Title level={2} className="client-event-title">
-          🌟 Các Sự Kiện Sắp Diễn Ra 🌟
-        </Title>
+      {/* ================== EVENT CARDS ================== */}
+      <section
+        className="featured-events-section"
+        style={{ padding: "40px 64px" }}
+      >
+        <div className="container">
+          <Title
+            level={2}
+            style={{
+              textAlign: "center",
+              marginBottom: 16,
+              fontFamily: "'Playfair Display', serif",
+              fontSize: 42,
+              color: "#000",
+            }}
+          >
+            Special Events
+          </Title>
 
-        {isLoading ? (
-          <div className="loading-container event-loading">
-            <Spin size="large" />
-            <Text style={{ marginTop: 16, display: "block" }}>
-              Đang tải sự kiện...
-            </Text>
-          </div>
-        ) : events.length === 0 ? (
-          <div className="empty-state event-empty">
-            <Text type="secondary" style={{ fontSize: 16 }}>
-              Hiện chưa có sự kiện nào.
-            </Text>
-          </div>
-        ) : (
-          <>
-            <Row gutter={[32, 32]}>
+          <Paragraph
+            style={{
+              textAlign: "center",
+              marginBottom: 40,
+              color: "#000",
+              fontSize: 16,
+            }}
+          >
+            We organize professional meetings and memorable events.
+          </Paragraph>
+
+          {isLoading ? (
+            <div style={{ textAlign: "center" }}>
+              <Spin size="large" />
+              <Text style={{ marginTop: 16, display: "block" }}>
+                Loading events...
+              </Text>
+            </div>
+          ) : events.length === 0 ? (
+            <div style={{ textAlign: "center" }}>
+              <Text type="secondary" style={{ fontSize: 16 }}>
+                No events available.
+              </Text>
+            </div>
+          ) : (
+            <Row gutter={[32, 32]} justify="center">
               {events.map((event) => (
-                <Col xs={24} md={12} lg={8} key={event.id}>
+                <Col xs={24} sm={12} md={8} lg={6} key={event.event_id}>
                   <Card
+                    bodyStyle={{ padding: 0 }}
                     hoverable
-                    className="event-card"
-                    cover={
-                      <div className="event-image-container">
-                        <img
-                          src={
-                            event.image ||
-                            "https://via.placeholder.com/600x400?text=No+Image"
-                          }
-                          alt={event.name}
-                          className="event-image"
-                        />
-                      </div>
-                    }
+                    style={{
+                      borderRadius: 12,
+                      overflow: "hidden",
+                      background: "#fff",
+                      boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => handleViewDetails(event.event_id)} // Click card
                   >
-                    <Card.Meta
-                      title={event.name}
-                      description={
-                        <>
-                          <Text strong className="event-date">
-                            Ngày: {formatDate(event.date)}
-                          </Text>
-                          <br />
-                          <Text type="secondary" className="event-location">
-                            Địa điểm: {event.location}
-                          </Text>
-                          <Paragraph className="event-description">
-                            {event.description?.substring(0, 100)}...
-                          </Paragraph>
-                        </>
-                      }
-                    />
-                    <Button type="primary" className="event-detail-btn">
-                      Xem Chi Tiết
-                    </Button>
+                    <div
+                      style={{ width: "100%", height: 220, overflow: "hidden" }}
+                    >
+                      <img
+                        src={getEventImage(event)}
+                        alt={event.event_name}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                        onError={(e) =>
+                          ((e.target as HTMLImageElement).src =
+                            "https://images.unsplash.com/photo-1533174072545-7a46c2fe5e44?w=600&h=400&fit=crop")
+                        }
+                      />
+                    </div>
+
+                    <div style={{ padding: "20px" }}>
+                      <h3
+                        style={{
+                          fontFamily: "'Playfair Display', serif",
+                          color: "#8a6e5b",
+                          fontSize: 22,
+                          marginBottom: 8,
+                        }}
+                      >
+                        {event.event_name}
+                      </h3>
+                      <p
+                        style={{
+                          color: "#444",
+                          fontSize: 14,
+                          lineHeight: 1.5,
+                          marginBottom: 16,
+                        }}
+                      >
+                        {event.description ||
+                          "An exclusive event not to be missed."}
+                      </p>
+
+                      <div style={{ textAlign: "right" }}>
+                        <button
+                          style={{
+                            background: "transparent",
+                            border: "none",
+                            color: "#8a6e5b",
+                            fontSize: 14,
+                            fontWeight: 600,
+                            cursor: "pointer",
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          EVENT DETAILS
+                        </button>
+                      </div>
+                    </div>
                   </Card>
                 </Col>
               ))}
             </Row>
-
-            {/*  PAGINATION */}
-            {total > pageSize && (
-              <div className="pagination-container event-pagination">
-                <Pagination
-                  current={currentPage}
-                  pageSize={pageSize}
-                  total={total}
-                  onChange={handlePageChange}
-                  showSizeChanger={false}
-                  showTotal={(total, range) =>
-                    `Hiển thị ${range[0]}-${range[1]} của ${total} sự kiện`
-                  }
-                />
-              </div>
-            )}
-          </>
-        )}
-      </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 };

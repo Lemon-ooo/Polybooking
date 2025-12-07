@@ -5,7 +5,6 @@
 /* ========================================================= */
 
 .fade-in-section {
-  /* Trạng thái ban đầu: Vô hình và dịch chuyển nhẹ lên trên */
   opacity: 0;
   transform: translateY(25px);
 
@@ -25,17 +24,10 @@
   transform: translateY(0);
 }
 
-/* ========================================================= */
-/* TÙY CHỈNH CHUNG (Tùy chọn)                                */
-/* ========================================================= */
-
-/* Đảm bảo font UTM-Yen-Tu đã được import trong file fonts.css */
 h1,
 h2,
 h3,
 h4 {
-  /* Tùy chỉnh font cho các tiêu đề lớn */
-  /* Nếu UTM-Yen-Tu không hiển thị, sẽ fallback về serif */
   font-family: "UTM-Yen-Tu", "Playfair Display", serif !important;
 }
 

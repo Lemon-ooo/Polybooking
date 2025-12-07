@@ -22,11 +22,10 @@ import axiosInstance from "../../../../providers/data/axiosConfig";
 import "../../../../assets/fonts/fonts.css";
 
 // IMPORT FILE CSS ĐỂ SỬ DỤNG CLASS "fade-in-section"
-import "./index.css"; // <-- THÊM DÒNG NÀY
+import "./index.css";
 
 const { Title, Paragraph, Text } = Typography;
 
-// Giao diện mẫu cho các object data (nên sử dụng trong thực tế)
 interface RoomType {
   room_type_id: number;
   room_type_name: string;
@@ -210,7 +209,6 @@ export const ClientDashboard: React.FC = () => {
   return (
     <>
       {/* ===================== BOOKING BAR ===================== */}
-      {/* ... (Booking Bar Code - Không thay đổi) ... */}
       <section
         style={{
           width: "100%",
@@ -305,7 +303,7 @@ export const ClientDashboard: React.FC = () => {
           </div>
 
           {/* PROMO CODE */}
-          <button
+          {/* <button
             style={{
               width: "100%",
               height: "100%",
@@ -317,7 +315,7 @@ export const ClientDashboard: React.FC = () => {
             }}
           >
             I have a promo code
-          </button>
+          </button> */}
 
           {/* BUTTON FIND ROOM */}
           <button

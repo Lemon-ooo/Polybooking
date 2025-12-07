@@ -1,25 +1,34 @@
 import React, { useState } from "react";
 import { useTable } from "@refinedev/antd";
-import { Row, Col, Typography, Spin, Alert, Button, Pagination } from "antd";
+import { Typography, Spin, Alert, Button, Pagination } from "antd";
 import "./ClientGallery.css";
 import "../../../../../src/assets/fonts/fonts.css";
 
-const { Title, Text } = Typography;
+const { Title, Text, Paragraph } = Typography;
+
+// Giả định kiểu dữ liệu tối thiểu
+interface GalleryItemType {
+  id: number;
+  image_url: string;
+  caption?: string;
+}
 
 export const ClientGallery: React.FC = () => {
   const [currentImg, setCurrentImg] = useState<string>("");
   const [modalVisible, setModalVisible] = useState(false);
 
-  const { tableProps, tableQueryResult, setCurrent } = useTable<any>({
-    resource: "galleries",
-    pagination: { pageSize: 8, mode: "server" },
-    sorters: { initial: [{ field: "created_at", order: "desc" }] },
-  });
+  // Lấy dữ liệu với phân trang
+  const { tableProps, tableQueryResult, setCurrent } =
+    useTable<GalleryItemType>({
+      resource: "galleries",
+      pagination: { pageSize: 12, mode: "server" }, // Tăng pageSize để hiển thị nhiều ảnh hơn
+      sorters: { initial: [{ field: "created_at", order: "desc" }] },
+    });
 
   const galleries = tableProps?.dataSource || [];
   const total = tableProps?.pagination?.total || 0;
   const currentPage = tableProps?.pagination?.current || 1;
-  const pageSize = tableProps?.pagination?.pageSize || 8;
+  const pageSize = tableProps?.pagination?.pageSize || 12;
 
   const isLoading = tableQueryResult?.isLoading;
   const isError = tableQueryResult?.isError;
@@ -33,9 +42,6 @@ export const ClientGallery: React.FC = () => {
   const closeModal = () => setModalVisible(false);
 
   const handlePageChange = (page: number) => setCurrent?.(page);
-
-  // Phân loại theo category
-  const categories = [...new Set(galleries.map((g) => g.gallery_category))];
 
   if (isError) {
     return (
@@ -57,17 +63,27 @@ export const ClientGallery: React.FC = () => {
 
   return (
     <div className="client-gallery-container">
-      {/* HERO BANNER - ĐÃ SỬA */}
-      <div className="event-hero-banner">
+      {/* === HERO BANNER - HOL-HER-BANNER === */}
+      <div className="gallery-hero-banner">
         <div className="hero-overlay" />
         <div className="hero-content">
-          <h1 className="hero-title">THƯ VIỆN HÌNH ẢNH</h1>
+          <h1 className="hero-title">Gallery</h1>
+          {/* <Paragraph className="hero-subtitle">
+            Khám phá vẻ đẹp sang trọng và đẳng cấp
+          </Paragraph> */}
         </div>
       </div>
 
-      {/* GALLERY CONTENT */}
+      {/* === GALLERY CONTENT === */}
       <div className="gallery-content-section">
         <div className="container">
+          {/* GALLERY PAGE TITLER */}
+          <div className="gallery-page-header">
+            <Title level={1} className="gallery-page-title">
+              THƯ VIỆN HÌNH ẢNH
+            </Title>
+          </div>
+
           {isLoading ? (
             <div className="loading-container gallery-loading">
               <Spin size="large" />
@@ -83,50 +99,31 @@ export const ClientGallery: React.FC = () => {
             </div>
           ) : (
             <>
-              {categories.map((category) => {
-                const categoryItems = galleries.filter(
-                  (g) => g.gallery_category === category
-                );
-                if (categoryItems.length === 0) return null;
-
-                return (
-                  <div key={category} className="gallery-category-section">
-                    <div className="category-header">
-                      <Title level={2} className="category-title">
-                        {category}
-                      </Title>
+              {/* GALLERY GRID (MASONRY LAYOUT) */}
+              <div className="gallery-grid-masonry">
+                {galleries.map((item) => (
+                  <div
+                    key={item.id}
+                    className="gallery-item-masonry fade-in"
+                    onClick={() => openModal(item.image_url)}
+                  >
+                    <img
+                      src={item.image_url}
+                      alt={item.caption || "Gallery Image"}
+                      className="gallery-thumbnail-masonry"
+                      onError={(e) =>
+                        ((e.target as HTMLImageElement).src =
+                          "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop")
+                      }
+                    />
+                    <div className="image-overlay">
+                      <div className="overlay-content">
+                        <Text className="view-text">XEM ẢNH</Text>
+                      </div>
                     </div>
-
-                    <Row gutter={[16, 16]} className="gallery-grid">
-                      {categoryItems.map((item) => (
-                        <Col xs={24} sm={12} md={8} lg={6} key={item.id}>
-                          <div
-                            className="gallery-item fade-in"
-                            onClick={() => openModal(item.image_url)}
-                          >
-                            <div className="gallery-image-wrapper">
-                              <img
-                                src={item.image_url}
-                                alt={item.caption || "Image"}
-                                className="gallery-thumbnail"
-                                onError={(e) =>
-                                  ((e.target as HTMLImageElement).src =
-                                    "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop")
-                                }
-                              />
-                              <div className="image-overlay">
-                                <div className="overlay-content">
-                                  <Text className="view-text">XEM ẢNH</Text>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </Col>
-                      ))}
-                    </Row>
                   </div>
-                );
-              })}
+                ))}
+              </div>
 
               {/* PAGINATION */}
               {total > pageSize && (
@@ -149,7 +146,7 @@ export const ClientGallery: React.FC = () => {
         </div>
       </div>
 
-      {/* MODAL PREVIEW */}
+      {/* MODAL PREVIEW (Giữ nguyên) */}
       {modalVisible && (
         <div className="gallery-modal-overlay" onClick={closeModal}>
           <div
