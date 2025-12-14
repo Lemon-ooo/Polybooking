@@ -61,45 +61,31 @@ Câu hỏi của khách: $userMessage
         ";
 
         $response = Http::withHeaders([
-    'Content-Type' => 'application/json',
-    'x-goog-api-key' => env('GOOGLE_API_KEY'),
-])->post(
-    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
-    [
-        'contents' => [
+            'Content-Type' => 'application/json',
+            'x-goog-api-key' => env('GOOGLE_API_KEY'),
+        ])->post(
+            'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
             [
-                'role' => 'user',
-                'parts' => [
-                    ['text' => $prompt]
+                'contents' => [
+                    [
+                        'parts' => [
+                            ['text' => $prompt]
+                        ]
+                    ]
                 ]
             ]
-        ]
-    ]
-);
+        );
 
-// Parse JSON
-$raw = $response->json();
+        $reply = $response['candidates'][0]['content']['parts'][0]['text']
+            ?? 'Hiện tại AI chưa phản hồi.';
+        \Log::info('Gemini response:', $response->json());
 
-// Nếu có lỗi từ API
-if (isset($raw['error'])) {
-    return response()->json([
-        'success' => false,
-        'reply' => 'Gemini trả lỗi: ' . $raw['error']['message'],
-        'raw' => $raw
-    ]);
-}
+        // Trim để tránh dấu xuống dòng thừa
+        $reply = trim($reply);
 
-// Nếu không có lỗi → lấy message AI trả về
-$reply = $raw['candidates'][0]['content']['parts'][0]['text']
-    ?? 'Hiện tại AI chưa phản hồi.';
-
-// Trim
-$reply = trim($reply);
-
-return response()->json([
-    'success' => true,
-    'reply' => $reply
-]);
-
+        return response()->json([
+            'success' => true,
+            'reply' => $reply
+        ]);
     }
 }

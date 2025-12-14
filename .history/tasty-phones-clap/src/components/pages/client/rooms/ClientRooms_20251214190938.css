@@ -8,25 +8,15 @@
 /* ===================== HERO BANNER – GIỐNG HỆT TRANG CHÍNH ===================== */
 .rooms-hero-banner {
   position: relative;
-  width: 100%;
-  height: 650px;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  min-height: 650px;
 }
 
 .rooms-hero-banner::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.75)),
-    url("https://ruedelamourhotel.com/wp-content/uploads/2025/05/1.png");
-  background-size: cover;
-  background-position: center 38%;
-  background-repeat: no-repeat;
-  z-index: 1;
-  animation: zoomSlow 22s ease-in-out infinite alternate;
+  background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7)),
+    url("/banner.jpg") center/cover no-repeat;
 }
 
 @keyframes zoomSlow {

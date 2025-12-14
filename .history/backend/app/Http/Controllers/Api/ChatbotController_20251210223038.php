@@ -77,6 +77,9 @@ Câu hỏi của khách: $userMessage
     ]
 );
 
+// Log để kiểm tra API trả về gì
+\Log::info('Gemini response = ', $response->json());
+
 // Parse JSON
 $raw = $response->json();
 

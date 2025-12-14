@@ -62,7 +62,7 @@ Câu hỏi của khách: $userMessage
 
         $response = Http::withHeaders([
     'Content-Type' => 'application/json',
-    'x-goog-api-key' => env('GOOGLE_API_KEY'),
+    'x-goog-api-key' => env('GEMINI_API_KEY'),
 ])->post(
     'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
     [
@@ -76,6 +76,9 @@ Câu hỏi của khách: $userMessage
         ]
     ]
 );
+
+// Log để kiểm tra API trả về gì
+\Log::info('Gemini response = ', $response->json());
 
 // Parse JSON
 $raw = $response->json();
