@@ -89,4 +89,9 @@ class Kernel extends HttpKernel
         // 🔥 alias phân quyền admin
         // 'is_admin'        => IsAdmin::class,
     ];
+
+    protected function schedule(\Illuminate\Console\Scheduling\Schedule $schedule)
+{
+    $schedule->command('events:send-start-mail')->dailyAt('08:00');
+}
 }

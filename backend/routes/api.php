@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AmenityController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BookingController;
+// use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\GalleryController;
 use App\Http\Controllers\Api\RoomController;
@@ -59,5 +60,20 @@ Route::put('/bookings/{booking}/confirm-payment', [BookingController::class, 'co
 
 //chatbot
 Route::post('/chatbot', [ChatbotController::class, 'handle']);
+
+
+//================== EVENT - USER (PUBLIC) ==================
+Route::get('public/events', [EventController::class, 'publicIndex']);
+Route::get('public/events/{id}', [EventController::class, 'publicShow']);
+
+// ================== EVENT - ADMIN (NO AUTH) ==================
+Route::prefix('admin')->group(function () {
+    Route::get('events', [EventController::class, 'index']);
+    Route::post('events', [EventController::class, 'store']);
+    Route::get('events/{id}', [EventController::class, 'show']);
+    Route::put('events/{id}', [EventController::class, 'update']);
+    Route::delete('events/{id}', [EventController::class, 'destroy']);
+    Route::patch('events/{id}/toggle', [EventController::class, 'toggleStatus']);
+});
 
 Route::get('/admin/dashboard', [DashboardController::class, 'stats']);
