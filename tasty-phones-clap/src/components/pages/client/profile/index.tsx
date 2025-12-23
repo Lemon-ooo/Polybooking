@@ -70,7 +70,7 @@ export const ProfileClient: React.FC = () => {
         setAvatarUrl(u.avatar_url || "");
       }
     } catch (err: any) {
-      message.error("Không thể tải thông tin người dùng");
+      message.error("Unable to load user information");
       if (err.response?.status === 401) {
         window.location.href = "/login";
       }
@@ -85,23 +85,27 @@ export const ProfileClient: React.FC = () => {
   }, []);
 
   // UPLOAD AVATAR
-  const handleUploadAvatar = async (file: any) => {
-    const formData = new FormData();
-    formData.append("avatar", file);
+ const handleUploadAvatar = async (file: any) => {
+  const formData = new FormData();
+  formData.append("avatar", file);
 
-    try {
-      const res = await axiosInstance.post("/client/profile/avatar", formData);
-      if (res.data.success && res.data.avatar_url) {
-        setAvatarUrl(res.data.avatar_url + "?t=" + Date.now());
-        message.success("Đổi ảnh đại diện thành công!");
-        fetchUser(); // Lấy lại thông tin mới nhất
-      }
-      return Upload.LIST_IGNORE;
-    } catch (error: any) {
-      message.error(error.response?.data?.message || "Upload ảnh thất bại");
-      return Upload.LIST_IGNORE;
+  try {
+    const res = await axiosInstance.post("/client/profile/avatar", formData);
+    if (res.data.success && res.data.avatar_url) {
+      const newAvatarUrl = res.data.avatar_url + "?t=" + Date.now();
+      setAvatarUrl(newAvatarUrl);
+      message.success("Avatar changed successfully.!");
+      fetchUser();
+
+      // Gửi sự kiện để header (ClientLayout) biết và cập nhật ảnh mới ngay lập tức
+      window.dispatchEvent(new Event("avatarUpdated"));
     }
-  };
+    return Upload.LIST_IGNORE;
+  } catch (error: any) {
+    message.error(error.response?.data?.message || "Upload avatar failed");
+    return Upload.LIST_IGNORE;
+  }
+};
 
   // CẬP NHẬT PROFILE
   const handleUpdateProfile = async (values: any) => {
@@ -109,12 +113,12 @@ export const ProfileClient: React.FC = () => {
       setSaving(true);
       const res = await axiosInstance.put("/client/profile", values);
       if (res.data.success) {
-        message.success("Cập nhật thông tin thành công!");
+        message.success("Information updated successfully!");
         setEditMode(false);
         fetchUser(); // Quan trọng: lấy lại dữ liệu mới nhất
       }
     } catch (err: any) {
-      message.error(err.response?.data?.message || "Cập nhật thất bại");
+      message.error(err.response?.data?.message || "Updated failed");
     } finally {
       setSaving(false);
     }
@@ -129,11 +133,11 @@ export const ProfileClient: React.FC = () => {
         password: values.new_password,
         password_confirmation: values.new_password_confirmation,
       });
-      message.success("Đổi mật khẩu thành công!");
+      message.success("Password changed successfully!");
       setOpenPasswordModal(false);
       passwordForm.resetFields();
     } catch (err: any) {
-      message.error(err.response?.data?.message || "Đổi mật khẩu thất bại");
+      message.error(err.response?.data?.message || "Password changed failed.");
     } finally {
       setChangingPassword(false);
     }
@@ -143,11 +147,11 @@ export const ProfileClient: React.FC = () => {
     beforeUpload: (file) => {
       const isImage = file.type.startsWith("image/");
       if (!isImage) {
-        message.error("Chỉ được upload file ảnh!");
+        message.error("Please upload the image!");
         return Upload.LIST_IGNORE;
       }
       if (file.size > 5 * 1024 * 1024) {
-        message.error("Ảnh không được quá 5MB!");
+        message.error("Images must not exceed 5MB!");
         return Upload.LIST_IGNORE;
       }
       return handleUploadAvatar(file);
@@ -157,11 +161,11 @@ export const ProfileClient: React.FC = () => {
 
   const getRoleColor = (role: string) => (role === "admin" ? "red" : "blue");
   const getRoleText = (role: string) =>
-    role === "admin" ? "Quản trị viên" : "Khách hàng";
+    role === "admin" ? "Admin" : "Customer";
 
   if (loading)
     return <Spin size="large" style={{ display: "block", marginTop: 100 }} />;
-  if (!user) return <div>Không tìm thấy người dùng</div>;
+  if (!user) return <div>User not found</div>;
 
   return (
     <div
@@ -175,7 +179,7 @@ export const ProfileClient: React.FC = () => {
       <div
         style={{
           height: 300,
-          background: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1520250497591-7f0d98f1caf0?w=1600') center/cover`,
+          background: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.7)), url('https://ruedelamourhotel.com/wp-content/uploads/2025/02/2.jpg') center/cover`,
           borderRadius: 20,
           marginBottom: 60,
           display: "flex",
@@ -186,8 +190,8 @@ export const ProfileClient: React.FC = () => {
         }}
       >
         <div>
-          <h1 style={{ fontSize: 48, margin: 0 }}>Hồ Sơ Cá Nhân</h1>
-          <p style={{ fontSize: 20 }}>Quản lý thông tin tài khoản</p>
+          <h1 style={{ fontSize: 48, margin: 0 }}>Personal profile</h1>
+          <p style={{ fontSize: 20 }}>Account information management</p>
         </div>
       </div>
 
@@ -238,7 +242,7 @@ export const ProfileClient: React.FC = () => {
                   {user.email}
                 </Descriptions.Item>
                 {user.phone_number && (
-                  <Descriptions.Item label="Điện thoại">
+                  <Descriptions.Item label="Phone">
                     {user.phone_number}
                   </Descriptions.Item>
                 )}
@@ -251,7 +255,7 @@ export const ProfileClient: React.FC = () => {
                 block
                 style={{ marginTop: 20 }}
               >
-                Đổi mật khẩu
+               Change password
               </Button>
             </Card>
           </Col>
@@ -267,15 +271,16 @@ export const ProfileClient: React.FC = () => {
                   }}
                 >
                   <span style={{ fontSize: 20, fontWeight: 600 }}>
-                    Thông Tin Cá Nhân
+                  Personal Information
                   </span>
                   {!editMode ? (
                     <Button
                       type="primary"
                       icon={<EditOutlined />}
                       onClick={() => setEditMode(true)}
+                      style={{ backgroundColor: '#a8765a', borderColor: '#a8765a' }}
                     >
-                      Chỉnh sửa
+                   Edit
                     </Button>
                   ) : (
                     <Button
@@ -284,7 +289,7 @@ export const ProfileClient: React.FC = () => {
                         profileForm.resetFields();
                       }}
                     >
-                      Hủy
+                      cancel
                     </Button>
                   )}
                 </div>
@@ -300,10 +305,10 @@ export const ProfileClient: React.FC = () => {
                 <Row gutter={16}>
                   <Col span={24}>
                     <Form.Item
-                      label="Họ và tên"
+                      label="Full name"
                       name="user_name"
                       rules={[
-                        { required: true, message: "Vui lòng nhập họ tên!" },
+                        { required: true, message: "Please fill in your full name.!" },
                       ]}
                     >
                       <Input size="large" prefix={<UserOutlined />} />
@@ -315,12 +320,12 @@ export const ProfileClient: React.FC = () => {
                     </Form.Item>
                   </Col>
                   <Col xs={24} md={12}>
-                    <Form.Item label="Số điện thoại" name="phone_number">
+                    <Form.Item label="Phone number" name="phone_number">
                       <Input size="large" prefix={<PhoneOutlined />} />
                     </Form.Item>
                   </Col>
                   <Col xs={24} md={12}>
-                    <Form.Item label="Địa chỉ" name="address">
+                    <Form.Item label="Address" name="address">
                       <Input size="large" prefix={<HomeOutlined />} />
                     </Form.Item>
                   </Col>
@@ -333,8 +338,9 @@ export const ProfileClient: React.FC = () => {
                     size="large"
                     block
                     icon={<SaveOutlined />}
+                    style={{ backgroundColor: '#a8765a', borderColor: '#a8765a' }}
                   >
-                    Lưu thông tin
+                    Save
                   </Button>
                 )}
               </Form>
@@ -345,7 +351,7 @@ export const ProfileClient: React.FC = () => {
 
       {/* Modal đổi mật khẩu – giữ nguyên đẹp lung linh */}
       <Modal
-        title="Đổi mật khẩu"
+        title="Change password"
         open={openPasswordModal}
         onCancel={() => {
           setOpenPasswordModal(false);
@@ -360,21 +366,21 @@ export const ProfileClient: React.FC = () => {
           onFinish={handleChangePassword}
         >
           <Form.Item
-            label="Mật khẩu hiện tại"
+            label="Current password"
             name="current_password"
             rules={[{ required: true }]}
           >
             <Input.Password size="large" />
           </Form.Item>
           <Form.Item
-            label="Mật khẩu mới"
+            label="New password"
             name="new_password"
             rules={[{ required: true, min: 6 }]}
           >
             <Input.Password size="large" />
           </Form.Item>
           <Form.Item
-            label="Xác nhận mật khẩu mới"
+            label="Confirm new password"
             name="new_password_confirmation"
             dependencies={["new_password"]}
             rules={[
@@ -384,7 +390,7 @@ export const ProfileClient: React.FC = () => {
                   if (!value || getFieldValue("new_password") === value)
                     return Promise.resolve();
                   return Promise.reject(
-                    new Error("Mật khẩu xác nhận không khớp!")
+                    new Error("Confirmation password does not match!")
                   );
                 },
               }),
@@ -400,7 +406,7 @@ export const ProfileClient: React.FC = () => {
               block
               size="large"
             >
-              Đổi mật khẩu
+             Change password
             </Button>
           </Form.Item>
         </Form>

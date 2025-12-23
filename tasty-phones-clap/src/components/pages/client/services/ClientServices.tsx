@@ -107,35 +107,37 @@ const ClientServices: React.FC = () => {
               </Text>
             </div>
           ) : (
-            <Row gutter={[32, 32]} justify="center">
-              {services.map((service) => (
-               <Col xs={24} sm={12} md={8} lg={6} key={service.service_id}>
-  <div className="service-card-wrapper">
-    <div className="service-card" onClick={() => handleViewDetails(service.service_id)}>
-      <div className="card-image">
-        <img
-          src={getImageUrl(service.service_image)}
-          alt={service.service_name}
-          onError={(e) => (e.target as HTMLImageElement).src = "https://ruedelamourhotel.com/wp-content/uploads/2025/05/spa1.jpg"}
-        />
-      </div>
-      <div className="card-body">
-        <h3 className="card-title">{service.service_name}</h3>
-        <p className="card-desc">{service.description || "Dịch vụ cao cấp mang đến trải nghiệm thư giãn tuyệt đối."}</p>
-        <div className="card-price">
-          {service.service_price 
-            ? Number(service.service_price).toLocaleString("vi-VN") + "₫"
-            : "Liên hệ"}
+        <Row gutter={[40, 60]} justify="center">
+  {services.map((service) => (
+    <Col xs={24} md={12} lg={12} xl={12} key={service.service_id}>
+      {/* 2 card/hàng từ tablet trở lên, mobile 1 card */}
+      <div 
+        className="service-card-horizontal" 
+        onClick={() => handleViewDetails(service.service_id)}
+      >
+        {/* Ảnh bên trái */}
+        <div className="card-image-left">
+          <img
+            src={getImageUrl(service.service_image)}
+            alt={service.service_name}
+            onError={(e) => (e.target as HTMLImageElement).src = "https://ruedelamourhotel.com/wp-content/uploads/2025/05/spa1.jpg"}
+          />
         </div>
-        <div className="details-btn">
-          <button>Xem chi tiết →</button>
+
+        {/* Nội dung bên phải */}
+        <div className="card-content-right">
+          <h3 className="card-title-h">{service.service_name}</h3>
+          <div className="card-desc-h">
+            {service.description || "Combo trọn gói bao gồm lều cao cấp, thức ăn BBQ, nước uống miễn phí và nhiều ưu đãi hấp dẫn khác."}
+          </div>
+          <div className="details-btn-h">
+            <button>DETAILS SERVICES</button>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
-</Col>
-              ))}
-            </Row>
+    </Col>
+  ))}
+</Row>
           )}
         </div>
       </section>

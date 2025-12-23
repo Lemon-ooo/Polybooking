@@ -610,295 +610,281 @@ export const ClientDashboard: React.FC = () => {
             </div>
           </section>
 
-          {/* ========================================== */}
-          {/* ------------ ACCOMMODATIONS -------------- */}
-          {/* ========================================== */}
+  {/* ========================================== */}
+{/* ------------ ACCOMMODATIONS -------------- */}
+{/* ========================================== */}
 
-          <section
-            ref={roomsRef} // <-- Áp dụng Ref
-            className={clsx("featured-rooms-section fade-in-section", {
-              "is-visible": roomsInView, // <-- Áp dụng Class
-            })}
-            style={{ padding: "40px 64px" }}
-          >
-            <div className="container">
-              <Title
-                level={2}
-                style={{
-                  textAlign: "center",
-                  marginBottom: 16,
-                  fontFamily: "'Playfair Display', serif",
-                  fontSize: 42,
-                  color: "#e6d0c4",
-                }}
-              >
-                Accommodations
-              </Title>
+<section
+  ref={roomsRef}
+  className={clsx("featured-rooms-section fade-in-section", {
+    "is-visible": roomsInView,
+  })}
+  style={{ padding: "40px 64px" }}
+>
+  <div className="container">
+    <Title
+      level={2}
+      style={{
+        textAlign: "center",
+        marginBottom: 16,
+        fontFamily: "'Playfair Display', serif",
+        fontSize: 42,
+        color: "#e6d0c4",
+      }}
+    >
+      Accommodations
+    </Title>
 
-              <Paragraph
-                style={{
-                  textAlign: "center",
-                  marginBottom: 40,
-                  color: "#c7c7c7",
-                  fontSize: 16,
-                }}
-              >
-                Luxurious and sophisticated effects in every resort space
-              </Paragraph>
+    <Paragraph
+      style={{
+        textAlign: "center",
+        marginBottom: 40,
+        color: "#c7c7c7",
+        fontSize: 16,
+      }}
+    >
+      Luxurious and sophisticated effects in every resort space
+    </Paragraph>
 
-              {isLoading ? (
-                <div style={{ textAlign: "center" }}>
-                  <Spin size="large" />
-                  <Text style={{ marginTop: 16, display: "block" }}>
-                    Loading room types...
-                  </Text>
+    {isLoading ? (
+      <div style={{ textAlign: "center" }}>
+        <Spin size="large" />
+        <Text style={{ marginTop: 16, display: "block" }}>
+          Loading room types...
+        </Text>
+      </div>
+    ) : rooms.length === 0 ? (
+      <div style={{ textAlign: "center" }}>
+        <Empty description="No room types available." />
+      </div>
+    ) : (
+      <Row gutter={[32, 32]} justify="center">
+        {rooms.slice(0, 3).map((roomType) => (
+          <Col xs={24} sm={12} md={8} lg={6} key={roomType.room_type_id}>
+            <Card
+              hoverable
+              style={{
+                borderRadius: 12,
+                overflow: "hidden",
+                background: "#fff",
+                boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+              }}
+              bodyStyle={{ padding: 0, flex: 1, display: "flex", flexDirection: "column" }}
+            >
+              {/* IMAGE */}
+              <div style={{ width: "100%", height: 220, overflow: "hidden" }}>
+                <img
+                  src={getRoomTypeImage(roomType)}
+                  alt={roomType.room_type_name}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              </div>
+
+              {/* CONTENT */}
+              <div style={{ padding: "20px", flex: 1, display: "flex", flexDirection: "column" }}>
+                <h3
+                  style={{
+                    fontFamily: "'Playfair Display', serif",
+                    color: "#8a6e5b",
+                    fontSize: 22,
+                    marginBottom: 8,
+                  }}
+                >
+                  {roomType.room_type_name}
+                </h3>
+
+                {/* DESCRIPTION - CẮT SAU 3 DÒNG + ... */}
+                <p
+                  style={{
+                    flex: 1,
+                    color: "#444",
+                    fontSize: 14,
+                    lineHeight: 1.5,
+                    marginBottom: 16,
+                    display: "-webkit-box",
+                    WebkitLineClamp: 3,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {roomType.description || "A luxurious room with elegant design."}
+                </p>
+
+                {/* BUTTON - LUÔN Ở DƯỚI CÙNG */}
+                <div style={{ textAlign: "right", marginTop: "auto" }}>
+                  <button
+                    onClick={() => navigate(`/client/rooms/${roomType.room_type_id}`)}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "#8a6e5b",
+                      fontSize: 14,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    ROOM DETAILS
+                  </button>
                 </div>
-              ) : rooms.length === 0 ? (
-                <div style={{ textAlign: "center" }}>
-                  <Empty description="No room types available." />
+              </div>
+            </Card>
+          </Col>
+        ))}
+      </Row>
+    )}
+  </div>
+</section>
+
+{/* ========================================== */}
+{/* ------------ OUTSTANDING SERVICES -------- */}
+{/* ========================================== */}
+
+<section
+  ref={servicesRef}
+  className={clsx("featured-services-section fade-in-section", {
+    "is-visible": servicesInView,
+  })}
+  style={{ padding: "40px 64px" }}
+>
+  <div className="container">
+    <Title
+      level={2}
+      style={{
+        textAlign: "center",
+        marginBottom: 16,
+        fontFamily: "'Playfair Display', serif",
+        fontSize: 42,
+        color: "#e6d0c4",
+      }}
+    >
+      Outstanding Services
+    </Title>
+
+    <Paragraph
+      style={{
+        textAlign: "center",
+        marginBottom: 40,
+        color: "#c7c7c7",
+        fontSize: 16,
+      }}
+    >
+      Experience our hotel's most popular services.
+    </Paragraph>
+
+    {services.length === 0 ? (
+      <div style={{ textAlign: "center" }}>
+        <Empty description="No services available." />
+      </div>
+    ) : (
+      <Row gutter={[32, 32]} justify="center">
+        {services.slice(0, 3).map((service: any) => (
+          <Col xs={24} sm={12} md={8} lg={6} key={service.id}>
+            <Card
+              hoverable
+              style={{
+                borderRadius: 12,
+                overflow: "hidden",
+                background: "#fff",
+                boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+              }}
+              bodyStyle={{ padding: 0, flex: 1, display: "flex", flexDirection: "column" }}
+            >
+              {/* IMAGE */}
+              <div style={{ width: "100%", height: 220, overflow: "hidden" }}>
+                <img
+                  src={
+                    service.service_image
+                      ? `http://localhost:8000/storage/${service.service_image}`
+                      : "https://images.unsplash.com/photo-1591017403286-fd8493524d2f?w=800"
+                  }
+                  alt={service.name}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    transition: "transform 0.3s ease",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                />
+              </div>
+
+              {/* CONTENT */}
+              <div style={{ padding: "20px", flex: 1, display: "flex", flexDirection: "column" }}>
+                <h3
+                  style={{
+                    fontFamily: "'Playfair Display', serif",
+                    color: "#8a6e5b",
+                    fontSize: 22,
+                    marginBottom: 8,
+                  }}
+                >
+                  {service.name}
+                </h3>
+
+                {/* DESCRIPTION - CẮT SAU 3 DÒNG + ... */}
+                <p
+                  style={{
+                    flex: 1,
+                    color: "#444",
+                    fontSize: 14,
+                    lineHeight: 1.5,
+                    marginBottom: 16,
+                    display: "-webkit-box",
+                    WebkitLineClamp: 3,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {service.description || "High-quality hotel service."}
+                </p>
+
+                {/* PRICE + BUTTON - LUÔN Ở DƯỚI CÙNG */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginTop: "auto",
+                  }}
+                >
+                  {service.price && (
+                    <span style={{ fontWeight: 700, color: "#8a6e5b" }}>
+                      {parseFloat(service.price.toString()).toLocaleString()} ₫
+                    </span>
+                  )}
+                  <button
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "#8a6e5b",
+                      fontSize: 14,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      textTransform: "uppercase",
+                    }}
+                    onClick={() => console.log("Service Details:", service.id)}
+                  >
+                    SERVICES DETAILS
+                  </button>
                 </div>
-              ) : (
-                <Row gutter={[32, 32]} justify="center">
-                  {rooms.slice(0, 3).map((roomType) => (
-                    <Col
-                      xs={24}
-                      sm={12}
-                      md={8}
-                      lg={6}
-                      key={roomType.room_type_id}
-                    >
-                      <Card
-                        bodyStyle={{ padding: 0 }}
-                        hoverable
-                        style={{
-                          borderRadius: 12,
-                          overflow: "hidden",
-                          background: "#fff",
-                          boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-                        }}
-                      >
-                        <div
-                          style={{
-                            width: "100%",
-                            height: 220,
-                            overflow: "hidden",
-                          }}
-                        >
-                          <img
-                            src={getRoomTypeImage(roomType)}
-                            alt={roomType.room_type_name}
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                            }}
-                          />
-                        </div>
-
-                        <div style={{ padding: "20px" }}>
-                          <h3
-                            style={{
-                              fontFamily: "'Playfair Display', serif",
-                              color: "#8a6e5b",
-                              fontSize: 22,
-                              marginBottom: 8,
-                            }}
-                          >
-                            {roomType.room_type_name}
-                          </h3>
-                          <p
-                            style={{
-                              color: "#444",
-                              fontSize: 14,
-                              lineHeight: 1.5,
-                              marginBottom: 16,
-                            }}
-                          >
-                            {roomType.description ||
-                              "A luxurious room with elegant design."}
-                          </p>
-                          <div style={{ textAlign: "right" }}>
-                            <button
-                              onClick={() =>
-                                navigate(
-                                  `/client/rooms/${roomType.room_type_id}`
-                                )
-                              }
-                              style={{
-                                background: "transparent",
-                                border: "none",
-                                color: "#8a6e5b",
-                                fontSize: 14,
-                                fontWeight: 600,
-                                cursor: "pointer",
-                                textTransform: "uppercase",
-                              }}
-                            >
-                              ROOM DETAILS
-                            </button>
-                          </div>
-                        </div>
-                      </Card>
-                    </Col>
-                  ))}
-                </Row>
-              )}
-            </div>
-          </section>
-
-          {/* ========================================== */}
-          {/* ------------ OTHER SERVICES -------------- */}
-          {/* ========================================== */}
-          <section
-            ref={servicesRef} // <-- Áp dụng Ref
-            className={clsx("featured-services-section fade-in-section", {
-              "is-visible": servicesInView, // <-- Áp dụng Class
-            })}
-            style={{ padding: "40px 64px" }}
-          >
-            <div className="container">
-              <Title
-                level={2}
-                style={{
-                  textAlign: "center",
-                  marginBottom: 16,
-                  fontFamily: "'Playfair Display', serif",
-                  fontSize: 42,
-                  color: "#e6d0c4",
-                }}
-              >
-                Outstanding Services
-              </Title>
-
-              <Paragraph
-                style={{
-                  textAlign: "center",
-                  marginBottom: 40,
-                  color: "#c7c7c7",
-                  fontSize: 16,
-                }}
-              >
-                Experience our hotel's most popular services.
-              </Paragraph>
-
-              {services.length === 0 ? (
-                <div style={{ textAlign: "center" }}>
-                  <Empty description="No services available." />
-                </div>
-              ) : (
-                <Row gutter={[32, 32]} justify="center">
-                  {services.slice(0, 3).map((service: any) => (
-                    <Col xs={24} sm={12} md={8} lg={6} key={service.id}>
-                      <Card
-                        hoverable
-                        bodyStyle={{ padding: 0 }}
-                        style={{
-                          borderRadius: 12,
-                          overflow: "hidden",
-                          background: "#fff",
-                          boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-                        }}
-                      >
-                        {/* IMAGE */}
-                        <div
-                          style={{
-                            width: "100%",
-                            height: 220,
-                            overflow: "hidden",
-                          }}
-                        >
-                          <img
-                            src={
-                              service.service_image
-                                ? `http://localhost:8000/storage/${service.service_image}`
-                                : "https://images.unsplash.com/photo-1591017403286-fd8493524d2f?w=800"
-                            }
-                            alt={service.name}
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                              transition: "transform 0.3s ease",
-                            }}
-                            onMouseEnter={(e) =>
-                              (e.currentTarget.style.transform = "scale(1.05)")
-                            }
-                            onMouseLeave={(e) =>
-                              (e.currentTarget.style.transform = "scale(1)")
-                            }
-                          />
-                        </div>
-
-                        {/* CONTENT */}
-                        <div style={{ padding: "20px" }}>
-                          <h3
-                            style={{
-                              fontFamily: "'Playfair Display', serif",
-                              color: "#8a6e5b",
-                              fontSize: 22,
-                              marginBottom: 8,
-                            }}
-                          >
-                            {service.name}
-                          </h3>
-
-                          <p
-                            style={{
-                              color: "#444",
-                              fontSize: 14,
-                              lineHeight: 1.5,
-                              marginBottom: 16,
-                            }}
-                          >
-                            {service.description ||
-                              "High-quality hotel service."}
-                          </p>
-
-                          <div
-                            style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                            }}
-                          >
-                            {service.price && (
-                              <span
-                                style={{
-                                  fontWeight: 700,
-                                  color: "#8a6e5b",
-                                }}
-                              >
-                                {parseFloat(
-                                  service.price.toString()
-                                ).toLocaleString()}
-                                ₫
-                              </span>
-                            )}
-
-                            <button
-                              style={{
-                                background: "transparent",
-                                border: "none",
-                                color: "#8a6e5b",
-                                fontSize: 14,
-                                fontWeight: 600,
-                                cursor: "pointer",
-                                textTransform: "uppercase",
-                              }}
-                              onClick={() =>
-                                console.log("Service Details:", service.id)
-                              }
-                            >
-                              SERVICES DETAILS
-                            </button>
-                          </div>
-                        </div>
-                      </Card>
-                    </Col>
-                  ))}
-                </Row>
-              )}
-            </div>
-          </section>
+              </div>
+            </Card>
+          </Col>
+        ))}
+      </Row>
+    )}
+  </div>
+</section>
         </div>{" "}
         {/* END CONTENT WRAPPER */}
       </div>{" "}

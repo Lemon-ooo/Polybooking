@@ -217,7 +217,7 @@ const ServicesDetail: React.FC = () => {
                 }}
                 onClick={() => navigate("/client/booking", { state: { service } })}
               >
-                ĐẶT LỊCH NGAY HÔM NAY
+               BOOK NOW
               </Button>
             </Space>
           </Col>
