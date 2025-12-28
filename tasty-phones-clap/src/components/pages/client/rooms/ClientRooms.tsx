@@ -46,7 +46,7 @@ export const ClientRooms: React.FC = () => {
   return (
     <div className="client-rooms-container">
       {/* ================== HERO BANNER – GIỐNG HỆT SERVICES ================== */}
-      <div className="rooms-hero-banner">
+      <div className="rooms-hero">
         <div className="hero-content">
           <h1 className="hero-title">Rooms & Suites</h1>
         </div>

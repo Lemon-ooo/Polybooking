@@ -80,7 +80,7 @@ export const RoomDetail: React.FC = () => {
             </div>
 
             <Button className="book-now-btn" size="large">
-              ĐẶT PHÒNG NGAY
+              BOOK NOW
             </Button>
           </Col>
 
