@@ -98,18 +98,10 @@ export const dataProvider: DataProvider = {
   // CÁC HÀM CÒN LẠI (getOne, create, update) được tổng quát hóa:
   // --------------------------------------------------------------------------
 
-  getOne: async ({ resource, id }) => {
+  getOne: async ({ resource, id, meta }) => {
     try {
       const response = await axiosInstance.get(`/${resource}/${id}`);
-
-      // 🧠 Linh hoạt đọc dữ liệu từ API
-      const rawData =
-        response.data?.data || // dạng {data:{...}}
-        response.data; // dạng {id:..., title:...}
-
-      // 🗂️ Map lại ID cho đúng refine
-      const mappedData = mapDataToRefine(rawData, resource);
-
+      const mappedData = mapDataToRefine(response.data.data, resource);
       return { data: mappedData };
     } catch (error) {
       console.error("Error in getOne:", error);
@@ -118,27 +110,29 @@ export const dataProvider: DataProvider = {
   },
 
   create: async ({ resource, variables }) => {
-    // Nếu là FormData → gửi multipart
-    if (variables instanceof FormData) {
-      const response = await axiosInstance.post(`/${resource}`, variables, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      return { data: response.data.data };
-    }
-
-    // Trường hợp JSON bình thường
     const payload = {
       ...variables,
       start_date:
         variables.start_date &&
-        new Date(variables.start_date).toISOString().slice(0, 10),
+        new Date(variables.start_date)
+          .toISOString()
+          .slice(0, 19)
+          .replace("T", " "),
       end_date:
         variables.end_date &&
-        new Date(variables.end_date).toISOString().slice(0, 10),
+        new Date(variables.end_date)
+          .toISOString()
+          .slice(0, 19)
+          .replace("T", " "),
     };
 
-    const response = await axiosInstance.post(`/${resource}`, payload);
-    return { data: response.data.data };
+    try {
+      const response = await axiosInstance.post(`/${resource}`, payload);
+      return { data: response.data };
+    } catch (error) {
+      console.error("Error in create:", error);
+      throw error;
+    }
   },
 
   update: async ({ resource, id, variables, meta }) => {

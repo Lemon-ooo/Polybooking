@@ -118,27 +118,35 @@ export const dataProvider: DataProvider = {
   },
 
   create: async ({ resource, variables }) => {
-    // Nếu là FormData → gửi multipart
-    if (variables instanceof FormData) {
-      const response = await axiosInstance.post(`/${resource}`, variables, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      return { data: response.data.data };
+    try {
+      // 🔥 Nếu là FormData (có file upload)
+      if (variables instanceof FormData) {
+        return {
+          data: await axiosInstance
+            .post(`/${resource}`, variables, {
+              headers: { "Content-Type": "multipart/form-data" },
+            })
+            .then((res) => res.data),
+        };
+      }
+
+      // 📌 Ngược lại (dữ liệu JSON bình thường)
+      const payload = {
+        ...variables,
+        start_date:
+          variables.start_date &&
+          new Date(variables.start_date).toISOString().slice(0, 10),
+        end_date:
+          variables.end_date &&
+          new Date(variables.end_date).toISOString().slice(0, 10),
+      };
+
+      const response = await axiosInstance.post(`/${resource}`, payload);
+      return { data: response.data };
+    } catch (error) {
+      console.error("Error in create:", error);
+      throw error;
     }
-
-    // Trường hợp JSON bình thường
-    const payload = {
-      ...variables,
-      start_date:
-        variables.start_date &&
-        new Date(variables.start_date).toISOString().slice(0, 10),
-      end_date:
-        variables.end_date &&
-        new Date(variables.end_date).toISOString().slice(0, 10),
-    };
-
-    const response = await axiosInstance.post(`/${resource}`, payload);
-    return { data: response.data.data };
   },
 
   update: async ({ resource, id, variables, meta }) => {

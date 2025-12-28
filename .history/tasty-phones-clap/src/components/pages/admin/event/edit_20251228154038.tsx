@@ -1,31 +1,31 @@
 import { Edit, useForm } from "@refinedev/antd";
-import { Form, Input, DatePicker, Spin } from "antd";
+import { Form, Input, DatePicker } from "antd";
 import dayjs from "dayjs";
 
 export const EventEdit = () => {
-  const { formProps, saveButtonProps, queryResult } = useForm();
-
-  const eventData = queryResult?.data?.data;
-  const loading = queryResult?.isLoading;
-
-  // ⏳ Loading → Hiện spinner
-  if (loading) return <Spin size="large" />;
+  const { formProps, saveButtonProps, queryResult } = useForm({
+    meta: {
+      populate: true, // để refine load data vào form
+    },
+    // Chuyển đổi ngày khi nhận từ API
+    queryOptions: {
+      onSuccess(data) {
+        if (data?.data) {
+          formProps.form?.setFieldsValue({
+            ...data.data,
+            start_date: data.data.start_date
+              ? dayjs(data.data.start_date)
+              : null,
+            end_date: data.data.end_date ? dayjs(data.data.end_date) : null,
+          });
+        }
+      },
+    },
+  });
 
   return (
     <Edit saveButtonProps={saveButtonProps}>
-      <Form
-        {...formProps}
-        layout="vertical"
-        // 🧠 Sau khi có data thì set giá trị cho form
-        initialValues={{
-          ...eventData,
-          start_date: eventData?.start_date
-            ? dayjs(eventData.start_date)
-            : null,
-          end_date: eventData?.end_date ? dayjs(eventData.end_date) : null,
-        }}
-        key={eventData?.id} // 🔑 giúp component re-render đúng
-      >
+      <Form {...formProps} layout="vertical">
         <Form.Item name="title" label="Title" rules={[{ required: true }]}>
           <Input placeholder="Event title" />
         </Form.Item>

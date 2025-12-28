@@ -9,23 +9,35 @@ export const EventCreate: React.FC = () => {
     resource: "events",
     redirect: "list",
 
+    // ❌ Xóa headers multipart/form-data thủ công
+    // Axios sẽ tự handle khi dùng FormData
+
     transformValues: (values) => {
       const formData = new FormData();
-      formData.append("title", values.title);
+
+      formData.append("title", values.title || "");
       formData.append("description", values.description || "");
-      formData.append(
-        "start_date",
-        dayjs(values.start_date).format("YYYY-MM-DD")
-      );
-      formData.append("end_date", dayjs(values.end_date).format("YYYY-MM-DD"));
+
+      if (values.start_date) {
+        formData.append(
+          "start_date",
+          dayjs(values.start_date).format("YYYY-MM-DD")
+        );
+      }
+
+      if (values.end_date) {
+        formData.append(
+          "end_date",
+          dayjs(values.end_date).format("YYYY-MM-DD")
+        );
+      }
+
       formData.append("is_active", values.is_active ? "1" : "0");
 
-      // 🎯 Append file đúng cách
-      if (values.banner instanceof Array && values.banner.length > 0) {
+      // File upload: chỉ append nếu có file
+      if (values.banner && values.banner.length > 0) {
         const file = values.banner[0].originFileObj;
-        if (file instanceof File) {
-          formData.append("banner", file);
-        }
+        if (file) formData.append("banner", file);
       }
 
       return formData;
@@ -51,12 +63,7 @@ export const EventCreate: React.FC = () => {
           label="Banner"
           name="banner"
           valuePropName="fileList"
-          getValueFromEvent={(e) => {
-            if (Array.isArray(e)) {
-              return e;
-            }
-            return e?.fileList;
-          }}
+          getValueFromEvent={(e) => e.fileList}
         >
           <Upload beforeUpload={() => false} maxCount={1}>
             <Button icon={<UploadOutlined />}>Chọn ảnh</Button>

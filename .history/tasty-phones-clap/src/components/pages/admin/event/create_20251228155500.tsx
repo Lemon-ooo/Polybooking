@@ -9,6 +9,8 @@ export const EventCreate: React.FC = () => {
     resource: "events",
     redirect: "list",
 
+    meta: { headers: { "Content-Type": "multipart/form-data" } },
+
     transformValues: (values) => {
       const formData = new FormData();
       formData.append("title", values.title);
@@ -20,12 +22,9 @@ export const EventCreate: React.FC = () => {
       formData.append("end_date", dayjs(values.end_date).format("YYYY-MM-DD"));
       formData.append("is_active", values.is_active ? "1" : "0");
 
-      // 🎯 Append file đúng cách
-      if (values.banner instanceof Array && values.banner.length > 0) {
-        const file = values.banner[0].originFileObj;
-        if (file instanceof File) {
-          formData.append("banner", file);
-        }
+      // 🎯 Lấy file đúng cách
+      if (values.banner && values.banner.length > 0) {
+        formData.append("banner", values.banner[0].originFileObj);
       }
 
       return formData;
@@ -47,16 +46,12 @@ export const EventCreate: React.FC = () => {
           <Input.TextArea rows={3} placeholder="Mô tả sự kiện" />
         </Form.Item>
 
+        {/* 📌 FIX Upload */}
         <Form.Item
           label="Banner"
           name="banner"
           valuePropName="fileList"
-          getValueFromEvent={(e) => {
-            if (Array.isArray(e)) {
-              return e;
-            }
-            return e?.fileList;
-          }}
+          getValueFromEvent={(e) => e.fileList}
         >
           <Upload beforeUpload={() => false} maxCount={1}>
             <Button icon={<UploadOutlined />}>Chọn ảnh</Button>

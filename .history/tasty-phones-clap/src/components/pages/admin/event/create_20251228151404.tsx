@@ -1,7 +1,6 @@
 import React from "react";
 import { Create, useForm } from "@refinedev/antd";
-import { Form, Input, DatePicker, Switch, Upload, Button } from "antd";
-import { UploadOutlined } from "@ant-design/icons";
+import { Form, Input, DatePicker, Switch } from "antd";
 import dayjs from "dayjs";
 
 export const EventCreate: React.FC = () => {
@@ -9,26 +8,15 @@ export const EventCreate: React.FC = () => {
     resource: "events",
     redirect: "list",
 
-    transformValues: (values) => {
-      const formData = new FormData();
-      formData.append("title", values.title);
-      formData.append("description", values.description || "");
-      formData.append(
-        "start_date",
-        dayjs(values.start_date).format("YYYY-MM-DD")
-      );
-      formData.append("end_date", dayjs(values.end_date).format("YYYY-MM-DD"));
-      formData.append("is_active", values.is_active ? "1" : "0");
-
-      // 🎯 Append file đúng cách
-      if (values.banner instanceof Array && values.banner.length > 0) {
-        const file = values.banner[0].originFileObj;
-        if (file instanceof File) {
-          formData.append("banner", file);
-        }
-      }
-
-      return formData;
+    // ✨ Convert giá trị trước khi gửi API
+    onSubmit: (values) => {
+      return {
+        ...values,
+        start_date: values.start_date
+          ? values.start_date.format("YYYY-MM-DD")
+          : null,
+        end_date: values.end_date ? values.end_date.format("YYYY-MM-DD") : null,
+      };
     },
   });
 
@@ -47,22 +35,11 @@ export const EventCreate: React.FC = () => {
           <Input.TextArea rows={3} placeholder="Mô tả sự kiện" />
         </Form.Item>
 
-        <Form.Item
-          label="Banner"
-          name="banner"
-          valuePropName="fileList"
-          getValueFromEvent={(e) => {
-            if (Array.isArray(e)) {
-              return e;
-            }
-            return e?.fileList;
-          }}
-        >
-          <Upload beforeUpload={() => false} maxCount={1}>
-            <Button icon={<UploadOutlined />}>Chọn ảnh</Button>
-          </Upload>
+        <Form.Item label="Banner (URL hoặc path)" name="banner">
+          <Input placeholder="Ví dụ: events/banner.webp hoặc https://..." />
         </Form.Item>
 
+        {/* 📅 start_date */}
         <Form.Item
           label="Ngày bắt đầu"
           name="start_date"
@@ -71,6 +48,7 @@ export const EventCreate: React.FC = () => {
           <DatePicker format="YYYY-MM-DD" style={{ width: "100%" }} />
         </Form.Item>
 
+        {/* 📅 end_date */}
         <Form.Item
           label="Ngày kết thúc"
           name="end_date"

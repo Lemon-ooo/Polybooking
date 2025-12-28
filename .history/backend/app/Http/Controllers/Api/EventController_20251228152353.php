@@ -52,34 +52,28 @@ class EventController extends Controller
     }
 
     public function store(Request $request)
-{
-    // Convert date format nếu FE gửi YYYY-MM-DD
-    if ($request->start_date) {
-        $request['start_date'] = date('Y-m-d', strtotime($request->start_date));
+    {
+        // Convert date format nếu FE gửi YYYY-MM-DD
+        if($request->start_date){
+            $request['start_date'] = date('Y-m-d', strtotime($request->start_date));
+        }
+        if($request->end_date){
+            $request['end_date'] = date('Y-m-d', strtotime($request->end_date));
+        }
+
+        $data = $request->validate([
+            'title'       => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'banner'      => 'nullable|string',
+            'start_date'  => 'required|date',
+            'end_date'    => 'required|date|after_or_equal:start_date',
+            'is_active'   => 'boolean',
+        ]);
+
+        $event = Event::create($data);
+
+        return response()->json(['data' => $event], 201);
     }
-    if ($request->end_date) {
-        $request['end_date'] = date('Y-m-d', strtotime($request->end_date));
-    }
-
-    $data = $request->validate([
-        'title'       => 'required|string|max:255',
-        'description' => 'nullable|string',
-        'banner'      => 'nullable|file|mimes:jpg,jpeg,png,webp|max:2048',
-        'start_date'  => 'required|date',
-        'end_date'    => 'required|date|after_or_equal:start_date',
-        'is_active'   => 'boolean',
-    ]);
-
-    // 📌 Xử lý file upload banner
-    if ($request->hasFile('banner')) {
-        $data['banner'] = $request->file('banner')->store('events', 'public');
-    }
-
-    $event = Event::create($data);
-
-    return response()->json(['data' => $event], 201);
-}
-
 
     public function show($id)
     {
@@ -87,35 +81,28 @@ class EventController extends Controller
     }
 
     public function update(Request $request, $id)
-{
-    $event = Event::findOrFail($id);
+    {
+        $event = Event::findOrFail($id);
 
-    if ($request->start_date) {
-        $request['start_date'] = date('Y-m-d', strtotime($request->start_date));
+        // Convert date format
+        if ($request->start_date) {
+            $request['start_date'] = date('Y-m-d', strtotime($request->start_date));
+        }
+        if ($request->end_date) {
+            $request['end_date'] = date('Y-m-d', strtotime($request->end_date));
+        }
+
+        $event->update($request->only([
+            'title',
+            'description',
+            'banner',
+            'start_date',
+            'end_date',
+            'is_active',
+        ]));
+
+        return response()->json(['data' => $event]);
     }
-    if ($request->end_date) {
-        $request['end_date'] = date('Y-m-d', strtotime($request->end_date));
-    }
-
-    $data = $request->validate([
-        'title'       => 'sometimes|string|max:255',
-        'description' => 'nullable|string',
-        'banner'      => 'nullable|file|mimes:jpg,jpeg,png,webp|max:2048',
-        'start_date'  => 'sometimes|date',
-        'end_date'    => 'sometimes|date|after_or_equal:start_date',
-        'is_active'   => 'boolean',
-    ]);
-
-    // 📌 Nếu upload banner mới
-    if ($request->hasFile('banner')) {
-        $data['banner'] = $request->file('banner')->store('events', 'public');
-    }
-
-    $event->update($data);
-
-    return response()->json(['data' => $event]);
-}
-
 
     public function destroy($id)
     {

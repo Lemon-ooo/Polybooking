@@ -20,11 +20,11 @@ export const EventCreate: React.FC = () => {
       formData.append("end_date", dayjs(values.end_date).format("YYYY-MM-DD"));
       formData.append("is_active", values.is_active ? "1" : "0");
 
-      // 🎯 Append file đúng cách
-      if (values.banner instanceof Array && values.banner.length > 0) {
-        const file = values.banner[0].originFileObj;
-        if (file instanceof File) {
-          formData.append("banner", file);
+      // 🎯 Lấy file đúng cách
+      if (values.banner && values.banner.length > 0) {
+        const fileObj = values.banner[0]?.originFileObj;
+        if (fileObj instanceof File) {
+          formData.append("banner", fileObj);
         }
       }
 
@@ -51,12 +51,7 @@ export const EventCreate: React.FC = () => {
           label="Banner"
           name="banner"
           valuePropName="fileList"
-          getValueFromEvent={(e) => {
-            if (Array.isArray(e)) {
-              return e;
-            }
-            return e?.fileList;
-          }}
+          getValueFromEvent={(e) => e && e.fileList}
         >
           <Upload beforeUpload={() => false} maxCount={1}>
             <Button icon={<UploadOutlined />}>Chọn ảnh</Button>
