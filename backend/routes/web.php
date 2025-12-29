@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\EventController as ApiEventController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Auth\AuthController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\Web\RoomTypeController;
 use App\Http\Controllers\Web\RoomController;
 use App\Http\Controllers\Web\AmenityController;
 use App\Http\Controllers\Web\ServiceController;
+use App\Http\Controllers\Web\EventController;
 use App\Http\Controllers\Web\RoomTypeImageController;
 use App\Http\Middleware\IsAdmin;
 use App\Http\Controllers\Web\BookingController;
@@ -34,11 +36,11 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::middleware('guest')->group(function () {
 
     // Login
-    Route::get('/login',  [AuthController::class, 'showLoginForm'])->name('login');
+    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 
     // Register
-    Route::get('/register',  [AuthController::class, 'showRegisterForm'])->name('register');
+    Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
     Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 });
 
@@ -81,7 +83,7 @@ Route::middleware('auth')->group(function () {
     // Booking (để đây sau này bro bổ sung)
     // Route::resource('bookings', BookingController::class)->except(['create']);
 
-     // Booking (customer)
+    // Booking (customer)
     Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
     Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
     Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
@@ -102,7 +104,7 @@ Route::middleware('auth')->group(function () {
 
 Route::prefix('admin')
     ->name('admin.')
-    ->middleware(['auth', IsAdmin::class])   // 🔥 dùng class, không dùng 'is_admin'
+    ->middleware(['auth', IsAdmin::class])
     ->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])
             ->name('dashboard');
@@ -118,7 +120,10 @@ Route::prefix('admin')
 
         // Services
         Route::resource('services', ServiceController::class);
-
+        // Events
+        Route::resource('events', EventController::class);
+        // Gallery
+    
         // Users (chỉ index, edit, update role)
         Route::resource('users', UserController::class)
             ->only(['index', 'edit', 'update']);
@@ -144,7 +149,7 @@ Route::prefix('admin')
             Route::delete('images/{image_id}', [RoomTypeImageController::class, 'destroy'])
                 ->name('room-types.images.destroy');
         });
-         // BOOKINGS (Admin)
+        // BOOKINGS (Admin)
         Route::get('bookings', [AdminBookingController::class, 'index'])
             ->name('bookings.index');
 
