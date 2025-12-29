@@ -1,165 +1,110 @@
-import React, { useState, useEffect } from "react";
-import { Create } from "@refinedev/antd";
-import {
-  useForm,
-  useApiUrl,
-  useNotification,
-  useList,
-  useNavigation,
-} from "@refinedev/core";
-import { Form, Input, Select, Upload, Button, Row, Col, message } from "antd";
+// src/components/pages/admin/gallery/Create.tsx
+
+import React, { useState } from "react";
+import { Create, useForm } from "@refinedev/antd";
+import { Form, Input, Upload, message } from "antd";
+import { useNavigate } from "react-router-dom";
 import { UploadOutlined } from "@ant-design/icons";
-import {
-  RcFile,
-  UploadFile,
-  UploadChangeParam,
-} from "antd/lib/upload/interface";
+import { RcFile, UploadFile } from "antd/es/upload/interface";
+import axiosInstance from "../../../../providers/data/axiosConfig";
+import axios, { AxiosError } from "axios";
 
-const { TextArea } = Input;
+export const GalleryCreate = () => {
+  const navigate = useNavigate();
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
 
-const beforeUpload = (file: RcFile) => {
-  const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
-  if (!isJpgOrPng) message.error("Chỉ được upload JPG/PNG!");
-  const isLt5M = file.size / 1024 / 1024 < 5;
-  if (!isLt5M) message.error("Ảnh phải nhỏ hơn 5MB!");
-  return isJpgOrPng && isLt5M;
-};
-
-const normFile = (e: any) => (Array.isArray(e) ? e : e?.fileList);
-
-export const GalleryCreate: React.FC = () => {
-  const apiUrl = useApiUrl();
-  const { open } = useNotification();
-  const { list } = useNavigation();
-
-  const [form] = Form.useForm();
-  const [previewImage, setPreviewImage] = useState<string>("");
-  const [categories, setCategories] = useState<string[]>([]);
-
-  const { formProps, saveButtonProps, onFinish } = useForm({
+  const { formProps, saveButtonProps } = useForm({
     resource: "galleries",
-    action: "create",
-    form,
-    onMutationSuccess: () => {
-      message.success("Tạo ảnh mới thành công!");
-      list("galleries");
-    },
+    redirect: false,
   });
 
-  // Lấy category từ API
-  const { data } = useList({
-    resource: "galleries",
-    pagination: { pageSize: 1 }, // chỉ cần 1 record để lấy category
-  });
-
-  useEffect(() => {
-    if (data?.data) {
-      setCategories(Object.keys(data.data)); // Lấy các key từ data
+  const handleFinish = async (values: any) => {
+    if (fileList.length === 0 || !fileList[0]?.originFileObj) {
+      message.error("Vui lòng chọn ảnh để thêm vào thư viện!");
+      return;
     }
-  }, [data]);
 
-  const uploadImage = async (file: RcFile) => {
     const formData = new FormData();
-    formData.append("image", file);
+
+    if (values.gallery_category?.trim()) {
+      formData.append("gallery_category", values.gallery_category.trim());
+    }
+    if (values.caption?.trim()) {
+      formData.append("caption", values.caption.trim());
+    }
+
+    formData.append("image", fileList[0].originFileObj as RcFile);
 
     try {
-      const res = await fetch(`${apiUrl}/galleries/upload`, {
-        method: "POST",
-        body: formData,
-      });
-      const result = await res.json();
-      return result.path || "";
-    } catch (err) {
-      console.error(err);
-      open({
-        type: "error",
-        message: "Lỗi upload ảnh",
-        description: "Không thể upload ảnh.",
-      });
-      return "";
+      const response = await axiosInstance.post("/galleries", formData);
+      const newGallery = response.data.data || response.data;
+
+      message.success("Thêm ảnh vào thư viện thành công!");
+
+      window.dispatchEvent(
+        new CustomEvent("galleryAdded", { detail: newGallery })
+      );
+
+      navigate("/admin/galleries"); // Cập nhật đường dẫn chuyển hướng nếu cần
+    } catch (error: any) {
+      if (axios.isAxiosError(error) && error.response) {
+        const axiosError = error as AxiosError;
+        console.error("Lỗi Axios:", axiosError.response?.data);
+
+        const errs = axiosError.response?.data?.errors;
+        if (errs) {
+          Object.values(errs).forEach((msg: any) =>
+            message.error(Array.isArray(msg) ? msg[0] : msg)
+          );
+        } else {
+          message.error(
+            axiosError.response?.data?.message ||
+              "Thêm ảnh thất bại! (Lỗi Server)"
+          );
+        }
+      } else {
+        console.error("Lỗi không xác định:", error);
+        message.error("Đã xảy ra lỗi mạng hoặc lỗi không xác định!");
+      }
     }
-  };
-
-  const handleFormSubmit = async (values: any) => {
-    let imagePath = "";
-
-    if (values.file?.length > 0 && values.file[0].originFileObj) {
-      imagePath = await uploadImage(values.file[0].originFileObj);
-    }
-
-    // Gửi dữ liệu lên Refine
-    onFinish?.({
-      gallery_category: values.gallery_category,
-      caption: values.caption || "",
-      image_path: imagePath,
-    });
   };
 
   return (
-    <Create title="Tạo ảnh mới" saveButtonProps={saveButtonProps}>
-      <Form
-        {...formProps}
-        form={form}
-        layout="vertical"
-        onFinish={handleFormSubmit}
-      >
-        <Row gutter={16}>
-          <Col xs={24} lg={12}>
-            <Form.Item
-              label="Danh mục ảnh"
-              name="gallery_category"
-              rules={[{ required: true, message: "Vui lòng chọn danh mục!" }]}
-            >
-              <Select placeholder="Chọn danh mục">
-                {categories.map((cat) => (
-                  <Select.Option key={cat} value={cat}>
-                    {cat}
-                  </Select.Option>
-                ))}
-              </Select>
-            </Form.Item>
+    <Create saveButtonProps={{ ...saveButtonProps, children: "Thêm ảnh" }}>
+      <Form {...formProps} onFinish={handleFinish} layout="vertical">
+        <Form.Item label="Nhóm ảnh" name="gallery_category">
+          <Input placeholder="VD: Sự kiện, Dự án, Món ăn..." />
+        </Form.Item>
 
-            <Form.Item label="Mô tả (Caption)" name="caption">
-              <TextArea rows={4} placeholder="Nhập mô tả ảnh (tùy chọn)" />
-            </Form.Item>
-          </Col>
+        <Form.Item label="Chú thích (Caption)" name="caption">
+          <Input.TextArea
+            rows={4}
+            placeholder="Nhập mô tả ngắn cho bức ảnh..."
+          />
+        </Form.Item>
 
-          <Col xs={24} lg={12}>
-            <Form.Item
-              label="Ảnh"
-              name="file"
-              valuePropName="fileList"
-              getValueFromEvent={normFile}
-              rules={[{ required: true, message: "Vui lòng chọn ảnh!" }]}
-            >
-              <Upload
-                listType="picture"
-                maxCount={1}
-                beforeUpload={beforeUpload}
-                customRequest={({ onSuccess }) => onSuccess?.({} as any)}
-                onChange={(info: UploadChangeParam<UploadFile>) => {
-                  form.setFieldsValue({ file: info.fileList });
-                  if (info.fileList[0]?.originFileObj) {
-                    setPreviewImage(
-                      URL.createObjectURL(info.fileList[0].originFileObj)
-                    );
-                  }
-                }}
-              >
-                <Button icon={<UploadOutlined />}>
-                  Chọn ảnh (JPG/PNG, max 5MB)
-                </Button>
-              </Upload>
-            </Form.Item>
-            {previewImage && (
-              <img
-                src={previewImage}
-                alt="preview"
-                style={{ width: "100%", marginTop: 16, borderRadius: 8 }}
-              />
+        <Form.Item
+          label="Ảnh"
+          rules={[{ required: true, message: "Vui lòng tải lên ảnh!" }]}
+        >
+          <Upload
+            listType="picture-card"
+            maxCount={1}
+            fileList={fileList}
+            onChange={({ fileList: newFileList }) =>
+              setFileList(newFileList.slice(-1))
+            }
+            beforeUpload={() => false}
+            accept="image/*"
+          >
+            {fileList.length === 0 && (
+              <div>
+                <UploadOutlined />
+                <div style={{ marginTop: 8 }}>Tải lên</div>
+              </div>
             )}
-          </Col>
-        </Row>
+          </Upload>
+        </Form.Item>
       </Form>
     </Create>
   );

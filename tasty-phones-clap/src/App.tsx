@@ -42,7 +42,7 @@ import ServicesEdit from "./components/pages/admin/services/edit";
 
 import { GalleryList } from "./components/pages/admin/Gallery/list";
 import { GalleryCreate } from "./components/pages/admin/Gallery/create";
-import { GalleryEdit } from "./components/pages/admin/Gallery/edit";
+
 import { GalleryShow } from "./components/pages/admin/Gallery/show";
 
 import { EventList } from "./components/pages/admin/event/list";
@@ -62,6 +62,7 @@ import { AmenitiesShow } from "./components/pages/admin/amenities/show";
 import AdminBookingManagement from "./components/pages/admin/bookings";
 import MyBookings from "./components/pages/client/booking/MyBookings";
 import BookingDetail from "./components/pages/client/booking/BookingDetail";
+import GalleryEdit from "./components/pages/admin/Gallery/edit";
 
 // ======================================================
 // 🚀 APP CHÍNH - ĐÃ SỬA
@@ -104,7 +105,7 @@ export default function App() {
             <Route path="about" element={<ClientAbout />} />
             <Route path="rooms" element={<ClientRooms />} />
             <Route path="rooms/:id" element={<RoomDetail />} />
-            
+
             <Route path="services" element={<ClientServices />} />
             <Route path="services/:id" element={<ServicesDetail />} />
             <Route path="galleries" element={<ClientGallery />} />

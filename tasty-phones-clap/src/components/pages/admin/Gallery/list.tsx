@@ -1,177 +1,175 @@
 import React from "react";
-import { List, useTable, DateField, Show } from "@refinedev/antd";
-import { useDelete, useNavigation } from "@refinedev/core";
+import { List, useTable, DateField } from "@refinedev/antd";
+import { useDelete } from "@refinedev/core";
 import {
   Table,
   Typography,
-  Alert,
   Button,
   Tooltip,
   Popconfirm,
   message,
+  Image,
+  Space,
 } from "antd";
+import {
+  PlusOutlined,
+  EditOutlined,
+  EyeOutlined,
+  DeleteOutlined,
+} from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
 
 const { Text } = Typography;
+const BASE_URL = "http://localhost:8000/storage/";
 
 export const GalleryList: React.FC = () => {
-  const { tableProps, queryResult } = useTable({
+  const navigate = useNavigate();
+  const { tableProps, tableQueryResult } = useTable({
+    // ĐÃ SỬA: Thay resource "gallery" bằng "galleries"
     resource: "galleries",
+    pagination: { mode: "off" },
   });
-
-  // 👈 KHAI BÁO useNavigation
-  const { create, edit, show } = useNavigation();
-
-  const { data, isLoading, isError, error } = queryResult || {};
   const { mutate: deleteGallery } = useDelete();
+
+  const sortedDataSource = React.useMemo(() => {
+    const rawData = tableProps.dataSource || [];
+    const transformed = rawData.map((item: any) => ({
+      // Đảm bảo key id là duy nhất và đúng với cấu trúc server (ví dụ: gallery_id)
+      // Nếu server trả về 'id' thì dùng id, nếu trả về 'gallery_id' thì dùng gallery_id
+      id: item.gallery_id || item.id, // Dùng gallery_id nếu tồn tại
+      category: item.gallery_category || "Không có nhóm",
+      caption: item.caption || "Không có chú thích",
+      image_url: item.image_path ? `${BASE_URL}${item.image_path}` : null,
+      created_at: item.created_at,
+    })); // Sắp xếp theo ngày tạo mới nhất (giảm dần)
+    return transformed.sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+  }, [tableProps.dataSource]);
 
   const handleDelete = (id: number) => {
     deleteGallery(
-      { resource: "galleries", id: id.toString() },
+      {
+        // ĐÃ SỬA: Thay resource "gallery" bằng "galleries"
+        resource: "galleries",
+        id: id.toString(),
+      },
       {
         onSuccess: () => {
-          message.success("Xóa ảnh thành công");
-          queryResult?.refetch?.();
+          message.success("Xóa thành công");
+          tableQueryResult?.refetch?.();
         },
-        onError: () => {
-          message.error("Xóa ảnh thất bại");
-        },
+        onError: () => message.error("Xóa thất bại"),
       }
     );
   };
 
-  if (isError) {
+  if (tableQueryResult?.isError) {
     return (
-      <Alert
-        message="Lỗi tải dữ liệu"
-        description={error?.message || "Không thể kết nối đến API."}
-        type="error"
-        showIcon
-      />
+      <div style={{ padding: 16 }}>
+        <Text type="danger">
+          Lỗi: {tableQueryResult.error?.message || "Không thể kết nối API"}
+        </Text>
+      </div>
     );
   }
 
   return (
     <List>
-      <div style={{ marginBottom: 16 }}>
-        {/*  NÚT THÊM MỚI (CREATE) */}
-        <Button
-          type="default"
-          onClick={() => create("galleries")} // Chuyển hướng đến /gallery/create
-          style={{ marginRight: 16 }}
-        >
-          + Thêm mới Ảnh
-        </Button>
+      <div
+        style={{
+          marginBottom: 16,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <div>
+          <Button
+            onClick={() => tableQueryResult?.refetch?.()}
+            loading={tableQueryResult?.isLoading}
+          >
+            Làm mới
+          </Button>
+
+          <Text style={{ marginLeft: 16 }}>
+            Tổng: {sortedDataSource.length} ảnh
+          </Text>
+        </div>
 
         <Button
-          onClick={() => queryResult?.refetch?.()}
-          loading={isLoading}
           type="primary"
+          icon={<PlusOutlined />}
+          onClick={() => navigate("/admin/galleries/create")}
         >
-          Làm mới dữ liệu
+          Thêm ảnh
         </Button>
-        <Text style={{ marginLeft: 16 }}>Tổng số: {data?.total || 0} ảnh</Text>
       </div>
 
       <Table
         {...tableProps}
-        rowKey="gallery_id" // Dùng gallery_id như đã sửa ở trên
-        loading={isLoading}
-        dataSource={tableProps.dataSource || []}
-        scroll={{ x: 1000 }} // Tăng scroll x để đảm bảo vừa
+        rowKey="id"
+        loading={tableQueryResult?.isLoading}
+        dataSource={sortedDataSource}
+        scroll={{ x: 900 }}
       >
-        <Table.Column dataIndex="gallery_id" title="ID" width={70} />
         <Table.Column
-          dataIndex="gallery_category"
-          title="Danh mục"
-          render={(value: string) => <Text>{value || "Không có"}</Text>}
-        />
-        <Table.Column
-          dataIndex="image_path"
-          title="Ảnh"
-          render={(path: string) => (
-            <Tooltip title={path}>
-              {path ? (
-                <img
-                  src={`http://127.0.0.1:8001/storage/${path}`}
-                  alt="gallery"
-                  style={{
-                    width: 80,
-                    height: 80,
-                    objectFit: "cover",
-                    borderRadius: 8,
-                  }}
-                />
-              ) : (
-                <Text>Không có ảnh</Text>
-              )}
-            </Tooltip>
+          title="Hình ảnh"
+          dataIndex="image_url"
+          render={(url: string) => (
+            <Image
+              src={url || "/no-image.png"}
+              width={90}
+              height={90}
+              style={{ objectFit: "cover", borderRadius: 8 }}
+              fallback="/no-image.png"
+            />
           )}
         />
+        <Table.Column title="Nhóm ảnh" dataIndex="category" />
+        <Table.Column title="Caption" dataIndex="caption" />
         <Table.Column
-          dataIndex="caption"
-          title="Chú thích"
-          render={(caption: string) => (
-            <Tooltip title={caption}>
-              <span>{caption || "Không có chú thích"}</span>
-            </Tooltip>
-          )}
-        />
-        <Table.Column
-          dataIndex="created_at"
           title="Ngày tạo"
-          render={(value: string) => <DateField value={value} />}
-          sorter
-        />
-        <Table.Column
-          dataIndex="updated_at"
-          title="Ngày cập nhật"
-          render={(value: string) => <DateField value={value} />}
-          sorter
+          dataIndex="created_at"
+          render={(value: string) => (
+            <DateField value={value} format="DD/MM/YYYY HH:mm" />
+          )}
         />
 
-        {/* CỘT HÀNH ĐỘNG (SỬA & XÓA) */}
         <Table.Column
           title="Hành động"
-          width={220}
-          fixed="right"
           render={(_, record: any) => (
-            <>
-              {/* 🆕 NÚT XEM CHI TIẾT (SHOW) */}
-              <Button
-                type="link"
-                size="small"
-                // ✅ Sử dụng hàm show
-                onClick={() => show("events", record.id)}
-                style={{ marginRight: 4, paddingLeft: 0 }}
-              >
-                Chi tiết
-              </Button>
+            <Space>
+              <Tooltip title="Chi tiết">
+                <Button
+                  icon={<EyeOutlined />}
+                  onClick={() => navigate(`/admin/galleries/show/${record.id}`)}
+                />
+              </Tooltip>
 
-              {/* NÚT SỬA (EDIT) */}
-              <Button
-                type="dashed"
-                size="small"
-                onClick={() => edit("galleries", record.gallery_id)} // Chuyển hướng đến /gallery/edit/:id
-                style={{ marginRight: 8 }}
-              >
-                Sửa
-              </Button>
-
-              {/* NÚT XÓA (DELETE) */}
-              <Popconfirm
-                title="Bạn có chắc muốn xóa ảnh này không?"
-                onConfirm={() => handleDelete(record.gallery_id)}
-                okText="Xóa"
-                cancelText="Hủy"
-              >
-                <Button danger size="small">
-                  Xóa
-                </Button>
-              </Popconfirm>
-            </>
+              <Tooltip title="Sửa">
+                <Button
+                  icon={<EditOutlined />}
+                  onClick={() => navigate(`/admin/galleries/edit/${record.id}`)}
+                />
+              </Tooltip>
+              <Tooltip title="Xóa">
+                <Popconfirm
+                  title="Xóa ảnh này?"
+                  onConfirm={() => handleDelete(record.id)}
+                  okText="Xóa"
+                  cancelText="Hủy"
+                >
+                  <Button danger icon={<DeleteOutlined />} />
+                </Popconfirm>
+              </Tooltip>
+            </Space>
           )}
         />
       </Table>
     </List>
   );
 };
+
+export default GalleryList;
