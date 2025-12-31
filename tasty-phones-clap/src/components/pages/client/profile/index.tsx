@@ -85,27 +85,27 @@ export const ProfileClient: React.FC = () => {
   }, []);
 
   // UPLOAD AVATAR
- const handleUploadAvatar = async (file: any) => {
-  const formData = new FormData();
-  formData.append("avatar", file);
+  const handleUploadAvatar = async (file: any) => {
+    const formData = new FormData();
+    formData.append("avatar", file);
 
-  try {
-    const res = await axiosInstance.post("/client/profile/avatar", formData);
-    if (res.data.success && res.data.avatar_url) {
-      const newAvatarUrl = res.data.avatar_url + "?t=" + Date.now();
-      setAvatarUrl(newAvatarUrl);
-      message.success("Avatar changed successfully.!");
-      fetchUser();
+    try {
+      const res = await axiosInstance.post("/client/profile/avatar", formData);
+      if (res.data.success && res.data.avatar_url) {
+        const newAvatarUrl = res.data.avatar_url + "?t=" + Date.now();
+        setAvatarUrl(newAvatarUrl);
+        message.success("Avatar changed successfully.!");
+        fetchUser();
 
-      // Gửi sự kiện để header (ClientLayout) biết và cập nhật ảnh mới ngay lập tức
-      window.dispatchEvent(new Event("avatarUpdated"));
+        // Gửi sự kiện để header (ClientLayout) biết và cập nhật ảnh mới ngay lập tức
+        window.dispatchEvent(new Event("avatarUpdated"));
+      }
+      return Upload.LIST_IGNORE;
+    } catch (error: any) {
+      message.error(error.response?.data?.message || "Upload avatar failed");
+      return Upload.LIST_IGNORE;
     }
-    return Upload.LIST_IGNORE;
-  } catch (error: any) {
-    message.error(error.response?.data?.message || "Upload avatar failed");
-    return Upload.LIST_IGNORE;
-  }
-};
+  };
 
   // CẬP NHẬT PROFILE
   const handleUpdateProfile = async (values: any) => {
@@ -255,7 +255,7 @@ export const ProfileClient: React.FC = () => {
                 block
                 style={{ marginTop: 20 }}
               >
-               Change password
+                Change password
               </Button>
             </Card>
           </Col>
@@ -271,25 +271,34 @@ export const ProfileClient: React.FC = () => {
                   }}
                 >
                   <span style={{ fontSize: 20, fontWeight: 600 }}>
-                  Personal Information
+                    Personal Information
                   </span>
                   {!editMode ? (
                     <Button
                       type="primary"
                       icon={<EditOutlined />}
                       onClick={() => setEditMode(true)}
-                      style={{ backgroundColor: '#a8765a', borderColor: '#a8765a' }}
+                      style={{
+                        backgroundColor: "#a8765a",
+                        borderColor: "#a8765a",
+                      }}
                     >
-                   Edit
+                      Edit
                     </Button>
                   ) : (
                     <Button
                       onClick={() => {
                         setEditMode(false);
-                        profileForm.resetFields();
+                        // Khôi phục dữ liệu gốc thay vì reset về rỗng
+                        profileForm.setFieldsValue({
+                          user_name: user?.user_name || "",
+                          email: user?.email || "",
+                          phone_number: user?.phone_number || "",
+                          address: user?.address || "",
+                        });
                       }}
                     >
-                      cancel
+                      Cancel
                     </Button>
                   )}
                 </div>
@@ -308,7 +317,10 @@ export const ProfileClient: React.FC = () => {
                       label="Full name"
                       name="user_name"
                       rules={[
-                        { required: true, message: "Please fill in your full name.!" },
+                        {
+                          required: true,
+                          message: "Please fill in your full name.!",
+                        },
                       ]}
                     >
                       <Input size="large" prefix={<UserOutlined />} />
@@ -338,7 +350,10 @@ export const ProfileClient: React.FC = () => {
                     size="large"
                     block
                     icon={<SaveOutlined />}
-                    style={{ backgroundColor: '#a8765a', borderColor: '#a8765a' }}
+                    style={{
+                      backgroundColor: "#a8765a",
+                      borderColor: "#a8765a",
+                    }}
                   >
                     Save
                   </Button>
@@ -406,7 +421,7 @@ export const ProfileClient: React.FC = () => {
               block
               size="large"
             >
-             Change password
+              Change password
             </Button>
           </Form.Item>
         </Form>
