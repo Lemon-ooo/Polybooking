@@ -62,7 +62,7 @@ const ClientServices: React.FC = () => {
       {/* ================== HERO BANNER ================== */}
       <div className="services-hero">
         <div className="hero-content">
-          <h1 className="services-title">Services</h1>
+          <h1 className="services-title">SERVICES</h1>
         </div>
       </div>
 

@@ -1,4 +1,3 @@
-
 @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap");
 
 .room-detail-wrapper {
@@ -34,8 +33,12 @@
 }
 
 @keyframes zoomSlow {
-  from { transform: scale(1); }
-  to { transform: scale(1.12); }
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.12);
+  }
 }
 
 .hero-content {
@@ -129,7 +132,6 @@
   .hero-subtitle {
     font-size: 18px;
   }
-
 }
 
 @media (max-width: 480px) {
@@ -595,5 +597,167 @@
     opacity: 1;
     transform: translateY(0);
   }
-  
+}
+/* Phần tiện nghi đi kèm - thiết kế cao cấp */
+.included-amenities-section {
+  padding: 80px 20px;
+  background: #f9f7f5;
+  text-align: center;
+}
+
+.included-amenities-title {
+  font-size: 36px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 60px;
+  position: relative;
+}
+
+.included-amenities-title::after {
+  content: "";
+  width: 80px;
+  height: 3px;
+  background: #a8765a;
+  position: absolute;
+  bottom: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.included-amenities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.included-amenity-card {
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  transition: all 0.4s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.included-amenity-card:hover {
+  transform: translateY(-12px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.amenity-image-wrapper {
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+}
+
+.amenity-image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.included-amenity-card:hover .amenity-image-wrapper img {
+  transform: scale(1.12);
+}
+
+.amenity-content {
+  padding: 24px;
+  text-align: center;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.amenity-content h4 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.amenity-content p {
+  color: #666;
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .included-amenities-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+  }
+
+  .included-amenities-title {
+    font-size: 30px;
+  }
+} /* Slideshow phòng - Luxury style */
+.ant-carousel .slick-slider {
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
+}
+
+.room-slide {
+  position: relative;
+  height: 620px; /* Chiều cao ảnh lớn */
+}
+
+.room-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Dot navigation đẹp hơn */
+.custom-dots {
+  bottom: 30px !important;
+}
+
+.custom-dots li button {
+  background: rgba(255, 255, 255, 0.6) !important;
+  opacity: 0.6;
+  width: 12px !important;
+  height: 12px !important;
+  border-radius: 50% !important;
+}
+
+.custom-dots li.slick-active button {
+  background: #a8765a !important;
+  opacity: 1;
+  width: 40px !important;
+  border-radius: 20px !important;
+  transition: all 0.4s ease;
+}
+
+/* Arrow navigation (nếu muốn hiện) */
+.ant-carousel .slick-prev,
+.ant-carousel .slick-next {
+  border-radius: 50%;
+  z-index: 10;
+}
+
+.ant-carousel .slick-prev:hover,
+.ant-carousel .slick-next:hover {
+  background: #a8765a;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .room-slide {
+    height: 480px;
+  }
+}
+
+@media (max-width: 768px) {
+  .room-slide {
+    height: 380px;
+  }
 }

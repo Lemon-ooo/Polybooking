@@ -28,7 +28,7 @@ import {
 import type { UploadProps } from "antd";
 import { axiosInstance } from "../../../../providers/data/axiosConfig";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 interface UserProfile {
   id: number;
@@ -53,7 +53,6 @@ export const ProfileClient: React.FC = () => {
   const [editMode, setEditMode] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string>("");
 
-  // TỰ FETCH USER MỚI NHẤT TỪ SERVER – CHẠY NGON 100%
   const fetchUser = async () => {
     try {
       setLoading(true);
@@ -79,35 +78,30 @@ export const ProfileClient: React.FC = () => {
     }
   };
 
-  // GỌI LẠI MỖI KHI TRANG LOAD HOẶC F5
   useEffect(() => {
     fetchUser();
   }, []);
 
-  // UPLOAD AVATAR
- const handleUploadAvatar = async (file: any) => {
-  const formData = new FormData();
-  formData.append("avatar", file);
+  const handleUploadAvatar = async (file: any) => {
+    const formData = new FormData();
+    formData.append("avatar", file);
 
-  try {
-    const res = await axiosInstance.post("/client/profile/avatar", formData);
-    if (res.data.success && res.data.avatar_url) {
-      const newAvatarUrl = res.data.avatar_url + "?t=" + Date.now();
-      setAvatarUrl(newAvatarUrl);
-      message.success("Avatar changed successfully.!");
-      fetchUser();
-
-      // Gửi sự kiện để header (ClientLayout) biết và cập nhật ảnh mới ngay lập tức
-      window.dispatchEvent(new Event("avatarUpdated"));
+    try {
+      const res = await axiosInstance.post("/client/profile/avatar", formData);
+      if (res.data.success && res.data.avatar_url) {
+        const newAvatarUrl = res.data.avatar_url + "?t=" + Date.now();
+        setAvatarUrl(newAvatarUrl);
+        message.success("Avatar changed successfully!");
+        fetchUser();
+        window.dispatchEvent(new Event("avatarUpdated"));
+      }
+      return Upload.LIST_IGNORE;
+    } catch (error: any) {
+      message.error(error.response?.data?.message || "Upload avatar failed");
+      return Upload.LIST_IGNORE;
     }
-    return Upload.LIST_IGNORE;
-  } catch (error: any) {
-    message.error(error.response?.data?.message || "Upload avatar failed");
-    return Upload.LIST_IGNORE;
-  }
-};
+  };
 
-  // CẬP NHẬT PROFILE
   const handleUpdateProfile = async (values: any) => {
     try {
       setSaving(true);
@@ -115,16 +109,15 @@ export const ProfileClient: React.FC = () => {
       if (res.data.success) {
         message.success("Information updated successfully!");
         setEditMode(false);
-        fetchUser(); // Quan trọng: lấy lại dữ liệu mới nhất
+        fetchUser();
       }
     } catch (err: any) {
-      message.error(err.response?.data?.message || "Updated failed");
+      message.error(err.response?.data?.message || "Update failed");
     } finally {
       setSaving(false);
     }
   };
 
-  // ĐỔI MẬT KHẨU – GIỮ NGUYÊN 100%
   const handleChangePassword = async (values: any) => {
     try {
       setChangingPassword(true);
@@ -137,7 +130,7 @@ export const ProfileClient: React.FC = () => {
       setOpenPasswordModal(false);
       passwordForm.resetFields();
     } catch (err: any) {
-      message.error(err.response?.data?.message || "Password changed failed.");
+      message.error(err.response?.data?.message || "Password change failed.");
     } finally {
       setChangingPassword(false);
     }
@@ -147,11 +140,11 @@ export const ProfileClient: React.FC = () => {
     beforeUpload: (file) => {
       const isImage = file.type.startsWith("image/");
       if (!isImage) {
-        message.error("Please upload the image!");
+        message.error("Please upload an image!");
         return Upload.LIST_IGNORE;
       }
       if (file.size > 5 * 1024 * 1024) {
-        message.error("Images must not exceed 5MB!");
+        message.error("Image must not exceed 5MB!");
         return Upload.LIST_IGNORE;
       }
       return handleUploadAvatar(file);
@@ -175,7 +168,7 @@ export const ProfileClient: React.FC = () => {
         padding: "40px 20px",
       }}
     >
-      {/* Banner đẹp lung linh */}
+      {/* Banner */}
       <div
         style={{
           height: 300,
@@ -190,77 +183,103 @@ export const ProfileClient: React.FC = () => {
         }}
       >
         <div>
-          <h1 style={{ fontSize: 48, margin: 0 }}>Personal profile</h1>
-          <p style={{ fontSize: 20 }}>Account information management</p>
+          <h1 style={{ fontSize: 48, margin: 0 }}>Personal Profile</h1>
+          <p style={{ fontSize: 20 }}>Account Information Management</p>
         </div>
       </div>
 
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-        {/* Avatar */}
-        <div style={{ textAlign: "center", marginBottom: 40 }}>
-          <Upload {...uploadProps}>
-            <div
+        <Row gutter={[40, 40]}>
+          {/* CỘT TRÁI: Avatar + Thông tin cơ bản */}
+          <Col xs={24} lg={9}>
+            <Card
               style={{
-                position: "relative",
-                display: "inline-block",
-                cursor: "pointer",
+                borderRadius: 20,
+                textAlign: "center",
+                height: "100%",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
               }}
+              bodyStyle={{ padding: "40px 24px" }}
             >
-              <Avatar size={160} src={avatarUrl} icon={<UserOutlined />} />
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: 0,
-                  right: 0,
-                  background: "#a8765a",
-                  width: 44,
-                  height: 44,
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <CameraOutlined style={{ color: "white", fontSize: 20 }} />
-              </div>
-            </div>
-          </Upload>
-        </div>
+              {/* Avatar lớn */}
+              <Upload {...uploadProps}>
+                <div
+                  style={{
+                    position: "relative",
+                    display: "inline-block",
+                    cursor: "pointer",
+                    marginBottom: 24,
+                  }}
+                >
+                  <Avatar
+                    size={180}
+                    src={avatarUrl}
+                    icon={<UserOutlined />}
+                    style={{ border: "4px solid #fff", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
+                  />
+                  <div
+                    style={{
+                      position: "absolute",
+                      bottom: 8,
+                      right: 8,
+                      background: "#a8765a",
+                      width: 48,
+                      height: 48,
+                      borderRadius: "50%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      border: "4px solid white",
+                    }}
+                  >
+                    <CameraOutlined style={{ color: "white", fontSize: 22 }} />
+                  </div>
+                </div>
+              </Upload>
 
-        <Row gutter={32}>
-          <Col xs={24} lg={8}>
-            <Card style={{ borderRadius: 16, textAlign: "center" }}>
-              <Title level={3}>{user.user_name}</Title>
+              <Title level={2} style={{ margin: "16px 0 8px" }}>
+                {user.user_name}
+              </Title>
+
               <Tag
                 color={getRoleColor(user.role)}
-                style={{ fontSize: 16, padding: "6px 20px" }}
+                style={{ fontSize: 16, padding: "8px 24px", borderRadius: 20 }}
               >
                 {getRoleText(user.role)}
               </Tag>
-              <Descriptions column={1} style={{ marginTop: 20 }}>
-                <Descriptions.Item label="Email">
-                  {user.email}
-                </Descriptions.Item>
-                {user.phone_number && (
-                  <Descriptions.Item label="Phone">
-                    {user.phone_number}
+
+              <div style={{ marginTop: 32, textAlign: "left" }}>
+                <Descriptions column={1} colon={false}>
+                  <Descriptions.Item
+                    label={<Text strong style={{ color: "#666" }}>Email</Text>}
+                  >
+                    <Text>{user.email}</Text>
                   </Descriptions.Item>
-                )}
-              </Descriptions>
+                  {user.phone_number && (
+                    <Descriptions.Item
+                      label={<Text strong style={{ color: "#666" }}>Phone</Text>}
+                    >
+                      <Text>{user.phone_number}</Text>
+                    </Descriptions.Item>
+                  )}
+                </Descriptions>
+              </div>
+
               <Button
                 danger
                 size="large"
                 icon={<LockOutlined />}
                 onClick={() => setOpenPasswordModal(true)}
                 block
-                style={{ marginTop: 20 }}
+                style={{ marginTop: 32, height: 48, fontSize: 16 }}
               >
-               Change password
+                Change Password
               </Button>
             </Card>
           </Col>
 
-          <Col xs={24} lg={16}>
+          {/* CỘT PHẢI: Form chỉnh sửa thông tin (to hơn, đẹp hơn) */}
+          <Col xs={24} lg={15}>
             <Card
               title={
                 <div
@@ -270,78 +289,110 @@ export const ProfileClient: React.FC = () => {
                     alignItems: "center",
                   }}
                 >
-                  <span style={{ fontSize: 20, fontWeight: 600 }}>
-                  Personal Information
-                  </span>
-                  {!editMode ? (
-                    <Button
-                      type="primary"
-                      icon={<EditOutlined />}
-                      onClick={() => setEditMode(true)}
-                      style={{ backgroundColor: '#a8765a', borderColor: '#a8765a' }}
-                    >
-                   Edit
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={() => {
-                        setEditMode(false);
-                        profileForm.resetFields();
-                      }}
-                    >
-                      cancel
-                    </Button>
-                  )}
+                  <Title level={3} style={{ margin: 0 }}>
+                    Personal Information
+                  </Title>
+                  <div>
+                    {!editMode ? (
+                      <Button
+                        type="primary"
+                        size="large"
+                        icon={<EditOutlined />}
+                        onClick={() => setEditMode(true)}
+                        style={{
+                          backgroundColor: "#a8765a",
+                          borderColor: "#a8765a",
+                        }}
+                      >
+                        Edit Information
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => {
+                          setEditMode(false);
+                          profileForm.setFieldsValue({
+                            user_name: user?.user_name || "",
+                            email: user?.email || "",
+                            phone_number: user?.phone_number || "",
+                            address: user?.address || "",
+                          });
+                        }}
+                        style={{ marginRight: 8 }}
+                      >
+                        Cancel
+                      </Button>
+                    )}
+                  </div>
                 </div>
               }
-              style={{ borderRadius: 16 }}
+              style={{
+                borderRadius: 20,
+                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                height: "100%",
+              }}
+              bodyStyle={{ padding: "32px 40px" }}
             >
               <Form
                 form={profileForm}
                 layout="vertical"
                 onFinish={handleUpdateProfile}
                 disabled={!editMode}
+                size="large"
               >
-                <Row gutter={16}>
+                <Row gutter={24}>
                   <Col span={24}>
                     <Form.Item
-                      label="Full name"
+                      label="Full Name"
                       name="user_name"
                       rules={[
-                        { required: true, message: "Please fill in your full name.!" },
+                        {
+                          required: true,
+                          message: "Please enter your full name!",
+                        },
                       ]}
                     >
-                      <Input size="large" prefix={<UserOutlined />} />
+                      <Input prefix={<UserOutlined />} placeholder="Enter full name" />
                     </Form.Item>
                   </Col>
+
                   <Col span={24}>
                     <Form.Item label="Email" name="email">
-                      <Input size="large" prefix={<MailOutlined />} disabled />
+                      <Input prefix={<MailOutlined />} disabled />
                     </Form.Item>
                   </Col>
+
                   <Col xs={24} md={12}>
-                    <Form.Item label="Phone number" name="phone_number">
-                      <Input size="large" prefix={<PhoneOutlined />} />
+                    <Form.Item label="Phone Number" name="phone_number">
+                      <Input prefix={<PhoneOutlined />} placeholder="Enter phone number" />
                     </Form.Item>
                   </Col>
+
                   <Col xs={24} md={12}>
                     <Form.Item label="Address" name="address">
-                      <Input size="large" prefix={<HomeOutlined />} />
+                      <Input prefix={<HomeOutlined />} placeholder="Enter address" />
                     </Form.Item>
                   </Col>
                 </Row>
+
                 {editMode && (
-                  <Button
-                    type="primary"
-                    htmlType="submit"
-                    loading={saving}
-                    size="large"
-                    block
-                    icon={<SaveOutlined />}
-                    style={{ backgroundColor: '#a8765a', borderColor: '#a8765a' }}
-                  >
-                    Save
-                  </Button>
+                  <Form.Item style={{ marginBottom: 0 }}>
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      loading={saving}
+                      size="large"
+                      block
+                      icon={<SaveOutlined />}
+                      style={{
+                        height: 52,
+                        fontSize: 17,
+                        backgroundColor: "#a8765a",
+                        borderColor: "#a8765a",
+                      }}
+                    >
+                      Save Changes
+                    </Button>
+                  </Form.Item>
                 )}
               </Form>
             </Card>
@@ -349,9 +400,9 @@ export const ProfileClient: React.FC = () => {
         </Row>
       </div>
 
-      {/* Modal đổi mật khẩu – giữ nguyên đẹp lung linh */}
+      {/* Modal đổi mật khẩu */}
       <Modal
-        title="Change password"
+        title={<Title level={4}>Change Password</Title>}
         open={openPasswordModal}
         onCancel={() => {
           setOpenPasswordModal(false);
@@ -359,28 +410,33 @@ export const ProfileClient: React.FC = () => {
         }}
         footer={null}
         destroyOnClose
+        width={500}
       >
         <Form
           form={passwordForm}
           layout="vertical"
           onFinish={handleChangePassword}
+          size="large"
         >
           <Form.Item
-            label="Current password"
+            label="Current Password"
             name="current_password"
-            rules={[{ required: true }]}
+            rules={[{ required: true, message: "Please enter current password" }]}
           >
-            <Input.Password size="large" />
+            <Input.Password />
           </Form.Item>
           <Form.Item
-            label="New password"
+            label="New Password"
             name="new_password"
-            rules={[{ required: true, min: 6 }]}
+            rules={[
+              { required: true },
+              { min: 6, message: "Password must be at least 6 characters" },
+            ]}
           >
-            <Input.Password size="large" />
+            <Input.Password />
           </Form.Item>
           <Form.Item
-            label="Confirm new password"
+            label="Confirm New Password"
             name="new_password_confirmation"
             dependencies={["new_password"]}
             rules={[
@@ -389,14 +445,12 @@ export const ProfileClient: React.FC = () => {
                 validator(_, value) {
                   if (!value || getFieldValue("new_password") === value)
                     return Promise.resolve();
-                  return Promise.reject(
-                    new Error("Confirmation password does not match!")
-                  );
+                  return Promise.reject(new Error("Passwords do not match!"));
                 },
               }),
             ]}
           >
-            <Input.Password size="large" />
+            <Input.Password />
           </Form.Item>
           <Form.Item>
             <Button
@@ -405,8 +459,9 @@ export const ProfileClient: React.FC = () => {
               loading={changingPassword}
               block
               size="large"
+              style={{ height: 48 }}
             >
-             Change password
+              Change Password
             </Button>
           </Form.Item>
         </Form>
