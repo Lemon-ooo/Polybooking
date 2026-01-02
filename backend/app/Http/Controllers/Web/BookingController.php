@@ -3,125 +3,63 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Models\Booking;
 use App\Models\RoomType;
-use App\Services\BookingService;
+use App\Models\Booking;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use RuntimeException;
 
 class BookingController extends Controller
 {
-    /**
-     * Danh sách booking của user hiện tại
-     */
     public function index()
     {
-        $user = Auth::user();
-
-        $bookings = Booking::with(['items.roomType'])
-            ->where('user_id', $user->user_id)
-            ->orderByDesc('created_at')
-            ->paginate(10);
-
-        return view('bookings.index', compact('bookings'));
+        $roomTypes = RoomType::with('amenities')->get();
+        return view('bookings.index', compact('roomTypes'));
     }
 
-    /**
-     * Form tạo booking mới
-     */
-    public function create()
+    public function create(Request $req)
     {
-        // Lấy danh sách room types để user chọn
-        $roomTypes = RoomType::orderBy('base_price', 'asc')->get();
+        if (!$req->has('room_type_id')) {
+            return redirect('/')->with('error', 'Vui lòng chọn loại phòng trước.');
+        }
 
-        return view('bookings.create', compact('roomTypes'));
+        $roomType = RoomType::findOrFail($req->room_type_id);
+        return view('bookings.create', compact('roomType'));
     }
 
-    /**
-     * Xử lý tạo booking
-     */
-    public function store(Request $request, BookingService $bookingService)
+    public function store(Request $req)
     {
-        $user = Auth::user();
-
-        $validated = $request->validate([
-            'check_in'                  => ['required', 'date', 'after_or_equal:today'],
-            'check_out'                 => ['required', 'date', 'after:check_in'],
-            'guest_number'              => ['required', 'integer', 'min:1'],
-            'room_type_ids'             => ['required', 'array', 'min:1'],
-            'room_type_ids.*'           => ['required', 'integer', 'exists:room_types,room_type_id'],
-            'quantities'                => ['required', 'array', 'min:1'],
-            'quantities.*'              => ['required', 'integer', 'min:0'],
-        ], [
-            'check_in.required'         => 'Vui lòng chọn ngày check-in.',
-            'check_out.required'        => 'Vui lòng chọn ngày check-out.',
-            'check_out.after'           => 'Check-out phải sau check-in.',
-            'guest_number.required'     => 'Vui lòng nhập số lượng khách.',
-            'room_type_ids.required'    => 'Vui lòng chọn ít nhất một loại phòng.',
+        $req->validate([
+            'room_type_id'  => 'required|exists:room_types,room_type_id',
+            'adults'        => 'required|integer|min:1',
+            'children'      => 'required|integer|min:0',
+            'check_in'      => 'required|date',
+            'check_out'     => 'required|date|after:check_in',
+            'room_quantity' => 'required|integer|min:1'
         ]);
 
-        try {
-            $booking = $bookingService->createBookingForUser($user, $validated);
-        } catch (RuntimeException $e) {
-            return back()
-                ->withErrors(['booking_error' => $e->getMessage()])
-                ->withInput();
-        } catch (\Throwable $e) {
-            // Có thể log lỗi chi tiết
-            return back()
-                ->withErrors(['booking_error' => 'Có lỗi xảy ra khi tạo booking.'])
-                ->withInput();
-        }
+        $roomType = RoomType::where('room_type_id', $req->room_type_id)->firstOrFail();
 
-        return redirect()
-            ->route('bookings.show', $booking->booking_id)
-            ->with('success', 'Đặt phòng thành công ở trạng thái chưa thanh toán (unpaid).');
-    }
+        $room_price = $roomType->totalPricePerRoom();
 
-    /**
-     * Chi tiết 1 booking (chỉ cho chủ booking xem)
-     */
-    public function show($id)
-    {
-        $user = Auth::user();
+        $nights = date_diff(
+            new \DateTime($req->check_in),
+            new \DateTime($req->check_out)
+        )->days;
 
-        $booking = Booking::with([
-                'items.roomType',
-                'assignedRooms.room',
-                'serviceCharges.service',
-                'penaltyCharges',
-            ])
-            ->where('booking_id', $id)
-            ->where('user_id', $user->user_id)
-            ->firstOrFail();
+        $booking = Booking::create([
+            'user_id'       => auth()->id(),
+            'room_type_id'  => $roomType->room_type_id,
+            'adults'        => $req->adults,
+            'children'      => $req->children,
+            'check_in'      => $req->check_in,
+            'check_out'     => $req->check_out,
+            'nights'        => $nights,
+            'room_quantity' => $req->room_quantity,
+            'room_price'    => $room_price,
+            'total_price'   => $room_price * $req->room_quantity * $nights,
+            'status'        => 'pending_payment'
+        ]);
 
-        return view('bookings.show', compact('booking'));
-    }
-
-    /**
-     * Hủy booking – chỉ khi còn unpaid
-     */
-    public function cancel($id)
-    {
-        $user = Auth::user();
-
-        /** @var Booking $booking */
-        $booking = Booking::where('booking_id', $id)
-            ->where('user_id', $user->user_id)
-            ->firstOrFail();
-
-        if (!$booking->canBeCancelled()) {
-            return redirect()
-                ->route('bookings.show', $booking->booking_id)
-                ->withErrors(['booking_error' => 'Chỉ có thể hủy booking ở trạng thái unpaid.']);
-        }
-
-        $booking->status = Booking::STATUS_CANCELLED;
-        $booking->save();
-
-        return redirect()
-            ->route('bookings.index')
-            ->with('success', 'Hủy booking thành công.');
+        //  SỬA ĐÚNG
+        return redirect()->route('payment.page', $booking);
     }
 }

@@ -6,44 +6,45 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
-    {
-        Schema::create('bookings', function (Blueprint $table) {
-            $table->id('booking_id');
+public function up()
+{
+    Schema::create('bookings', function (Blueprint $table) {
+        $table->id();
+        $table->unsignedBigInteger('user_id');
 
-            $table->unsignedBigInteger('user_id');
+        // khách
+        $table->integer('adults');
+        $table->integer('children')->default(0);
 
-            $table->date('check_in');
-            $table->date('check_out');
+        // thời gian
+        $table->date('check_in');
+        $table->date('check_out');
+        $table->integer('nights');
 
-            $table->integer('guest_number');
+        // chi phí phòng
+        $table->integer('room_type_id');
+        $table->integer('room_quantity');
+        $table->integer('room_price');     // tổng giá phòng (base + amenities)
+        $table->integer('total_price');    // tổng phải trả trước
 
-            // Tiền phòng (đã thanh toán online)
-            $table->decimal('room_total_amount', 12, 2)->default(0);
+        // thanh toán
+        $table->integer('prepaid_amount')->default(0);
+        $table->integer('refund_amount')->default(0);
 
-            // Dịch vụ phát sinh
-            $table->decimal('service_total_amount', 12, 2)->default(0);
+        // trạng thái booking
+        $table->enum('status', [
+            'draft',
+            'pending_payment',     // chờ thanh toán trước
+            'paid',                // đã thanh toán
+            'canceled_by_user',
+            'canceled_by_admin',
+            'in_use',
+            'check_out'
+        ])->default('draft');
 
-            // Phí phạt
-            $table->decimal('penalty_total_amount', 12, 2)->default(0);
-
-            // Tổng cuối = room + service + penalty
-            $table->decimal('booking_total_amount', 12, 2)->default(0);
-
-            // Khách còn nợ (dịch vụ + phạt)
-            $table->decimal('remaining_balance', 12, 2)->default(0);
-
-            $table->enum('status', ['unpaid', 'paid', 'confirmed', 'cancelled'])
-                ->default('unpaid');
-
-            $table->timestamps();
-
-            // FK
-            $table->foreign('user_id')
-                  ->references('user_id')->on('users')
-                  ->onDelete('cascade');
-        });
-    }
+        $table->timestamps();
+    });
+}
 
     public function down(): void
     {

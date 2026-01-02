@@ -3,112 +3,101 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Carbon\Carbon;
+use App\Models\User;
 
 class Booking extends Model
 {
-    use HasFactory;
-
-    protected $primaryKey = 'booking_id';
-    public $incrementing = true;
-    protected $keyType = 'int';
+    // ================== BOOKING STATUS ==================
+    public const STATUS_PENDING_PAYMENT = 'pending_payment';
+    public const STATUS_PAID            = 'paid';
+    public const STATUS_CHECK_IN        = 'check_in';
+    public const STATUS_CHECK_OUT       = 'check_out';
+    public const STATUS_CANCELED        = 'canceled';
 
     protected $fillable = [
-        'user_id',
-        'check_in',
-        'check_out',
-        'guest_number',
-        'room_total_amount',
-        'service_total_amount',
-        'penalty_total_amount',
-        'booking_total_amount',
-        'remaining_balance',
-        'status',
+        'user_id', 'adults', 'children',
+        'check_in', 'check_out', 'nights',
+        'room_type_id', 'room_quantity', 'room_price', 'total_price',
+        'prepaid_amount', 'refund_amount',
+        'status'
     ];
-
-    protected $casts = [
-        'check_in'  => 'date',
-        'check_out' => 'date',
-    ];
-
-    // Trạng thái booking
-    public const STATUS_UNPAID    = 'unpaid';
-    public const STATUS_PAID      = 'paid';
-    public const STATUS_CONFIRMED = 'confirmed';
-    public const STATUS_CANCELLED = 'cancelled';
 
     /*
     |--------------------------------------------------------------------------
-    | Quan hệ
+    | RELATIONSHIPS
     |--------------------------------------------------------------------------
     */
 
-    // User đặt booking
+    // ✅ USER ĐẶT PHÒNG (BỔ SUNG – FIX LỖI ADMIN)
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id', 'user_id');
+        return $this->belongsTo(User::class);
     }
 
-    // Các loại phòng trong booking (room_type + quantity)
-    public function items()
+    // Khách trong booking
+    public function guests()
     {
-        return $this->hasMany(BookingItem::class, 'booking_id', 'booking_id');
+        return $this->hasMany(BookingGuest::class);
     }
 
-    // Phòng cụ thể được gán sau khi thanh toán
+    // Loại phòng
+    public function roomType()
+    {
+        return $this->belongsTo(
+            RoomType::class,
+            'room_type_id',   // FK ở bookings
+            'room_type_id'    // PK ở room_types
+        );
+    }
+
+    // Phòng được gán khi check-in
     public function assignedRooms()
     {
-        return $this->hasMany(AssignedRoom::class, 'booking_id', 'booking_id');
+        return $this->hasMany(AssignedRoom::class);
     }
 
-    // Dịch vụ phát sinh
-    public function serviceCharges()
+    // Hóa đơn dịch vụ
+    public function serviceInvoice()
     {
-        return $this->hasMany(ServiceCharge::class, 'booking_id', 'booking_id');
+        return $this->hasOne(ServiceInvoice::class);
     }
 
-    // Phí phạt
-    public function penaltyCharges()
+    // Hóa đơn hư hỏng
+    public function damageInvoices()
     {
-        return $this->hasMany(PenaltyCharge::class, 'booking_id', 'booking_id');
+        return $this->hasMany(DamageInvoice::class);
+    }
+
+    // Phạt
+    public function penalties()
+    {
+        return $this->hasMany(Penalty::class);
+    }
+
+    // Thanh toán (NÊN CÓ vì admin đang dùng)
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
     }
 
     /*
     |--------------------------------------------------------------------------
-    | Accessors & Helpers
+    | BUSINESS LOGIC
     |--------------------------------------------------------------------------
     */
 
-    // Số đêm ở = check_out - check_in
-    public function getNumberOfNightsAttribute(): ?int
+    public function calculateTotalRoomPrice()
     {
-        if (!$this->check_in || !$this->check_out) {
-            return null;
-        }
-
-        return $this->check_in->diffInDays($this->check_out);
+        return $this->room_price * $this->room_quantity * $this->nights;
     }
 
-    // Tính lại các tổng (room_total, service_total, penalty_total, booking_total, remaining)
-    public function recalculateTotals(): void
+    public function isCheckInDay()
     {
-        $roomTotal     = $this->items()->sum('amount');
-        $serviceTotal  = $this->serviceCharges()->sum('amount');
-        $penaltyTotal  = $this->penaltyCharges()->sum('amount');
-
-        $this->room_total_amount      = $roomTotal;
-        $this->service_total_amount   = $serviceTotal;
-        $this->penalty_total_amount   = $penaltyTotal;
-        $this->booking_total_amount   = $roomTotal + $serviceTotal + $penaltyTotal;
-        $this->remaining_balance      = $serviceTotal + $penaltyTotal;
-
-        $this->save();
+        return now()->toDateString() === $this->check_in;
     }
 
-    // Check có thể hủy không (business rule: chỉ khi unpaid)
-    public function canBeCancelled(): bool
+    public function isCheckOutDay()
     {
-        return $this->status === self::STATUS_UNPAID;
+        return now()->toDateString() === $this->check_out;
     }
 }

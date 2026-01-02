@@ -40,7 +40,7 @@
     <div class="mb-3">
         <label class="form-label">Status</label>
         <select name="room_status" class="form-control" required>
-            @foreach(['available','booked','maintenance','unavailable'] as $status)
+            @foreach(['trống'] as $status)
                 <option value="{{ $status }}"
                     {{ old('room_status') == $status ? 'selected' : '' }}>
                     {{ ucfirst($status) }}

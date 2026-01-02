@@ -22,7 +22,7 @@ return new class extends Migration
             $table->unsignedBigInteger('room_type_id');
 
             // Trạng thái phòng: available, booked, maintenance,...
-            $table->string('room_status')->default('available');
+            $table->enum('room_status', ['trống', 'đang sử dụng', 'sửa chữa'])->default('trống');
 
             // Mô tả
             $table->text('description')->nullable();

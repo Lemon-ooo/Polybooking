@@ -1,53 +1,86 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>@yield('title', 'Admin') - Polybooking</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>PolyStay Admin</title>
+
+    {{-- Bootstrap 5 --}}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f5f6fa;
+        }
+        .sidebar {
+            width: 230px;
+            min-height: 100vh;
+            background: #1f2937;
+            color: #fff;
+        }
+        .sidebar a {
+            color: #cbd5e1;
+            text-decoration: none;
+            display: block;
+            padding: 10px 15px;
+        }
+        .sidebar a:hover {
+            background: #374151;
+            color: #fff;
+        }
+        .sidebar .active {
+            background: #2563eb;
+            color: #fff;
+        }
+        .content {
+            padding: 25px;
+        }
+    </style>
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="{{ route('admin.dashboard') }}">Polybooking Admin</a>
+<div class="d-flex">
 
-        <div class="d-flex align-items-center">
+    {{-- SIDEBAR --}}
+    <div class="sidebar">
+        <h4 class="text-center py-3 border-bottom">PolyStay</h4>
 
-            <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-light btn-sm me-2">Dashboard</a>
-            <a href="{{ route('admin.room-types.index') }}" class="btn btn-outline-light btn-sm me-2">Room Types</a>
-            <a href="{{ route('admin.rooms.index') }}" class="btn btn-outline-light btn-sm me-2">Rooms</a>
-            <a href="{{ route('admin.amenities.index') }}" class="btn btn-outline-light btn-sm me-2">Amenities</a>
-            <a href="{{ route('admin.services.index') }}" class="btn btn-outline-light btn-sm me-2">Services</a>
-            <a href="{{ route('admin.users.index') }}" class="btn btn-outline-light btn-sm me-3">Users</a>
-            <a href="{{ route('admin.bookings.index') }}" class="btn btn-outline-light btn-sm me-3">Bookings</a>
+        <a href="{{ route('admin.bookings.index') }}"
+           class="{{ request()->is('admin/bookings*') ? 'active' : '' }}">
+            📑 Quản lý Booking
+        </a>
 
-            @auth
-                <span class="navbar-text text-light me-3">
-                    {{ auth()->user()->user_name }}
-                    <span class="badge bg-{{ auth()->user()->role === 'admin' ? 'danger' : 'secondary' }}">
-                        {{ auth()->user()->role }}
-                    </span>
-                </span>
+        <a href="#">
+            🛏️ Quản lý Phòng
+        </a>
 
-                <form action="{{ route('logout') }}" method="POST" class="mb-0">
-                    @csrf
-                    <button class="btn btn-outline-danger btn-sm" type="submit">
-                        Logout
-                    </button>
-                </form>
-            @endauth
+        <a href="#">
+            💳 Thanh toán
+        </a>
+
+        <a href="#">
+            ⚙️ Cài đặt
+        </a>
+    </div>
+
+    {{-- MAIN CONTENT --}}
+    <div class="flex-grow-1">
+        {{-- TOP BAR --}}
+        <nav class="navbar navbar-light bg-white shadow-sm px-4">
+            <span class="navbar-brand mb-0 h6">
+                Admin Panel
+            </span>
+
+            <span>
+                Xin chào, Admin
+            </span>
+        </nav>
+
+        <div class="content">
+            @yield('content')
         </div>
     </div>
-</nav>
 
-<div class="container">
-    @if(session('success'))
-        <div class="alert alert-success mt-2">
-            {{ session('success') }}
-        </div>
-    @endif
-
-    @yield('content')
 </div>
 
 </body>

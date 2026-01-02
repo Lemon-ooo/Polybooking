@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\RoomTypeImageController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\BookingPaymentController;
+use App\Http\Controllers\Api\VnpayController;
 
 Route::apiResource('amenities', AmenityController::class);
 Route::apiResource('bookings', BookingController::class);
@@ -48,3 +50,14 @@ Route::put('/bookings/{booking}/assign-rooms', [BookingController::class, 'assig
 Route::put('/bookings/{booking}/add-services', [BookingController::class, 'addServices']);
 Route::put('/bookings/{booking}/add-penalties', [BookingController::class, 'addPenalties']);
 Route::put('/bookings/{booking}/confirm-payment', [BookingController::class, 'confirmPayment']);
+
+////thanh toán vnpay
+Route::post(
+    '/bookings/{booking}/vnpay/create',
+    [BookingPaymentController::class, 'createVnpay']
+)->middleware('auth:sanctum');
+
+Route::get(
+    '/vnpay/return',
+    [VnpayController::class, 'handleReturn']
+);

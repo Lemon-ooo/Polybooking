@@ -8,8 +8,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class RoomType extends Model
 {
+   protected $table = 'room_types';
+
     protected $primaryKey = 'room_type_id';
+
     public $incrementing = true;
+
     protected $keyType = 'int';
 
     protected $fillable = [
@@ -60,5 +64,16 @@ public function assignedRooms()
 {
     return $this->hasMany(AssignedRoom::class, 'room_type_id', 'room_type_id');
 }
+public function totalPricePerRoom()
+    {
+        return $this->base_price + $this->amenities->sum('price');
+
+    }
+    public function bookings()
+{
+    return $this->hasMany(Booking::class, 'room_type_id');
+}
+
 
 }
+

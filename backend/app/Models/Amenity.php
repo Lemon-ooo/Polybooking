@@ -15,6 +15,7 @@ class Amenity extends Model
         'amenity_name',
         'amenity_image',
         'description',
+        'price',
     ];
 
     // amenity <-> room_type (many-to-many)
@@ -24,7 +25,8 @@ class Amenity extends Model
             RoomType::class,
             'room_type_amenity',
             'amenity_id',
-            'room_type_id'
+            'room_type_id',
+             'price'
         );
     }
 }
