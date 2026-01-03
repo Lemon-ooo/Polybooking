@@ -1,0 +1,295 @@
+/* ===== GALLERY CONTAINER ===== */
+.client-gallery-container {
+  min-height: 100vh;
+  background: #fafafa;
+}
+
+/* ===== HERO BANNER ===== */
+.gallery-hero-banner {
+  position: relative;
+  height: 300px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: white;
+}
+
+.hero-title {
+  font-size: 48px;
+  font-weight: 700;
+  margin: 0;
+  color: white !important;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+}
+
+/* ===== GALLERY CONTENT SECTION ===== */
+.gallery-content-section {
+  padding: 60px 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* ===== PAGE HEADER ===== */
+.gallery-page-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.gallery-page-title {
+  font-size: 32px !important;
+  font-weight: 700 !important;
+  color: #262626 !important;
+  margin-bottom: 10px !important;
+  letter-spacing: 1px;
+}
+
+/* ===== INSTAGRAM EXPLORE GRID ===== */
+.gallery-grid-instagram {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin-bottom: 40px;
+}
+
+.gallery-item-instagram {
+  position: relative;
+  width: 100%;
+  padding-bottom: 100%; /* Tạo tỷ lệ 1:1 */
+  overflow: hidden;
+  cursor: pointer;
+  background: #f0f0f0;
+}
+
+/* Ảnh lớn chiếm 2x2 ô */
+.gallery-item-instagram.large {
+  grid-column: span 2;
+  grid-row: span 2;
+  padding-bottom: 100%;
+}
+
+.image-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.gallery-thumbnail-instagram {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.gallery-item-instagram:hover .gallery-thumbnail-instagram {
+  transform: scale(1.05);
+}
+
+/* Overlay khi hover */
+.image-overlay-instagram {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gallery-item-instagram:hover .image-overlay-instagram {
+  opacity: 1;
+}
+
+.overlay-content-instagram {
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.overlay-content-instagram svg {
+  width: 28px;
+  height: 28px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+/* ===== LOADING & EMPTY STATE ===== */
+.loading-container,
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.gallery-loading {
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== PAGINATION ===== */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  padding: 40px 0;
+}
+
+/* ===== MODAL ===== */
+.gallery-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+.gallery-modal-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-image {
+  max-width: 100%;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 40px;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+  line-height: 1;
+}
+
+.modal-close-btn:hover {
+  transform: scale(1.1);
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 992px) {
+  .hero-title {
+    font-size: 36px;
+  }
+
+  .gallery-page-title {
+    font-size: 28px !important;
+  }
+
+  .gallery-grid-instagram {
+    gap: 3px;
+  }
+}
+
+@media (max-width: 768px) {
+  .gallery-hero-banner {
+    height: 200px;
+  }
+
+  .hero-title {
+    font-size: 28px;
+  }
+
+  .gallery-content-section {
+    padding: 40px 0;
+  }
+
+  .gallery-page-header {
+    margin-bottom: 30px;
+  }
+
+  .gallery-page-title {
+    font-size: 24px !important;
+  }
+
+  /* Giữ 3 cột nhưng ảnh lớn chỉ chiếm 1 ô trên mobile */
+  .gallery-item-instagram.large {
+    grid-column: span 1;
+    grid-row: span 1;
+  }
+
+  .gallery-grid-instagram {
+    gap: 2px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 10px;
+  }
+
+  .gallery-grid-instagram {
+    gap: 2px;
+  }
+
+  .modal-close-btn {
+    top: -35px;
+    font-size: 32px;
+  }
+}
