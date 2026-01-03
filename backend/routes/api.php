@@ -1,20 +1,21 @@
 <?php
 
-use App\Http\Controllers\Api\AmenityController;
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\BookingController;
-// use App\Http\Controllers\Api\EventController;
-use App\Http\Controllers\Api\EventController;
-use App\Http\Controllers\Api\GalleryController;
-use App\Http\Controllers\Api\RoomController;
-use App\Http\Controllers\Api\RoomImageController;
-use App\Http\Controllers\Api\RoomTypeController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\ServiceController;
-use App\Http\Controllers\Api\RoomTypeImageController;
-use App\Http\Controllers\Api\ProfileController;
-use App\Http\Controllers\Api\ChatbotController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ChatController;
+// use App\Http\Controllers\Api\EventController;
+use App\Http\Controllers\Api\RoomController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\EventController;
+use App\Http\Controllers\Api\AmenityController;
+use App\Http\Controllers\Api\BookingController;
+use App\Http\Controllers\Api\ChatbotController;
+use App\Http\Controllers\Api\GalleryController;
+use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\ServiceController;
+use App\Http\Controllers\Api\RoomTypeController;
+use App\Http\Controllers\Api\RoomImageController;
+use App\Http\Controllers\Api\RoomTypeImageController;
 
 Route::apiResource('amenities', AmenityController::class);
 Route::apiResource('bookings', BookingController::class);
@@ -25,6 +26,15 @@ Route::apiResource('roomimages', RoomImageController::class);
 Route::apiResource('room-types', RoomTypeController::class);
 Route::apiResource('roomtypeimages', RoomTypeImageController::class);
 Route::apiResource('users', UserController::class);
+
+// ================== CHAT CONTROLLER ==================
+// USER
+Route::post('/chat/send', [ChatController::class, 'sendMessage']);
+// ADMIN
+Route::get('/chat', [ChatController::class, 'list']);
+Route::get('/chat/{id}', [ChatController::class, 'show']);
+Route::post('/chat/{id}/reply', [ChatController::class, 'reply']);
+
 Route::post('room-types/{id}/images', [RoomTypeImageController::class, 'store']);
 Route::delete('room-types/{roomTypeId}/images/{imageId}', [RoomTypeImageController::class, 'destroy']);
 Route::delete('/room-types/{roomTypeId}/main-image', [RoomTypeImageController::class, 'destroyMainImage']);
@@ -70,3 +80,5 @@ Route::prefix('admin')->group(function () {
     Route::delete('events/{id}', [EventController::class, 'destroy']);
     Route::patch('events/{id}/toggle', [EventController::class, 'toggleStatus']);
 });
+
+
