@@ -30,17 +30,53 @@ export const Footer = () => {
       >
         {/* ==================== CỘT 1: LOGO + CONTACT ==================== */}
         <Col xs={24} md={12} lg={8}>
-          <img
-            src={assets.logo}
-            alt="logo"
+          {/* KHỐI LOGO + TÊN */}
+          <div
             style={{
-              height: 58,
-              marginBottom: 28,
-              filter: "brightness(1.1)",
-            }}
-          />
+              display: "flex",
+              alignItems: "center",
+              gap: 16,
+              marginBottom: 32,
+              padding: 12,
+              borderRadius: 25,
 
-          <Space direction="vertical" size={16}>
+              backdropFilter: "blur(10px)",
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = "none";
+              e.currentTarget.style.transform = "translateY(0)";
+            }}
+          >
+            <img
+              src="https://scontent.fhan14-4.fna.fbcdn.net/v/t39.30808-6/607513074_1202054532031169_1606756904976277477_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=dNtaGkzknVkQ7kNvwGSOO69&_nc_oc=Adm6Ig-UD9vcXYrhejq6u8rx66xQnamAj4HjNcreOWi9qUkvn6jMPHzFVwAQDapmjqw&_nc_zt=23&_nc_ht=scontent.fhan14-4.fna&_nc_gid=sNYLZAhL1YLXjVA7OTYWHg&oh=00_Afr6kMBtvB1DS9mgutm4eU2KcAwfi9YoyRLgixgiELfdrA&oe=695DADB2"
+              alt="PolyStay Logo"
+              style={{
+                height: 80,
+                width: 72,
+                objectFit: "cover",
+                borderRadius: 30, // Bo góc đẹp
+                boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
+                filter: "brightness(1.1)",
+              }}
+            />
+
+            <Title
+              level={3}
+              style={{
+                margin: 0,
+                color: "#C49A6C",
+                fontFamily: "'Playfair Display', serif",
+                fontWeight: 700,
+                fontSize: 28,
+                letterSpacing: "1.2px",
+              }}
+            >
+              PolyStay
+            </Title>
+          </div>
+
+          {/* THÔNG TIN LIÊN HỆ */}
+          <Space direction="vertical" size={18}>
             <Space size={14} style={{ alignItems: "flex-start" }}>
               <EnvironmentOutlined style={{ color: "#C49A6C", fontSize: 18 }} />
               <Text style={{ color: "#e5e5e5", fontSize: 15, lineHeight: 1.6 }}>
@@ -89,7 +125,6 @@ export const Footer = () => {
         {/* ==================== CỘT 3: SOCIAL + CARDS + NEWSLETTER ==================== */}
         <Col xs={24} md={24} lg={8}>
           <Space direction="vertical" size={32} style={{ width: "100%" }}>
-
             {/* SOCIAL */}
             <div>
               <Title
@@ -107,108 +142,123 @@ export const Footer = () => {
               </Title>
 
               <Space size={22}>
-  {/* Facebook */}
-  <a
-    href="https://www.facebook.com/ndt2202/"
-    target="_blank"
-    rel="noopener noreferrer"
-    style={{ textDecoration: "none" }}
-  >
-    <div
-      style={{
-        width: 44,
-        height: 44,
-        background: "#222",
-        borderRadius: 12,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        cursor: "pointer",
-        transition: "all 0.3s ease",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background = "#1877F2";
-        e.currentTarget.style.transform = "translateY(-4px)";
-        e.currentTarget.style.boxShadow = "0 8px 20px rgba(24,119,242,0.3)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = "#222";
-        e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = "none";
-      }}
-    >
-      <img src={assets.facebookIcon} style={{ width: 24 }} alt="Facebook" />
-    </div>
-  </a>
+                {/* Facebook */}
+                <a
+                  href="https://www.facebook.com/ndt2202/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ textDecoration: "none" }}
+                >
+                  <div
+                    style={{
+                      width: 44,
+                      height: 44,
+                      background: "#222",
+                      borderRadius: 12,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                      transition: "all 0.3s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "#1877F2";
+                      e.currentTarget.style.transform = "translateY(-4px)";
+                      e.currentTarget.style.boxShadow =
+                        "0 8px 20px rgba(24,119,242,0.3)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "#222";
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
+                  >
+                    <img
+                      src={assets.facebookIcon}
+                      style={{ width: 24 }}
+                      alt="Facebook"
+                    />
+                  </div>
+                </a>
 
-  {/* Instagram */}
-  <a
-    href="https://instagram.com/polystay"
-    target="_blank"
-    rel="noopener noreferrer"
-    style={{ textDecoration: "none" }}
-  >
-    <div
-      style={{
-        width: 44,
-        height: 44,
-        background: "#222",
-        borderRadius: 12,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        cursor: "pointer",
-        transition: "all 0.3s ease",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background = "#E4405F";
-        e.currentTarget.style.transform = "translateY(-4px)";
-        e.currentTarget.style.boxShadow = "0 8px 20px rgba(228,64,95,0.3)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = "#222";
-        e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = "none";
-      }}
-    >
-      <img src={assets.instagramIcon} style={{ width: 24 }} alt="Instagram" />
-    </div>
-  </a>
+                {/* Instagram */}
+                <a
+                  href="https://instagram.com/polystay"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ textDecoration: "none" }}
+                >
+                  <div
+                    style={{
+                      width: 44,
+                      height: 44,
+                      background: "#222",
+                      borderRadius: 12,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                      transition: "all 0.3s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "#E4405F";
+                      e.currentTarget.style.transform = "translateY(-4px)";
+                      e.currentTarget.style.boxShadow =
+                        "0 8px 20px rgba(228,64,95,0.3)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "#222";
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
+                  >
+                    <img
+                      src={assets.instagramIcon}
+                      style={{ width: 24 }}
+                      alt="Instagram"
+                    />
+                  </div>
+                </a>
 
-  {/* TikTok */}
-  <a
-    href="https://tiktok.com/@polystay"
-    target="_blank"
-    rel="noopener noreferrer"
-    style={{ textDecoration: "none" }}
-  >
-    <div
-      style={{
-        width: 44,
-        height: 44,
-        background: "#222",
-        borderRadius: 12,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        cursor: "pointer",
-        transition: "all 0.3s ease",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background = "#000";
-        e.currentTarget.style.transform = "translateY(-4px)";
-        e.currentTarget.style.boxShadow = "0 8px 20px rgba(0,0,0,0.4)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = "#222";
-        e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = "none";
-      }}
-    >
-      <img src={assets.tiktokIcon || assets.twitterIcon} style={{ width: 24 }} alt="TikTok" />
-    </div>
-  </a>
-</Space>
+                {/* TikTok */}
+                <a
+                  href="https://tiktok.com/@polystay"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ textDecoration: "none" }}
+                >
+                  <div
+                    style={{
+                      width: 44,
+                      height: 44,
+                      background: "#222",
+                      borderRadius: 12,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                      transition: "all 0.3s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "#000";
+                      e.currentTarget.style.transform = "translateY(-4px)";
+                      e.currentTarget.style.boxShadow =
+                        "0 8px 20px rgba(0,0,0,0.4)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "#222";
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
+                  >
+                    <img
+                      src={assets.tiktokIcon || assets.twitterIcon}
+                      style={{ width: 24 }}
+                      alt="TikTok"
+                    />
+                  </div>
+                </a>
+              </Space>
             </div>
 
             {/* ACCEPTED CARDS */}
@@ -230,15 +280,27 @@ export const Footer = () => {
               <Space size={14}>
                 <img
                   src="https://img.icons8.com/color/48/paypal.png"
-                  style={{ width: 58, borderRadius: 6, filter: "brightness(1.1)" }}
+                  style={{
+                    width: 58,
+                    borderRadius: 6,
+                    filter: "brightness(1.1)",
+                  }}
                 />
                 <img
                   src="https://img.icons8.com/color/48/mastercard.png"
-                  style={{ width: 58, borderRadius: 6, filter: "brightness(1.1)" }}
+                  style={{
+                    width: 58,
+                    borderRadius: 6,
+                    filter: "brightness(1.1)",
+                  }}
                 />
                 <img
                   src="https://img.icons8.com/color/48/visa.png"
-                  style={{ width: 58, borderRadius: 6, filter: "brightness(1.1)" }}
+                  style={{
+                    width: 58,
+                    borderRadius: 6,
+                    filter: "brightness(1.1)",
+                  }}
                 />
               </Space>
             </div>
@@ -261,55 +323,56 @@ export const Footer = () => {
 
               <Space.Compact style={{ width: "100%" }}>
                 <Input
-  placeholder="Nhập email của bạn"
-  style={{
-    height: 50,
-    background: "rgba(34, 34, 34, 0.9)",
-    border: "1px solid #444",
-    borderRadius: "12px 0 0 12px",
-    color: "#fff",                    // chữ khi gõ
-    fontSize: 15,
-    backdropFilter: "blur(8px)",
-    transition: "all 0.3s ease",
-  }}
-  // ĐÈ STYLE PLACEHOLDER + ICON XÓA BẰNG CÁCH DÙNG ::placeholder và .ant-input-clear-icon
-  addonAfter={null} // trick để thêm style inline cho placeholder
-  // Dùng prefix/suffix rỗng để chèn style trực tiếp vào input element
-  prefix={
-    <span
-      style={{
-        position: "absolute",
-        inset: 0,
-        pointerEvents: "none",
-      }}
-    >
-      <style jsx>{`
-        input::placeholder {
-          color: #fff !important;
-          opacity: 0.75;
-        }
-        .ant-input-clear-icon {
-          color: #fff !important;
-        }
-        input {
-          color: #fff !important;
-        }
-      `}</style>
-    </span>
-  }
-  onFocus={(e) => {
-    e.target.style.borderColor = "#C49A6C";
-    e.target.style.boxShadow = "0 0 0 3px rgba(196,154,108,0.2)";
-  }}
-  onBlur={(e) => {
-    e.target.style.borderColor = "#444";
-    e.target.style.boxShadow = "none";
-  }}
-  allowClear
-/>
+                  placeholder="Nhập email của bạn"
+                  style={{
+                    height: 50,
+                    background: "rgba(34, 34, 34, 0.9)",
+                    border: "1px solid #444",
+                    borderRadius: "12px 0 0 12px",
+                    color: "#fff", // chữ khi gõ
+                    fontSize: 15,
+                    backdropFilter: "blur(8px)",
+                    transition: "all 0.3s ease",
+                  }}
+                  // ĐÈ STYLE PLACEHOLDER + ICON XÓA BẰNG CÁCH DÙNG ::placeholder và .ant-input-clear-icon
+                  addonAfter={null} // trick để thêm style inline cho placeholder
+                  // Dùng prefix/suffix rỗng để chèn style trực tiếp vào input element
+                  prefix={
+                    <span
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        pointerEvents: "none",
+                      }}
+                    >
+                      <style jsx>{`
+                        input::placeholder {
+                          color: #fff !important;
+                          opacity: 0.75;
+                        }
+                        .ant-input-clear-icon {
+                          color: #fff !important;
+                        }
+                        input {
+                          color: #fff !important;
+                        }
+                      `}</style>
+                    </span>
+                  }
+                  onFocus={(e) => {
+                    e.target.style.borderColor = "#C49A6C";
+                    e.target.style.boxShadow =
+                      "0 0 0 3px rgba(196,154,108,0.2)";
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = "#444";
+                    e.target.style.boxShadow = "none";
+                  }}
+                  allowClear
+                />
                 <Button
                   type="primary"
-                  icon={<SendOutlined />} 
+                  icon={<SendOutlined />}
                   style={{
                     height: 50,
                     background: "linear-gradient(45deg, #C49A6C, #E4B97C)",
@@ -322,14 +385,16 @@ export const Footer = () => {
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow = "0 8px 25px rgba(196,154,108,0.5)";
+                    e.currentTarget.style.boxShadow =
+                      "0 8px 25px rgba(196,154,108,0.5)";
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "0 4px 15px rgba(196,154,108,0.4)";
+                    e.currentTarget.style.boxShadow =
+                      "0 4px 15px rgba(196,154,108,0.4)";
                   }}
                 >
-                  Gửi
+                  Send
                 </Button>
               </Space.Compact>
             </div>

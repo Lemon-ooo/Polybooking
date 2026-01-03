@@ -19,7 +19,7 @@ import {
   CheckCircleOutlined,
   CalendarOutlined,
 } from "@ant-design/icons";
-import "./ServicesDetail.css"; // ← Thêm import CSS mới
+import "./ServicesDetail.css";
 
 const { Title, Paragraph, Text } = Typography;
 const STORAGE_URL = "http://localhost:8000/storage/";
@@ -44,7 +44,7 @@ const ServicesDetail: React.FC = () => {
         const res = await axiosInstance.get(`/services/${id}`);
         setService(res.data.data);
       } catch (err) {
-        console.error("Lỗi tải dịch vụ:", err);
+        console.error("Error loading service:", err);
         setService(null);
       } finally {
         setLoading(false);
@@ -59,18 +59,18 @@ const ServicesDetail: React.FC = () => {
     : "https://ruedelamourhotel.com/wp-content/uploads/2025/05/spa1.jpg";
 
   const formatPrice = (price: any) => {
-    if (!price || price == 0) return "Liên hệ";
+    if (!price || price == 0) return "Contact us";
     const num = Number(price);
-    return isNaN(num) ? "Liên hệ" : num.toLocaleString("vi-VN") + "₫";
+    return isNaN(num) ? "Contact us" : num.toLocaleString("en-US") + "$";
   };
 
-  // Lỗi ID
+  // Invalid ID
   if (!id || id === "undefined") {
     return (
       <div className="services-error-container">
         <Alert
-          message="Lỗi đường dẫn"
-          description="Không tìm thấy ID dịch vụ."
+          message="Invalid URL"
+          description="Service ID not found."
           type="error"
           showIcon
         />
@@ -80,7 +80,7 @@ const ServicesDetail: React.FC = () => {
           className="services-back-btn"
           onClick={() => navigate("/client/services")}
         >
-          Quay lại
+          Go Back
         </Button>
       </div>
     );
@@ -89,7 +89,7 @@ const ServicesDetail: React.FC = () => {
   if (loading) {
     return (
       <div className="services-loading-container">
-        <Spin size="large" tip="Đang tải thông tin dịch vụ..." />
+        <Spin size="large" tip="Loading service information..." />
       </div>
     );
   }
@@ -98,8 +98,8 @@ const ServicesDetail: React.FC = () => {
     return (
       <div className="services-error-container">
         <Alert
-          message="Không tìm thấy dịch vụ"
-          description="Dịch vụ có thể đã bị xóa."
+          message="Service Not Found"
+          description="The service may have been removed."
           type="warning"
           showIcon
         />
@@ -109,7 +109,7 @@ const ServicesDetail: React.FC = () => {
           className="services-back-btn"
           onClick={() => navigate("/client/services")}
         >
-          Quay lại
+          Go Back
         </Button>
       </div>
     );
@@ -121,25 +121,23 @@ const ServicesDetail: React.FC = () => {
       <div className="services-hero-banner">
         <div className="hero-content">
           <h1 className="hero-title">SERVICES</h1>
-          {/* Nếu muốn thêm subtitle */}
-          {/* <p className="hero-subtitle">Khám phá các dịch vụ cao cấp</p> */}
         </div>
 
-        {/* Nút quay lại */}
+        {/* Back button */}
         <Button
           type="text"
           icon={<ArrowLeftOutlined />}
           onClick={() => navigate(-1)}
           className="services-back-button"
         >
-          Quay lại
+          Back
         </Button>
       </div>
 
-      {/* ====================== NỘI DUNG CHÍNH ====================== */}
+      {/* ====================== MAIN CONTENT ====================== */}
       <section className="services-content-section">
         <Row gutter={[32, 32]} justify="center">
-          {/* Ảnh dịch vụ */}
+          {/* Service image */}
           <Col xs={24} lg={10}>
             <div className="services-image-wrapper">
               <img
@@ -154,10 +152,10 @@ const ServicesDetail: React.FC = () => {
             </div>
           </Col>
 
-          {/* Thông tin chi tiết */}
+          {/* Service details */}
           <Col xs={24} lg={14}>
             <Space direction="vertical" size={44} style={{ width: "100%" }}>
-              {/* Tên + Giá */}
+              {/* Name + Price */}
               <div>
                 <Title level={1} className="services-title">
                   {service.service_name}
@@ -168,27 +166,27 @@ const ServicesDetail: React.FC = () => {
                 </Tag>
               </div>
 
-              {/* Mô tả */}
+              {/* Description */}
               <div>
                 <Title level={3} className="services-subtitle">
-                  Mô tả dịch vụ
+                  Service Description
                 </Title>
                 <Paragraph className="services-description">
                   {service.description ||
-                    "Liệu trình chăm sóc cao cấp với các kỹ thuật chuyên sâu, sử dụng nguyên liệu thiên nhiên 100%, mang đến sự thư giãn tuyệt đối và tái tạo năng lượng hoàn hảo cho cơ thể và tâm hồn."}
+                    "Premium treatment with advanced techniques, using 100% natural ingredients, delivering ultimate relaxation and perfect energy restoration for body and soul."}
                 </Paragraph>
               </div>
 
-              {/* Thông tin bổ sung */}
-              <Row gutter={[32,32]}>
+              {/* Additional info */}
+              <Row gutter={[32, 32]}>
                 <Col span={12}>
                   <Card className="services-info-card">
                     <ClockCircleOutlined className="services-info-icon" />
                     <Text strong className="services-info-title">
-                      Thời lượng: 
+                      Duration:
                     </Text>
                     <Text type="secondary" className="services-info-text">
-                       60 – 90 phút
+                      60 – 90 minutes
                     </Text>
                   </Card>
                 </Col>
@@ -196,16 +194,16 @@ const ServicesDetail: React.FC = () => {
                   <Card className="services-info-card">
                     <CheckCircleOutlined className="services-success-icon" />
                     <Text strong className="services-info-title">
-                      Giờ mở cửa:
+                      Opening Hours:
                     </Text>
                     <Text type="secondary" className="services-info-text">
-                      08:00 – 22:00 hàng ngày
+                      08:00 – 22:00 daily
                     </Text>
                   </Card>
                 </Col>
               </Row>
 
-              {/* Nút đặt lịch */}
+              {/* Booking button */}
               <Button
                 block
                 size="large"

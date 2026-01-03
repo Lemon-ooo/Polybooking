@@ -44,12 +44,12 @@ const ClientServices: React.FC = () => {
       <div style={{ padding: "80px 20px" }}>
         <Alert
           message="Lỗi tải dữ liệu"
-          description={error?.message || "Không thể kết nối đến server."}
+          description={error?.message || "Unable to connect to the server."}
           type="error"
           showIcon
           action={
             <Button size="small" onClick={() => tableQueryResult?.refetch()}>
-              Thử lại
+            Retry
             </Button>
           }
         />
@@ -97,13 +97,13 @@ const ClientServices: React.FC = () => {
             <div style={{ textAlign: "center" }}>
               <Spin size="large" />
               <Text style={{ marginTop: 16, display: "block" }}>
-                Đang tải dịch vụ...
+               Loading service...
               </Text>
             </div>
           ) : services.length === 0 ? (
             <div style={{ textAlign: "center" }}>
               <Text type="secondary" style={{ fontSize: 16 }}>
-                Chưa có dịch vụ nào
+              No services available yet.
               </Text>
             </div>
           ) : (
@@ -128,7 +128,7 @@ const ClientServices: React.FC = () => {
         <div className="card-content-right">
           <h3 className="card-title-h">{service.service_name}</h3>
           <div className="card-desc-h">
-            {service.description || "Combo trọn gói bao gồm lều cao cấp, thức ăn BBQ, nước uống miễn phí và nhiều ưu đãi hấp dẫn khác."}
+            {service.description || "The all-inclusive package includes a premium tent, BBQ food, free drinks, and many other attractive offers."}
           </div>
           <div className="details-btn-h">
             <button>DETAILS SERVICES</button>

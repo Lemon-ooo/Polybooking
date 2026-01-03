@@ -24,6 +24,7 @@ import {
   EditOutlined,
   SaveOutlined,
   CameraOutlined,
+  CalendarOutlined, // Thêm icon cho ngày sinh
 } from "@ant-design/icons";
 import type { UploadProps } from "antd";
 import { axiosInstance } from "../../../../providers/data/axiosConfig";
@@ -36,6 +37,7 @@ interface UserProfile {
   email: string;
   phone_number?: string | null;
   address?: string | null;
+  date_of_birth?: string | null;  // Trường ngày sinh
   avatar?: string | null;
   avatar_url?: string;
   role: string;
@@ -65,6 +67,7 @@ export const ProfileClient: React.FC = () => {
           email: u.email,
           phone_number: u.phone_number || "",
           address: u.address || "",
+          date_of_birth: u.date_of_birth || null, // Set ngày sinh vào form
         });
         setAvatarUrl(u.avatar_url || "");
       }
@@ -201,7 +204,6 @@ export const ProfileClient: React.FC = () => {
               }}
               bodyStyle={{ padding: "40px 24px" }}
             >
-              {/* Avatar lớn */}
               <Upload {...uploadProps}>
                 <div
                   style={{
@@ -251,15 +253,31 @@ export const ProfileClient: React.FC = () => {
               <div style={{ marginTop: 32, textAlign: "left" }}>
                 <Descriptions column={1} colon={false}>
                   <Descriptions.Item
-                    label={<Text strong style={{ color: "#666" }}>Email</Text>}
+                    label={<Text strong style={{ color: "#666" }}>Email:</Text>}
                   >
                     <Text>{user.email}</Text>
                   </Descriptions.Item>
+
                   {user.phone_number && (
                     <Descriptions.Item
-                      label={<Text strong style={{ color: "#666" }}>Phone</Text>}
+                      label={<Text strong style={{ color: "#666" }}>Phone: </Text>}
                     >
                       <Text>{user.phone_number}</Text>
+                    </Descriptions.Item>
+                  )}
+
+                  {/* HIỂN THỊ NGÀY SINH */}
+                  {user.date_of_birth && (
+                    <Descriptions.Item
+                      label={<Text strong style={{ color: "#666" }}>Date of birth: </Text>}
+                    >
+                      <Text>
+                        {new Date(user.date_of_birth).toLocaleDateString('vi-VN', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                        })}
+                      </Text>
                     </Descriptions.Item>
                   )}
                 </Descriptions>
@@ -278,7 +296,7 @@ export const ProfileClient: React.FC = () => {
             </Card>
           </Col>
 
-          {/* CỘT PHẢI: Form chỉnh sửa thông tin (to hơn, đẹp hơn) */}
+          {/* CỘT PHẢI: Form chỉnh sửa thông tin */}
           <Col xs={24} lg={15}>
             <Card
               title={
@@ -315,6 +333,7 @@ export const ProfileClient: React.FC = () => {
                             email: user?.email || "",
                             phone_number: user?.phone_number || "",
                             address: user?.address || "",
+                            date_of_birth: user?.date_of_birth || null,
                           });
                         }}
                         style={{ marginRight: 8 }}
@@ -354,6 +373,17 @@ export const ProfileClient: React.FC = () => {
                       <Input prefix={<UserOutlined />} placeholder="Enter full name" />
                     </Form.Item>
                   </Col>
+                    {/* FIELD NGÀY SINH */}
+                  <Col xs={24} md={12}>
+                    <Form.Item label="Date of birth" name="date_of_birth">
+                      <Input
+                        type="date"
+                        prefix={<CalendarOutlined />}
+                        size="large"
+                        style={{ width: "100%" }}
+                      />
+                    </Form.Item>
+                  </Col>
 
                   <Col span={24}>
                     <Form.Item label="Email" name="email">
@@ -361,17 +391,23 @@ export const ProfileClient: React.FC = () => {
                     </Form.Item>
                   </Col>
 
+                  
+
                   <Col xs={24} md={12}>
                     <Form.Item label="Phone Number" name="phone_number">
                       <Input prefix={<PhoneOutlined />} placeholder="Enter phone number" />
                     </Form.Item>
                   </Col>
 
+                  
+
                   <Col xs={24} md={12}>
                     <Form.Item label="Address" name="address">
                       <Input prefix={<HomeOutlined />} placeholder="Enter address" />
                     </Form.Item>
                   </Col>
+
+                
                 </Row>
 
                 {editMode && (
