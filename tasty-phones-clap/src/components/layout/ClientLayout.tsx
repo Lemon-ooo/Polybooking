@@ -172,27 +172,31 @@ export const ClientLayout: React.FC = () => {
           </nav>
 
           {/* LOGO */}
-          <Link
-            to="/client"
-            style={{ flex: "0 0 auto", display: "flex", alignItems: "center" }}
-          >
-            <img
-              src="https://ruedelamourhotel.com/wp-content/uploads/2024/08/Logo-01.png"
-              alt="Hotel Deluxe"
-              style={{
-                height: 64,
-                maxHeight: "100%",
-                objectFit: "contain",
-                transition: "transform 0.3s ease",
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.transform = "scale(1.05)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.transform = "scale(1)")
-              }
-            />
-          </Link>
+       <Link
+  to="/client"
+  style={{ flex: "0 0 auto", display: "flex", alignItems: "center" }}
+>
+  <img
+    src="https://scontent.fhan14-4.fna.fbcdn.net/v/t39.30808-6/607513074_1202054532031169_1606756904976277477_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=dNtaGkzknVkQ7kNvwGSOO69&_nc_oc=Adm6Ig-UD9vcXYrhejq6u8rx66xQnamAj4HjNcreOWi9qUkvn6jMPHzFVwAQDapmjqw&_nc_zt=23&_nc_ht=scontent.fhan14-4.fna&_nc_gid=sNYLZAhL1YLXjVA7OTYWHg&oh=00_Afr6kMBtvB1DS9mgutm4eU2KcAwfi9YoyRLgixgiELfdrA&oe=695DADB2"
+    alt="Hotel Deluxe"
+    style={{
+      height: 76,
+      width: 72,                  // Thêm width cố định để logo thành hình vuông (tùy chọn)
+      maxHeight: "100%",
+      objectFit: "cover",         // Đổi thành cover để ảnh lấp đầy khung tròn đẹp hơn
+      borderRadius: "50%",        // Bo viền tròn hoàn toàn
+      overflow: "hidden",         // Đảm bảo ảnh không tràn ra ngoài viền tròn
+      transition: "transform 0.3s ease",
+      boxShadow: "0 2px 8px rgba(0,0,0,0.15)", // Bóng nhẹ cho đẹp (tùy chọn)
+    }}
+    onMouseEnter={(e) =>
+      (e.currentTarget.style.transform = "scale(1.05)")
+    }
+    onMouseLeave={(e) =>
+      (e.currentTarget.style.transform = "scale(1)")
+    }
+  />
+</Link>
 
           {/* RIGHT NAV */}
           <nav

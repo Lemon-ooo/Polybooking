@@ -27,6 +27,7 @@ class ProfileController extends Controller
             'email' => $user->email,
             'phone_number' => $user->phone_number,
             'address' => $user->address,
+            'date_of_birth' => $user->date_of_birth?->format('Y-m-d'), // Trả về null nếu không có
             'role' => $user->role,
             'avatar' => $user->avatar,
             'avatar_url' => $user->avatar
@@ -40,27 +41,34 @@ class ProfileController extends Controller
     /**
      * PUT /api/client/profile
      */
-   public function update(Request $request)
+  public function update(Request $request)
 {
     $user = $request->user();
 
-    $user->update([
-        'user_name' => $request->user_name,
-        'phone_number' => $request->phone_number,
-        'address' => $request->address,
+    // Validate dữ liệu đầu vào trước khi update
+    $validatedData = $request->validate([
+        'user_name'     => 'required|string|max:255',
+        'phone_number'  => 'nullable|string|max:20',
+        'address'       => 'nullable|string|max:500',
+        'date_of_birth' => 'nullable|date|date_format:Y-m-d', // Chỉ validate, không gán rule vào value
     ]);
 
-    $user = $user->fresh();
+    try {
+        // Update chỉ những field được validate
+        $user->update($validatedData);
 
-    return response()->json([
-        'success' => true,
-        'data' => [
-            'user_name' => $user->user_name,
-            'phone_number' => $user->phone_number,
-            'address' => $user->address,
-            'avatar_url' => $user->avatar ? asset('storage/'.$user->avatar) : null,
-        ]
-    ]);
+        return response()->json([
+            'success' => true,
+            'message' => 'Cập nhật thông tin thành công!',
+            'data'    => $user->fresh(), // Trả về user mới nhất
+        ]);
+    } catch (\Exception $e) {
+        \Log::error('Profile update failed: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Cập nhật thất bại. Vui lòng thử lại.',
+        ], 500);
+    }
 }
 
 
