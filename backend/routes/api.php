@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\RoomTypeImageController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ChatbotController;
+use App\Http\Controllers\Api\UserController;
 
 Route::apiResource('amenities', AmenityController::class);
 Route::apiResource('bookings', BookingController::class);
@@ -23,6 +24,7 @@ Route::apiResource('galleries', GalleryController::class);
 Route::apiResource('roomimages', RoomImageController::class);
 Route::apiResource('room-types', RoomTypeController::class);
 Route::apiResource('roomtypeimages', RoomTypeImageController::class);
+Route::apiResource('users', UserController::class);
 Route::post('room-types/{id}/images', [RoomTypeImageController::class, 'store']);
 Route::delete('room-types/{roomTypeId}/images/{imageId}', [RoomTypeImageController::class, 'destroy']);
 Route::delete('/room-types/{roomTypeId}/main-image', [RoomTypeImageController::class, 'destroyMainImage']);

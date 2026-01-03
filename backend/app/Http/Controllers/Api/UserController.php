@@ -1,65 +1,74 @@
 <?php
 
-namespace App\Http\Controllers\Web;
+namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Danh sách user (Refine useTable)
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $perPage = $request->get('per_page', 20);
+        $page    = $request->get('page', 1);
+
+        $query = User::orderByDesc('created_at');
+
+        $users = $query->paginate($perPage, ['*'], 'page', $page);
+
+        return response()->json([
+            'data'  => $users->items(),
+            'total' => $users->total(),
+        ]);
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Lấy chi tiết 1 user
      */
-    public function create()
+    public function show($id)
     {
-        //
+        $user = User::findOrFail($id);
+
+        return response()->json([
+            'data' => $user,
+        ]);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Cập nhật role user (admin / customer)
      */
-    public function store(Request $request)
+    public function update(Request $request, $id)
     {
-        //
+        $user = User::findOrFail($id);
+
+        $validated = $request->validate([
+            'role' => 'required|in:admin,customer',
+        ]);
+
+        $user->update([
+            'role' => $validated['role'],
+        ]);
+
+        return response()->json([
+            'data' => $user,
+            'message' => 'Cập nhật quyền thành công',
+        ]);
     }
 
     /**
-     * Display the specified resource.
+     * (Tuỳ chọn) Xóa user
      */
-    public function show(string $id)
+    public function destroy($id)
     {
-        //
-    }
+        $user = User::findOrFail($id);
+        $user->delete();
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return response()->json([
+            'data' => null,
+        ]);
     }
 }
