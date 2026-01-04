@@ -63,7 +63,7 @@ export const HeroSection: React.FC = () => {
 
   return (
     <section
-      style={{ position: "relative", height: "100vh", overflow: "hidden" }}
+      style={{ position: "relative", height: "90vh", overflow: "hidden" }}
     >
       {/* ---------- IMAGE LAYERS (FADE SMOOTH) ---------- */}
       {IMAGES.map((src, i) => (

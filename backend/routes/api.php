@@ -60,6 +60,9 @@ Route::put('/bookings/{booking}/add-services', [BookingController::class, 'addSe
 Route::put('/bookings/{booking}/add-penalties', [BookingController::class, 'addPenalties']);
 Route::put('/bookings/{booking}/confirm-payment', [BookingController::class, 'confirmPayment']);
 
+
+ 
+
 //chatbot
 Route::post('/chatbot', [ChatbotController::class, 'handle']);
 

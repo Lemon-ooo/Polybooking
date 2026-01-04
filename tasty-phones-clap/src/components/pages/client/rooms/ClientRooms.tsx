@@ -56,7 +56,7 @@ export const ClientRooms: React.FC = () => {
       <section className="rooms-section">
         <div className="container">
           <div className="section-header">
-            <Title level={2} style={{ textAlign: "center", marginBottom: 16 }}>
+            <Title level={2} style={{ textAlign: "center", marginBottom: 10 }}>
               Accommodations
             </Title>
             <p>Luxurious and sophisticated effects in every resort space</p>

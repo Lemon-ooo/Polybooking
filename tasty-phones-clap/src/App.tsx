@@ -6,14 +6,12 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import { authProvider, dataProvider } from "./providers";
 
-import { PublicLayout } from "./components/layout/PublicLayout";
 import { ClientLayout } from "./components/layout/ClientLayout";
 import { AdminLayout } from "./components/layout/AdminLayout";
 
 import { ProtectedRoute } from "./components/protected-route";
 
 // Public pages
-import { HomePage } from "./components/pages/share/homePage";
 import { Login } from "./components/pages/share/login";
 import { Register } from "./components/pages/share/register";
 import { ForgotPassword } from "./components/pages/share/forgotPassword";
@@ -64,7 +62,6 @@ import MyBookings from "./components/pages/client/booking/MyBookings";
 import BookingDetail from "./components/pages/client/booking/BookingDetail";
 import GalleryEdit from "./components/pages/admin/Gallery/edit";
 import { UserList } from "./components/pages/admin/user/list";
-import { UserShow } from "./components/pages/admin/user/show";
 
 // ======================================================
 // 🚀 APP CHÍNH - ĐÃ SỬA
@@ -72,6 +69,7 @@ import { UserShow } from "./components/pages/admin/user/show";
 export default function App() {
   return (
     <BrowserRouter>
+    
       <Refine
         dataProvider={dataProvider}
         authProvider={authProvider}
@@ -80,17 +78,18 @@ export default function App() {
           syncWithLocation: true,
           warnWhenUnsavedChanges: true,
         }}
+        
       >
         <Routes>
-          {/* --------------------------------------------- */}
-          {/* 🚀 PUBLIC ROUTES */}
-          {/* --------------------------------------------- */}
-          <Route element={<PublicLayout />}>
-            <Route index element={<HomePage />} />
+          {/* ============================================= */}
+          {/* 🚀 REDIRECT TỪ ROOT "/" → "/client" */}
+          {/* ============================================= */}
+          <Route path="/" element={<Navigate to="/client" replace />} />
+      
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
             <Route path="forgot-password" element={<ForgotPassword />} />
-          </Route>
+          
 
           {/* --------------------------------------------- */}
           {/* 🚀 CLIENT ROUTES (ROLE = CUSTOMER) */}
@@ -170,14 +169,13 @@ export default function App() {
             {/* customers */}
             <Route path="users" element={<UserList />} />
             <Route path="users/create" element={<EventCreate />} />
-            <Route path="users/show/:id" element={<UserShow />} />
             <Route path="users/edit/:id" element={<EventEdit />} />
           </Route>
 
           {/* --------------------------------------------- */}
           {/* 🚀 FALLBACK */}
           {/* --------------------------------------------- */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/client" replace />} />
         </Routes>
       </Refine>
 

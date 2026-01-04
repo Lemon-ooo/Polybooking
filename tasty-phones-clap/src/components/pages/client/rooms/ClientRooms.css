@@ -68,7 +68,7 @@
 
 /* ===================== PHẦN DANH SÁCH PHÒNG – BỐ CỤC 2  ===================== */
 .rooms-section {
-  padding: 140px 5% 160px;
+  padding: 30px 5% 160px;   /* ← Giảm từ 140px → 80px */
   background: #fff;
 }
 
@@ -89,6 +89,7 @@
   color: #333;
   margin: 0 0 16px 0;
   font-weight: 600;
+   padding-top: 10px !important; 
 }
 
 .section-header p {
