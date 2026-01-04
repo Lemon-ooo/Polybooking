@@ -8,12 +8,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class RoomType extends Model
 {
-   protected $table = 'room_types';
+    protected $table = 'room_types';
 
+    /**
+     * ⚠️ QUAN TRỌNG: PK không phải id
+     */
     protected $primaryKey = 'room_type_id';
-
     public $incrementing = true;
-
     protected $keyType = 'int';
 
     protected $fillable = [
@@ -24,22 +25,28 @@ class RoomType extends Model
         'description',
     ];
 
-    // 🔥 Thêm vào đây
+    /**
+     * Field ảo: tổng số phòng theo loại
+     */
     protected $appends = ['total_rooms'];
 
-    // 🔥 Hàm này auto + 1 field ảo "total_rooms" vào JSON và trong view
     public function getTotalRoomsAttribute()
     {
+        // an toàn cho API, không gây vòng lặp
         return $this->rooms()->count();
     }
 
-    // Quan hệ 1-n: 1 room_type có nhiều rooms
+    /* =====================================================
+     * RELATIONSHIPS
+     * ===================================================== */
+
+    // 1 room_type → nhiều rooms
     public function rooms(): HasMany
     {
-        return $this->hasMany(Room::class, 'room_type_id');
+        return $this->hasMany(Room::class, 'room_type_id', 'room_type_id');
     }
 
-    // Quan hệ n-n: room_type ↔ amenities
+    // n-n: room_type ↔ amenities
     public function amenities(): BelongsToMany
     {
         return $this->belongsToMany(
@@ -50,30 +57,40 @@ class RoomType extends Model
         );
     }
 
-    // Quan hệ 1-n: room_type → roomTypeImages
+    // 1 room_type → nhiều images
     public function images(): HasMany
     {
-        return $this->hasMany(RoomTypeImage::class, 'room_type_id');
+        return $this->hasMany(RoomTypeImage::class, 'room_type_id', 'room_type_id');
     }
-    public function bookingItems()
-{
-    return $this->hasMany(BookingItem::class, 'room_type_id', 'room_type_id');
-}
 
-public function assignedRooms()
-{
-    return $this->hasMany(AssignedRoom::class, 'room_type_id', 'room_type_id');
-}
-public function totalPricePerRoom()
+    // 1 room_type → nhiều booking_items
+    public function bookingItems(): HasMany
     {
-        return $this->base_price + $this->amenities->sum('price');
-
+        return $this->hasMany(BookingItem::class, 'room_type_id', 'room_type_id');
     }
-    public function bookings()
-{
-    return $this->hasMany(Booking::class, 'room_type_id');
+
+    /**
+     * ❌ SAI NGHIỆP VỤ – ĐÃ LOẠI BỎ
+     * assigned_rooms KHÔNG gắn trực tiếp với room_type
+     * mà gắn qua rooms → assigned_rooms
+     */
+
+    /**
+     * ❌ SAI NGHIỆP VỤ – ĐÃ LOẠI BỎ
+     * booking KHÔNG có room_type_id trực tiếp
+     * booking → booking_items → room_type
+     */
+
+    /* =====================================================
+     * BUSINESS LOGIC
+     * ===================================================== */
+
+    /**
+     * Giá cơ bản / 1 phòng / 1 đêm
+     * ❌ KHÔNG cộng amenities ở đây (amenities không phải lúc nào cũng tính tiền)
+     */
+    public function pricePerNight(): float
+    {
+        return (float) $this->base_price;
+    }
 }
-
-
-}
-

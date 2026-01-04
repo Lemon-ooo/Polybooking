@@ -7,97 +7,88 @@ use App\Models\User;
 
 class Booking extends Model
 {
+    protected $table = 'bookings';
+
+    /**
+     * ⚠️ Nếu PK của bookings KHÔNG phải là id
+     * (ví dụ booking_id) thì BẮT BUỘC bật dòng dưới
+     */
+    // protected $primaryKey = 'booking_id';
+
     // ================== BOOKING STATUS ==================
     public const STATUS_PENDING_PAYMENT = 'pending_payment';
     public const STATUS_PAID            = 'paid';
-    public const STATUS_CHECK_IN        = 'check_in';
-    public const STATUS_CHECK_OUT       = 'check_out';
+    public const STATUS_CHECKED_IN      = 'checked_in';
+    public const STATUS_CHECKED_OUT     = 'checked_out';
     public const STATUS_CANCELED        = 'canceled';
 
+    /**
+     * ⚠️ Fillable PHẢI khớp DB schema
+     * DB đang có adults, children → API phải map đúng
+     */
     protected $fillable = [
-        'user_id', 'adults', 'children',
-        'check_in', 'check_out', 'nights',
-        'room_type_id', 'room_quantity', 'room_price', 'total_price',
-        'prepaid_amount', 'refund_amount',
-        'status'
+        'user_id',
+        'adults',
+        'children',
+        'check_in',
+        'check_out',
+        'nights',
+        'total_price',
+        'status',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | RELATIONSHIPS
-    |--------------------------------------------------------------------------
-    */
-
-    // ✅ USER ĐẶT PHÒNG (BỔ SUNG – FIX LỖI ADMIN)
+    /* =====================================================
+     * RELATIONSHIPS
+     * ===================================================== */
+    public function items()
+    {
+        return $this->hasMany(
+            BookingItem::class,
+            'booking_id',
+            'booking_id'
+        );
+    }
+    // User đặt booking
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    // Khách trong booking
-    public function guests()
-    {
-        return $this->hasMany(BookingGuest::class);
-    }
-
-    // Loại phòng
-    public function roomType()
-    {
-        return $this->belongsTo(
-            RoomType::class,
-            'room_type_id',   // FK ở bookings
-            'room_type_id'    // PK ở room_types
-        );
-    }
-
-    // Phòng được gán khi check-in
+    // Các phòng được gán khi check-in
     public function assignedRooms()
     {
-        return $this->hasMany(AssignedRoom::class);
+        return $this->hasMany(AssignedRoom::class, 'booking_id', 'id');
     }
 
-    // Hóa đơn dịch vụ
-    public function serviceInvoice()
+    // Dịch vụ phát sinh
+    public function serviceCharges()
     {
-        return $this->hasOne(ServiceInvoice::class);
+        return $this->hasMany(ServiceCharge::class, 'booking_id', 'id');
     }
 
-    // Hóa đơn hư hỏng
-    public function damageInvoices()
+    // Phạt / hư hỏng
+    public function penaltyCharges()
     {
-        return $this->hasMany(DamageInvoice::class);
+        return $this->hasMany(PenaltyCharge::class, 'booking_id', 'id');
     }
 
-    // Phạt
-    public function penalties()
-    {
-        return $this->hasMany(Penalty::class);
-    }
-
-    // Thanh toán (NÊN CÓ vì admin đang dùng)
+    // Thanh toán
     public function payments()
     {
-        return $this->hasMany(Payment::class);
+        return $this->hasMany(Payment::class, 'booking_id', 'id');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | BUSINESS LOGIC
-    |--------------------------------------------------------------------------
-    */
+    /* =====================================================
+     * BUSINESS LOGIC (NHẸ – AN TOÀN)
+     * ===================================================== */
 
-    public function calculateTotalRoomPrice()
+    public function isCheckedIn(): bool
     {
-        return $this->room_price * $this->room_quantity * $this->nights;
+        return $this->status === self::STATUS_CHECKED_IN;
     }
 
-    public function isCheckInDay()
+    public function isCheckedOut(): bool
     {
-        return now()->toDateString() === $this->check_in;
-    }
-
-    public function isCheckOutDay()
-    {
-        return now()->toDateString() === $this->check_out;
+        return $this->status === self::STATUS_CHECKED_OUT;
     }
 }
