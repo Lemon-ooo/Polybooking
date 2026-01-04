@@ -53,7 +53,6 @@ import { EventEdit } from "./components/pages/admin/event/edit";
 import Amenities from "./components/pages/admin/amenities";
 
 import { RoomTypeList } from "./components/pages/admin/room-types/list";
-import { RoomTypeCreate } from "./components/pages/admin/room-types/create";
 import { RoomTypeEdit } from "./components/pages/admin/room-types/edit";
 import { RoomTypeShow } from "./components/pages/admin/room-types/show";
 import { RoomShow } from "./components/pages/admin/rooms/show";
@@ -139,7 +138,7 @@ export default function App() {
             {/* Room Types */}
             <Route path="room-types" element={<RoomTypeList />} />
             <Route path="room-types/show/:id" element={<RoomTypeShow />} />
-            <Route path="room-types/create" element={<RoomTypeCreate />} />
+            <Route path="room-types/create" element={<RoomCreate />} />
             <Route path="room-types/edit/:id" element={<RoomTypeEdit />} />
 
             {/* Amenities */}
