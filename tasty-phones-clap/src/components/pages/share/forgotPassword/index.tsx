@@ -6,7 +6,6 @@ import { authProvider } from "../../../../providers";
 import "./ForgotPassword.css";
 
 const { Title } = Typography;
-const { Content } = Layout;
 
 export const ForgotPassword: React.FC = () => {
   const [message, setMessage] = useState<string>("");
@@ -22,75 +21,84 @@ export const ForgotPassword: React.FC = () => {
       const res = await authProvider.forgotPassword(values.email);
       setMessage(res.message);
     } catch (err: any) {
-      setError(err.message);
+      setError(err?.message || "Something went wrong. Please try again!");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Layout className="forgot-password-container">
-      <Content className="forgot-password-content">
-        <Card className="forgot-password-card">
-          <Title level={3} className="forgot-password-title">
-            Quên mật khẩu
+    <Layout className="forgot-layout">
+      <div className="forgot-hero">
+        {/* TEXT LEFT */}
+        <div className="forgot-overlay-text">
+          <h1>Account Recovery</h1>
+          <p>
+            Don’t worry! We will send a new password to your email so you can
+            continue enjoying premium services at PolyStay.
+          </p>
+        </div>
+
+        {/* CARD */}
+        <Card className="forgot-card">
+          <Title level={3} className="forgot-title">
+            Forgot Password
           </Title>
-          <p className="forgot-password-description">
-            Nhập email để nhận mật khẩu mới qua email.
+
+          <p className="forgot-description">
+            Enter your email to receive a new password.
           </p>
 
           {message && (
             <Alert
               type="success"
               message={message}
-              className="forgot-password-alert"
+              showIcon
+              className="forgot-alert"
             />
           )}
+
           {error && (
             <Alert
               type="error"
               message={error}
-              className="forgot-password-alert"
+              showIcon
+              className="forgot-alert"
             />
           )}
 
-          <Form
-            layout="vertical"
-            onFinish={onFinish}
-            className="forgot-password-form"
-          >
+          <Form layout="vertical" onFinish={onFinish}>
             <Form.Item
               name="email"
               label="Email"
-              rules={[{ required: true, message: "Vui lòng nhập email!" }]}
+              rules={[
+                { required: true, message: "Please enter your email!" },
+                { type: "email", message: "Invalid email address!" },
+              ]}
             >
               <Input
                 prefix={<MailOutlined />}
-                placeholder="Nhập email"
+                placeholder="Enter your email"
                 size="large"
-                className="forgot-password-input"
               />
             </Form.Item>
 
-            <Form.Item>
-              <Button
-                type="primary"
-                htmlType="submit"
-                loading={loading}
-                block
-                size="large"
-                className="forgot-password-button"
-              >
-                Gửi mật khẩu mới
-              </Button>
-            </Form.Item>
+            <Button
+              htmlType="submit"
+              loading={loading}
+              block
+              size="large"
+              className="forgot-button"
+            >
+              SEND NEW PASSWORD
+            </Button>
           </Form>
 
-          <div className="forgot-password-link">
-            <Link to="/login">Quay lại đăng nhập</Link>
+          <div className="forgot-back">
+            <Link to="/login">← Back to login</Link>
           </div>
         </Card>
-      </Content>
+      </div>
     </Layout>
   );
 };

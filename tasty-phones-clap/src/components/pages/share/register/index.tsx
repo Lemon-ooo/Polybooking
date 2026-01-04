@@ -5,7 +5,6 @@ import { authProvider } from "../../../../providers/auth/authProvider";
 import "./Register.css";
 
 const { Title, Text } = Typography;
-const { Content } = Layout;
 
 interface IRegisterForm {
   user_name: string;
@@ -16,26 +15,19 @@ interface IRegisterForm {
 
 export const Register: React.FC = () => {
   const navigate = useNavigate();
-  const [form] = Form.useForm();
+  const [form] = Form.useForm<IRegisterForm>();
 
   const onFinish = async (values: IRegisterForm) => {
     if (!authProvider.register) {
-      message.error("Chức năng đăng ký chưa được cấu hình.");
+      message.error("Registration feature is not configured.");
       return;
     }
 
     try {
-      const payload = {
-        user_name: values.user_name,
-        email: values.email,
-        password: values.password,
-        password_confirmation: values.password_confirmation,
-      };
-
-      const result = await authProvider.register(payload);
+      const result = await authProvider.register(values);
 
       if (result?.success) {
-        message.success("Đăng ký thành công!");
+        message.success("Registration successful!");
         navigate(result.redirectTo || "/client");
       }
     } catch (error: any) {
@@ -50,120 +42,106 @@ export const Register: React.FC = () => {
           ]);
         });
       } else {
-        message.error(error?.message || "Đăng ký thất bại");
+        message.error(error?.message || "Registration failed");
       }
     }
   };
 
   return (
-    <Layout className="register-container">
-      <Content className="register-content">
+    <Layout className="register-layout">
+      <div className="register-hero">
+        {/* TEXT LEFT */}
+        <div className="register-overlay-text">
+          <h1>Join PolyStay</h1>
+          <p>
+            Create an account to receive exclusive offers and experience
+            world-class resort services.
+          </p>
+        </div>
+
+        {/* REGISTER CARD */}
         <Card className="register-card">
           <Title level={2} className="register-title">
-            Tạo tài khoản mới
+            Create Account
           </Title>
 
           <Form
             form={form}
-            name="register"
-            onFinish={onFinish}
             layout="vertical"
+            onFinish={onFinish}
             autoComplete="off"
-            className="register-form"
           >
             <Form.Item
-              label="Họ và tên"
+              label="Full Name"
               name="user_name"
-              rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
+              rules={[
+                { required: true, message: "Please enter your full name" },
+              ]}
             >
-              <Input
-                placeholder="Nhập họ và tên"
-                className="register-input"
-                style={{
-                  background: "#fff",
-                  color: "#000",
-                  borderRadius: "6px",
-                }}
-              />
+              <Input size="large" placeholder="Enter your full name" />
             </Form.Item>
 
             <Form.Item
               label="Email"
               name="email"
               rules={[
-                { required: true, message: "Vui lòng nhập email" },
-                { type: "email", message: "Email không hợp lệ" },
+                { required: true, message: "Please enter your email" },
+                { type: "email", message: "Invalid email address" },
               ]}
             >
-              <Input
-                placeholder="example@email.com"
-                className="register-input"
-                style={{
-                  background: "#fff",
-                  color: "#000",
-                  borderRadius: "6px",
-                }}
-              />
+              <Input size="large" placeholder="example@email.com" />
             </Form.Item>
 
             <Form.Item
-              label="Mật khẩu"
+              label="Password"
               name="password"
               rules={[
-                { required: true, message: "Vui lòng nhập mật khẩu" },
-                { min: 6, message: "Mật khẩu phải ít nhất 6 ký tự" },
+                { required: true, message: "Please enter your password" },
+                { min: 6, message: "Password must be at least 6 characters" },
               ]}
             >
-              <Input.Password
-                placeholder="********"
-                className="register-input"
-              />
+              <Input.Password size="large" placeholder="********" />
             </Form.Item>
 
             <Form.Item
-              label="Xác nhận mật khẩu"
+              label="Confirm Password"
               name="password_confirmation"
               dependencies={["password"]}
               rules={[
-                { required: true, message: "Vui lòng xác nhận mật khẩu" },
+                { required: true, message: "Please confirm your password" },
                 ({ getFieldValue }) => ({
                   validator(_, value) {
                     if (!value || getFieldValue("password") === value) {
                       return Promise.resolve();
                     }
                     return Promise.reject(
-                      new Error("Mật khẩu xác nhận không khớp!")
+                      new Error("Passwords do not match!")
                     );
                   },
                 }),
               ]}
             >
-              <Input.Password
-                placeholder="********"
-                className="register-input"
-              />
+              <Input.Password size="large" placeholder="********" />
             </Form.Item>
 
-            <Form.Item>
-              <Button
-                type="primary"
-                htmlType="submit"
-                block
-                className="register-button"
-              >
-                Đăng ký
-              </Button>
-            </Form.Item>
+            <Button
+              htmlType="submit"
+              block
+              size="large"
+              className="register-button"
+            >
+              REGISTER
+            </Button>
 
             <div className="register-link">
               <Text>
-                Đã có tài khoản?{" "}
-                <a onClick={() => navigate("/login")}>Đăng nhập</a>
+                Already have an account?{" "}
+                <a onClick={() => navigate("/login")}>Login</a>
               </Text>
             </div>
           </Form>
         </Card>
-      </Content>
+      </div>
     </Layout>
   );
 };

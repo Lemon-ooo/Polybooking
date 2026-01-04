@@ -1,123 +1,118 @@
-/* Login.css */
 .login-layout {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
+  overflow: hidden;
 }
 
+
+/* HERO */
+.login-hero {
+  position: relative;
+  min-height: 100vh;      /* đổi từ height → min-height */
+  padding-top: 90px;      /* 👈 chừa chỗ cho header */
+  background-image: url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e");
+  background-size: cover;
+  background-position: center;
+}
+
+
+/* TEXT LEFT */
+.login-overlay-text {
+  position: absolute;
+  top: 50%;
+  left: 8%;
+  transform: translateY(-50%);
+  color: #fff;
+  max-width: 480px;
+  z-index: 2;
+}
+
+.login-overlay-text h1 {
+  font-size: 36px;
+  font-weight: 700;
+}
+
+.login-overlay-text h2 {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.login-overlay-text p {
+  margin-top: 12px;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* LOGIN CARD */
 .login-card {
-  width: 100%;
-  max-width: 420px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  border-radius: 12px;
-  border: none;
+  position: absolute;
+  top: 55%;
+  right: 8%;
+  transform: translateY(-50%);
+  width: 420px;
+  padding: 32px;
+  border-radius: 16px;
+  background: #fff;
+  z-index: 3;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
 }
 
-.login-header {
+/* LOGO */
+.logo-wrapper {
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 12px;
 }
 
-.login-icon {
-  font-size: 48px;
-  color: #1890ff;
+.logo {
+  height: 60px;
+}
+
+/* TITLE */
+.login-title {
+  text-align: center;
+  font-weight: 600;
+}
+
+.login-divider {
+  height: 3px;
+  width: 60px;
+  background: #c89b3c;
+  margin: 8px auto 24px;
+  border-radius: 2px;
+}
+
+/* OPTIONS */
+.login-options {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
   margin-bottom: 16px;
 }
 
-.login-subtitle {
-  color: #666;
-  margin-bottom: 8px;
+/* BUTTON */
+.login-button {
+  height: 44px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #c89b3c, #f5d27a);
+  border: none;
+  color: #000;
 }
 
-/* 🚨 QUAN TRỌNG: Fix input styles */
-.custom-input {
-  border-radius: 6px;
-  border: 1px solid #d9d9d9;
-  background: #fff !important; /* Đảm bảo background trắng */
+.login-button:hover {
+  opacity: 0.9;
+}
+/* REGISTER LINK */
+.login-register {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 14px;
 }
 
-.custom-input .ant-input {
-  background: #fff !important;
-  color: #000 !important; /* Đảm bảo chữ màu đen */
-  border: none !important;
-  box-shadow: none !important;
+.login-register .register-link {
+  color: #c89b3c;
+  font-weight: 600;
 }
 
-.custom-input .ant-input-prefix {
-  color: #999;
-  margin-right: 8px;
+.login-register .register-link:hover {
+  text-decoration: underline;
 }
 
-.custom-input:hover {
-  border-color: #40a9ff;
-}
-
-.custom-input:focus,
-.custom-input-focused {
-  border-color: #1890ff;
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
-}
-
-/* 🚨 Fix input password */
-.custom-input .ant-input-password .ant-input {
-  background: transparent !important;
-  color: #000 !important;
-}
-
-/* 🚨 Fix placeholder color */
-.custom-input .ant-input::placeholder {
-  color: #999 !important;
-}
-
-.custom-input .ant-input:-webkit-autofill,
-.custom-input .ant-input:-webkit-autofill:hover,
-.custom-input .ant-input:-webkit-autofill:focus {
-  -webkit-text-fill-color: #000 !important;
-  -webkit-box-shadow: 0 0 0px 1000px white inset !important;
-  transition: background-color 5000s ease-in-out 0s;
-}
-
-/* Button styles */
-.ant-btn-primary {
-  background: #1890ff;
-  border-color: #1890ff;
-  height: 45px;
-  font-size: 16px;
-  font-weight: 500;
-  border-radius: 6px;
-}
-
-.ant-btn-primary:hover {
-  background: #40a9ff;
-  border-color: #40a9ff;
-}
-
-/* Link styles */
-.ant-form-item:last-child p {
-  margin-bottom: 0;
-}
-
-.ant-form-item:last-child a {
-  color: #1890ff;
-}
-
-.ant-form-item:last-child a:hover {
-  color: #40a9ff;
-}
-
-/* Alert styles */
-.ant-alert-error {
-  border-radius: 6px;
-}
-
-/* Debug button */
-.ant-btn-link {
-  color: #1890ff !important;
-}
-
-.ant-btn-link:hover {
-  color: #40a9ff !important;
-}
