@@ -39,6 +39,7 @@ use App\Http\Controllers\Api\PaymentController;
 | KHÔNG sửa DB
 |--------------------------------------------------------------------------
 */
+
 class AdminCheckoutController extends Controller
 {
     /* =========================================================
@@ -134,16 +135,25 @@ class AdminCheckoutController extends Controller
     {
         $booking = Booking::findOrFail($id);
 
-        if (!in_array($booking->status, ['check_in', 'in_use'])) {
-            return response()->json(['success' => false], 400);
-        }
+        // 🔥 TIỀN PHÒNG GỐC: LẤY total_price
+        $room = (int) ($booking->total_price ?? 0);
 
-        $room    = $booking->room_price;
-        $service = ServiceInvoice::where('booking_id', $id)->sum('total_amount');
-        $damage  = DamageInvoice::where('booking_id', $id)->sum('amount');
-        $penalty = Penalty::where('booking_id', $id)->sum('amount');
-        $prepaid = $booking->prepaid_amount;
+        // Tổng service
+        $service = (int) ServiceInvoice::where('booking_id', $id)
+            ->sum('total_amount');
 
+        // Tổng thiệt hại
+        $damage = (int) DamageInvoice::where('booking_id', $id)
+            ->sum('amount');
+
+        // Tổng penalty
+        $penalty = (int) Penalty::where('booking_id', $id)
+            ->sum('amount');
+
+        // Đã trả trước
+        $prepaid = (int) ($booking->total_price ?? 0);
+
+        // Tổng cuối cùng
         $final = $room + $service + $damage + $penalty - $prepaid;
 
         return response()->json([
@@ -158,6 +168,7 @@ class AdminCheckoutController extends Controller
             ]
         ]);
     }
+
 
     /* =========================================================
      * 5. PAY CHECKOUT (CASH / VNPAY)
@@ -210,7 +221,7 @@ class AdminCheckoutController extends Controller
 
             // mở lại phòng
             AssignedRoom::where('booking_id', $booking->id)
-                ->update(['status' => 'available']);
+                ->update(['status' => 'checked_out']);
 
             // xóa cờ xác nhận
             Cache::forget("checkout_confirmed_{$booking->id}");
