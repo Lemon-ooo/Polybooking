@@ -14,6 +14,8 @@ class BookingItem extends Model
         'booking_id',
         'room_type_id',
         'quantity',
-        'price',
+        'number_of_nights',
+        'base_price',
+        'amount'
     ];
 }

@@ -17,68 +17,53 @@ class PaymentController extends Controller
      * POST /api/payments/vnpay/create
      * Tạo URL thanh toán VNPAY
      * ========================================================= */
-    public function createVnpay(Request $request)
-    {
-        $user = $request->user();
-        if (!$user) {
-            return $this->unauthenticated();
-        }
+   public function createVnpay(Request $request)
+{
+    $booking = Booking::findOrFail($request->booking_id);
 
-        $request->validate([
-            'booking_id' => 'required|integer'
-        ]);
+    $vnp_TmnCode    = config('vnpay.tmn_code');
+    $vnp_HashSecret = config('vnpay.hash_secret');
+    $vnp_Url        = config('vnpay.url');
+    $vnp_Returnurl = config('vnpay.return_url');
 
-        $booking = Booking::where('id', $request->booking_id)
-            ->where('user_id', $user->id)
-            ->first();
+    $vnp_TxnRef = (string) $booking->id; 
+    $vnp_Amount = $booking->total_price * 100;   
 
-        if (!$booking) {
-            return $this->error('BOOKING_NOT_FOUND', 'Không tìm thấy booking', 404);
-        }
+    $vnp_Params = [
+        'vnp_Version'   => '2.1.0',
+        'vnp_Command'   => 'pay',
+        'vnp_TmnCode'   => $vnp_TmnCode,
+        'vnp_Amount'    => $vnp_Amount,
+        'vnp_CurrCode'  => 'VND',
+        'vnp_TxnRef'    => $vnp_TxnRef,
+        'vnp_OrderInfo' => 'Thanh toan booking #' . $booking->booking_id,
+        'vnp_OrderType' => 'other',
+        'vnp_Locale'    => 'vn',
+        'vnp_ReturnUrl' => $vnp_Returnurl,
+        'vnp_IpAddr'    => request()->ip(),
+        'vnp_CreateDate'=> date('YmdHis'),
+    ];
 
-        if ($booking->status !== 'pending_payment') {
-            return $this->error(
-                'INVALID_BOOKING_STATUS',
-                'Booking không ở trạng thái chờ thanh toán'
-            );
-        }
+    ksort($vnp_Params);
 
-        // Thông tin VNPAY
-        $vnp_TmnCode    = config('vnpay.tmn_code');
-        $vnp_HashSecret= config('vnpay.hash_secret');
-        $vnp_Url       = config('vnpay.url');
-        $vnp_ReturnUrl = config('vnpay.return_url');
-
-        $vnp_TxnRef = 'BOOKING_' . $booking->id . '_' . time();
-        $vnp_Amount = $booking->total_price * 100;
-
-        $inputData = [
-            "vnp_Version"   => "2.1.0",
-            "vnp_TmnCode"   => $vnp_TmnCode,
-            "vnp_Amount"   => $vnp_Amount,
-            "vnp_Command"  => "pay",
-            "vnp_CreateDate"=> now()->format('YmdHis'),
-            "vnp_CurrCode" => "VND",
-            "vnp_IpAddr"   => $request->ip(),
-            "vnp_Locale"   => "vn",
-            "vnp_OrderInfo"=> "Thanh toan booking #" . $booking->id,
-            "vnp_OrderType"=> "other",
-            "vnp_ReturnUrl"=> $vnp_ReturnUrl,
-            "vnp_TxnRef"   => $vnp_TxnRef
-        ];
-
-        ksort($inputData);
-        $hashData = urldecode(http_build_query($inputData));
-        $secureHash = hash_hmac('sha512', $hashData, $vnp_HashSecret);
-
-        $vnpayUrl = $vnp_Url . '?' . http_build_query($inputData) .
-            '&vnp_SecureHash=' . $secureHash;
-
-        return $this->success([
-            'payment_url' => $vnpayUrl,
-            'booking_id'  => $booking->id
-        ]);
+    $hashData = '';
+    foreach ($vnp_Params as $key => $value) {
+        $hashData .= $key . '=' . $value . '&';
     }
+    $hashData = rtrim($hashData, '&');
+
+    $vnpSecureHash = hash_hmac('sha512', $hashData, $vnp_HashSecret);
+
+    $vnp_Params['vnp_SecureHash'] = $vnpSecureHash;
+
+    $paymentUrl = $vnp_Url . '?' . http_build_query($vnp_Params);
+
+    return response()->json([
+        'success' => true,
+        'payment_url' => $paymentUrl
+    ]);
+}
+
 
     /* =========================================================
      * GET /api/payments/vnpay/callback

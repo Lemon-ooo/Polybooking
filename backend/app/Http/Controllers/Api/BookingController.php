@@ -38,7 +38,6 @@ class BookingController extends Controller
 
     public function store(Request $request)
     {
-        
         if (!$request->user()) {
             return $this->error(
                 'UNAUTHENTICATED',
@@ -48,7 +47,6 @@ class BookingController extends Controller
             );
         }
 
-        /* ================= VALIDATION ================= */
         $validator = Validator::make($request->all(), [
             'check_in'  => 'required|date|after_or_equal:today',
             'check_out' => 'required|date|after:check_in',
@@ -70,7 +68,6 @@ class BookingController extends Controller
             );
         }
 
-        /* ================= DATA ================= */
         $data = $validator->validated();
 
         $checkIn  = Carbon::parse($data['check_in'])->startOfDay();
@@ -93,12 +90,11 @@ class BookingController extends Controller
                 )->firstOrFail();
 
                 $totalPrice +=
-                    $roomType->price *
+                    $roomType->base_price *
                     $item['quantity'] *
                     $nights;
             }
 
-            /* ===== CREATE BOOKING ===== */
             $user = $request->user();
 
             if (!$user) {
@@ -109,8 +105,9 @@ class BookingController extends Controller
                     401
                 );
             }
+
             $booking = Booking::create([
-                'user_id'     => $request->user()->id,
+                'user_id'     => $request->user()->user_id,
                 'adults'      => $data['adults'],
                 'children'    => $data['children'] ?? 0,
                 'check_in'    => $checkIn->toDateString(),
@@ -120,7 +117,6 @@ class BookingController extends Controller
                 'status'      => Booking::STATUS_PENDING_PAYMENT,
             ]);
 
-            /* ===== CREATE BOOKING ITEMS ===== */
             foreach ($data['room_types'] as $item) {
                 $roomType = RoomType::where(
                     'room_type_id',
@@ -128,10 +124,12 @@ class BookingController extends Controller
                 )->first();
 
                 BookingItem::create([
-                    'booking_id'   => $booking->booking_id,
+                    'booking_id'   => $booking->id,
                     'room_type_id' => $roomType->room_type_id,
                     'quantity'     => $item['quantity'],
-                    'price'        => $roomType->price,
+                    'base_price'   => $roomType->base_price,
+                    'number_of_nights' =>$booking->nights,
+                    'amount' => $roomType->base_price * $item['quantity'] * $nights,
                 ]);
             }
 
