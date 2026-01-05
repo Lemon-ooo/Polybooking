@@ -83,10 +83,10 @@
                             {{-- Sau này có thể thêm nút "Xem chi tiết", "Đặt phòng"... --}}
                             @auth
                                 @if(auth()->user()->role === 'customer')
-                                    <a href="#"
-                                       class="btn btn-primary btn-sm disabled">
-                                        Tạo booking 
-                                    </a>
+                                   <a href="{{ route('bookings.create', ['room_type_id' => $type->room_type_id]) }}" class="btn btn-primary">
+                                    Đặt phòng
+                                   </a>
+
                                 @endif
                             @endauth
                         </div>

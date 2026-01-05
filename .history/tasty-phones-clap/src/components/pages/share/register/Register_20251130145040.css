@@ -1,0 +1,154 @@
+/* Register.css */
+.register-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+}
+
+.register-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  width: 100%;
+}
+
+.register-card {
+  width: 100%;
+  max-width: 450px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  border: none;
+  padding: 0;
+}
+
+.register-title {
+  text-align: center;
+  margin-bottom: 8px;
+  color: #262626;
+  margin-top: 0;
+}
+
+.register-form {
+  margin-top: 16px;
+}
+
+/* 🚨 FIX INPUT STYLES */
+.register-input {
+  border-radius: 6px;
+  border: 1px solid #d9d9d9;
+  background: #fff !important;
+  width: 100%;
+}
+
+.register-input .ant-input {
+  background: #fff !important;
+  color: #000 !important;
+  border: none !important;
+  box-shadow: none !important;
+  font-size: 14px;
+}
+
+.register-input .ant-input-password .ant-input {
+  background: transparent !important;
+  color: #000 !important;
+}
+
+.register-input .ant-input-prefix {
+  color: #999;
+  margin-right: 8px;
+}
+
+.register-input:hover {
+  border-color: #40a9ff;
+}
+
+.register-input:focus,
+.register-input-focused {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* 🚨 FIX PLACEHOLDER */
+.register-input .ant-input::placeholder {
+  color: #999 !important;
+  font-size: 14px;
+}
+
+.register-input .ant-input-password .ant-input::placeholder {
+  color: #999 !important;
+}
+
+.register-input .ant-input:-webkit-autofill,
+.register-input .ant-input:-webkit-autofill:hover,
+.register-input .ant-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #000 !important;
+  -webkit-box-shadow: 0 0 0px 1000px white inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+  font-size: 14px;
+}
+
+/* BUTTON STYLES */
+.register-button {
+  height: 45px;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 6px;
+  background: #1890ff;
+  border-color: #1890ff;
+  margin-top: 8px;
+}
+
+.register-button:hover {
+  background: #40a9ff;
+  border-color: #40a9ff;
+}
+
+.register-button:focus {
+  background: #1890ff;
+  border-color: #1890ff;
+}
+
+/* LINK STYLES */
+.register-link {
+  text-align: center;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.register-link a {
+  color: #1890ff;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.register-link a:hover {
+  color: #40a9ff;
+  text-decoration: underline;
+}
+
+/* FORM ITEM STYLES */
+.ant-form-item {
+  margin-bottom: 20px;
+}
+
+.ant-form-item-label > label {
+  color: #262626;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+/* CARD BODY PADDING */
+.ant-card-body {
+  padding: 32px !important;
+}
+
+/* PASSWORD ICON */
+.ant-input-password-icon {
+  color: #999;
+}
+
+.ant-input-password-icon:hover {
+  color: #666;
+}
