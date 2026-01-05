@@ -61,6 +61,7 @@ import { AmenitiesShow } from "./components/pages/admin/amenities/show";
 import AdminBookingManagement from "./components/pages/admin/bookings";
 import MyBookings from "./components/pages/client/booking/MyBookings";
 import BookingDetail from "./components/pages/client/booking/BookingDetail";
+import { ClientEventDetail } from "./components/pages/client/events/ClientEventDetail";
 
 // ======================================================
 // 🚀 APP CHÍNH - ĐÃ SỬA
@@ -108,6 +109,8 @@ export default function App() {
             <Route path="services/:id" element={<ServicesDetail />} />
             <Route path="galleries" element={<ClientGallery />} />
             <Route path="events" element={<ClientEvent />} />
+            <Route path="events/:id" element={<ClientEventDetail />} />
+
             <Route path="profile" element={<ProfileClient />} />
             <Route path="bookings" element={<ClientBooking />} />
             <Route path="my-bookings" element={<MyBookings />} />
