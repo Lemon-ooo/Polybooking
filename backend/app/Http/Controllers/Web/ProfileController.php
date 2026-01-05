@@ -48,7 +48,7 @@ class ProfileController extends Controller
             $data['avatar'] = $path;
         }
 
-        // 🔥 Eloquent model nên update() được
+        //  Eloquent model nên update() được
         $user->update($data);
 
         return redirect()->route('profile.edit')->with('success', 'Cập nhật tài khoản thành công.');
@@ -74,7 +74,7 @@ class ProfileController extends Controller
         }
 
         $user->password = Hash::make($data['password']);
-        $user->save();  // 🔥 save() là method của Eloquent model
+        $user->save();  //  save() là method của Eloquent model
 
         return redirect()->route('profile.edit')->with('success', 'Đổi mật khẩu thành công.');
     }
