@@ -3,9 +3,24 @@
 use App\Http\Controllers\Api\EventController as ApiEventController;
 use Illuminate\Support\Facades\Route;
 
+/*
+|--------------------------------------------------------------------------
+| CONTROLLERS
+|--------------------------------------------------------------------------
+*/
+
+// AUTH
 use App\Http\Controllers\Auth\AuthController;
+
+// PUBLIC
 use App\Http\Controllers\Web\HomeController;
+
+// CUSTOMER
 use App\Http\Controllers\Web\ProfileController;
+use App\Http\Controllers\Web\BookingController;
+use App\Http\Controllers\Web\PaymentController;
+
+// ADMIN
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\UserController;
 use App\Http\Controllers\Web\RoomTypeController;
@@ -14,26 +29,30 @@ use App\Http\Controllers\Web\AmenityController;
 use App\Http\Controllers\Web\ServiceController;
 use App\Http\Controllers\Web\EventController;
 use App\Http\Controllers\Web\RoomTypeImageController;
+use App\Http\Controllers\Web\BookingAdminController;
+use App\Http\Controllers\Web\DamageTypeController;
+use App\Http\Controllers\Web\AdminGuestController;
+use App\Http\Controllers\Web\AdminServiceController;
+use App\Http\Controllers\Web\AdminCheckoutController;
+use App\Http\Controllers\Web\AdminCheckinController;
+use App\Http\Controllers\Web\VnpayController;
+
 use App\Http\Middleware\IsAdmin;
-use App\Http\Controllers\Web\BookingController;
-use App\Http\Controllers\Web\AdminBookingController;
+
 /*
 |--------------------------------------------------------------------------
-| PUBLIC ROUTES (Không yêu cầu đăng nhập)
+| PUBLIC
 |--------------------------------------------------------------------------
 */
-
-// Trang home hiển thị room types cho khách
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-
 /*
 |--------------------------------------------------------------------------
-| AUTH ROUTES (Chỉ dành cho khách chưa login)
+| AUTH (GUEST)
 |--------------------------------------------------------------------------
 */
-
 Route::middleware('guest')->group(function () {
+<<<<<<< HEAD
 
     // Login
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -41,85 +60,83 @@ Route::middleware('guest')->group(function () {
 
     // Register
     Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
+=======
+    Route::get('/login',  [AuthController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+
+    Route::get('/register',  [AuthController::class, 'showRegisterForm'])->name('register');
+>>>>>>> clone
     Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 });
 
-
 /*
 |--------------------------------------------------------------------------
-| LOGOUT (Yêu cầu login)
+| LOGOUT
 |--------------------------------------------------------------------------
 */
-
 Route::post('/logout', [AuthController::class, 'logout'])
     ->middleware('auth')
     ->name('logout');
 
-
 /*
 |--------------------------------------------------------------------------
-| CUSTOMER AREA (Yêu cầu login)
-| - Chỉnh sửa profile
-| - Đổi mật khẩu
-| - Xóa tài khoản
-| - Sau này thêm booking cũng đặt trong đây
+| CUSTOMER AREA
 |--------------------------------------------------------------------------
 */
-
 Route::middleware('auth')->group(function () {
 
-    // Profile
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    // PROFILE
+    Route::get('/profile',           [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::post('/profile',          [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.update_password');
+    Route::delete('/profile/delete', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Đổi mật khẩu
-    Route::post('/profile/password', [ProfileController::class, 'updatePassword'])
-        ->name('profile.update_password');
+    // BOOKING
+    Route::get('/bookings',           [BookingController::class, 'index'])->name('bookings.index');
+    Route::get('/bookings/create',    [BookingController::class, 'create'])->name('bookings.create');
+    Route::post('/bookings',          [BookingController::class, 'store'])->name('bookings.store');
+    Route::get('/bookings/{booking}', [BookingController::class, 'show'])->name('bookings.show');
+    Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
 
-    // Xóa tài khoản
-    Route::delete('/profile/delete', [ProfileController::class, 'destroy'])
-        ->name('profile.destroy');
+    // PAYMENT
+    Route::get('/payment/{booking}', [PaymentController::class, 'showPaymentPage'])
+        ->name('payment.page');
 
-    // Booking (để đây sau này bro bổ sung)
-    // Route::resource('bookings', BookingController::class)->except(['create']);
+    Route::post('/payment/{booking}/vnpay', [PaymentController::class, 'redirectToVnpay'])
+        ->name('payment.vnpay');
 
+<<<<<<< HEAD
     // Booking (customer)
     Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
     Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
     Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
     Route::get('/bookings/{booking_id}', [BookingController::class, 'show'])->name('bookings.show');
     Route::post('/bookings/{booking_id}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
+=======
+    Route::get('/payment/vnpay/return', [PaymentController::class, 'vnpayReturn'])
+        ->name('payment.vnpay.return');
+>>>>>>> clone
 });
-
 
 /*
 |--------------------------------------------------------------------------
-| ADMIN AREA 
-| - Dashboard
-| - CRUD Room Types, Rooms, Amenities, Services
-| - Quản lý Users (chỉ xem + set role)
-| - CRUD RoomType Images (nested)
+| ADMIN AREA
 |--------------------------------------------------------------------------
 */
-
 Route::prefix('admin')
     ->name('admin.')
     ->middleware(['auth', IsAdmin::class])
     ->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'index'])
-            ->name('dashboard');
 
-        // Room Types
+        // DASHBOARD
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+        // MASTER DATA
         Route::resource('room-types', RoomTypeController::class);
-
-        // Rooms
         Route::resource('rooms', RoomController::class);
-
-        // Amenities
         Route::resource('amenities', AmenityController::class);
-
-        // Services
         Route::resource('services', ServiceController::class);
+<<<<<<< HEAD
         // Events
         Route::resource('events', EventController::class);
         // Gallery
@@ -127,54 +144,74 @@ Route::prefix('admin')
         // Users (chỉ index, edit, update role)
         Route::resource('users', UserController::class)
             ->only(['index', 'edit', 'update']);
+=======
 
-        // Room Type Images (nested)
-        Route::prefix('room-types/{room_type_id}')->group(function () {
+        Route::resource('users', UserController::class)->only(['index', 'edit', 'update']);
+>>>>>>> clone
 
-            Route::get('images', [RoomTypeImageController::class, 'index'])
-                ->name('room-types.images.index');
-
-            Route::get('images/create', [RoomTypeImageController::class, 'create'])
-                ->name('room-types.images.create');
-
-            Route::post('images', [RoomTypeImageController::class, 'store'])
-                ->name('room-types.images.store');
-
-            Route::get('images/{image_id}/edit', [RoomTypeImageController::class, 'edit'])
-                ->name('room-types.images.edit');
-
-            Route::put('images/{image_id}', [RoomTypeImageController::class, 'update'])
-                ->name('room-types.images.update');
-
-            Route::delete('images/{image_id}', [RoomTypeImageController::class, 'destroy'])
-                ->name('room-types.images.destroy');
+        Route::prefix('room-types/{room_type}')->group(function () {
+            Route::resource('images', RoomTypeImageController::class);
         });
+<<<<<<< HEAD
         // BOOKINGS (Admin)
         Route::get('bookings', [AdminBookingController::class, 'index'])
             ->name('bookings.index');
+=======
+>>>>>>> clone
 
-        Route::get('bookings/{booking_id}', [AdminBookingController::class, 'show'])
+        // BOOKINGS
+        Route::get('/bookings', [BookingAdminController::class, 'index'])->name('bookings.index');
+        Route::get('/bookings/paid', [BookingAdminController::class, 'paid'])->name('bookings.paid');
+        Route::get('/bookings/in-use', [BookingAdminController::class, 'inUse'])->name('bookings.in_use');
+        Route::get('/bookings/checkedout', [BookingAdminController::class, 'checkedout'])->name('bookings.checkedout');
+
+        Route::get('/bookings/{booking}', [BookingAdminController::class, 'show'])
             ->name('bookings.show');
 
-        // Chuyển sang paid
-        Route::post('bookings/{booking_id}/mark-paid', [AdminBookingController::class, 'markPaid'])
-            ->name('bookings.markPaid');
+        /*
+        |--------------------------------------------------------------------------
+        | CHECK-IN (ĐÚNG – KHÔNG LỖI)
+        |--------------------------------------------------------------------------
+        */
+        Route::get('/bookings/{booking}/checkin', [AdminCheckinController::class, 'show'])
+            ->name('bookings.checkin');
 
-        // Gán phòng
-        Route::post('bookings/{booking_id}/assign-rooms', [AdminBookingController::class, 'assignRooms'])
-            ->name('bookings.assignRooms');
+        Route::post('/bookings/{booking}/checkin', [AdminCheckinController::class, 'checkin'])
+            ->name('bookings.checkin.confirm');
 
-        // Dịch vụ phát sinh
-        Route::post('bookings/{booking_id}/service-charges', [AdminBookingController::class, 'addServiceCharge'])
-            ->name('bookings.serviceCharges.add');
+        /*
+        |--------------------------------------------------------------------------
+        | GUEST MANAGEMENT
+        |--------------------------------------------------------------------------
+        */
+        Route::get('/bookings/{booking}/guests', [AdminGuestController::class, 'index'])
+            ->name('bookings.guests');
 
-        Route::delete('bookings/{booking_id}/service-charges/{service_charge_id}', [AdminBookingController::class, 'deleteServiceCharge'])
-            ->name('bookings.serviceCharges.delete');
+        Route::post('/bookings/{booking}/guests', [AdminGuestController::class, 'store'])
+            ->name('bookings.guests.store');
 
-        // Penalty
-        Route::post('bookings/{booking_id}/penalties', [AdminBookingController::class, 'addPenalty'])
-            ->name('bookings.penalties.add');
+        /*
+        |--------------------------------------------------------------------------
+        | IN-STAY (SERVICE / DAMAGE)
+        |--------------------------------------------------------------------------
+        */
+        Route::post('/bookings/{booking}/add-service', [AdminServiceController::class, 'addService'])
+            ->name('bookings.service');
 
-        Route::delete('bookings/{booking_id}/penalties/{penalty_id}', [AdminBookingController::class, 'deletePenalty'])
-            ->name('bookings.penalties.delete');
+        Route::post('/bookings/{booking}/add-damage', [AdminServiceController::class, 'addDamage'])
+            ->name('bookings.damage');
+
+        /*
+        |--------------------------------------------------------------------------
+        | CHECK-OUT
+        |--------------------------------------------------------------------------
+        */
+        Route::get('/bookings/{booking}/checkout', [BookingAdminController::class, 'checkoutPage'])
+            ->name('bookings.checkout.page');
+
+        Route::post('/bookings/{booking}/checkout', [AdminCheckoutController::class, 'checkout'])
+            ->name('bookings.checkout.confirm');
+
+        // DAMAGE TYPES
+        Route::resource('damage-types', DamageTypeController::class);
     });

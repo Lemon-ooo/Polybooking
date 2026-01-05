@@ -1,4 +1,5 @@
 <?php
+<<<<<<< HEAD
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -15,10 +16,30 @@ class Payment extends Model
         'amount',
         'method',
         'status',
+=======
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Payment extends Model
+{
+    protected $fillable = [
+        'booking_id',
+        'transaction_no',
+        'bank_code',
+        'amount',
+        'status',
+        'paid_at',
+>>>>>>> clone
     ];
 
     public function booking()
     {
         return $this->belongsTo(Booking::class, 'booking_id', 'booking_id');
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> clone
