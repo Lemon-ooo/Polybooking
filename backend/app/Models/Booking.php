@@ -18,8 +18,8 @@ class Booking extends Model
     // ================== BOOKING STATUS ==================
     public const STATUS_PENDING_PAYMENT = 'pending_payment';
     public const STATUS_PAID            = 'paid';
-    public const STATUS_CHECKED_IN      = 'checked_in';
-    public const STATUS_CHECKED_OUT     = 'checked_out';
+    public const STATUS_CHECK_IN      = 'check_in';
+    public const STATUS_CHECK_OUT     = 'check_out';
     public const STATUS_CANCELED        = 'canceled';
 
     /**
@@ -45,7 +45,7 @@ class Booking extends Model
         return $this->hasMany(
             BookingItem::class,
             'booking_id',
-            'booking_id'
+            'id'
         );
     }
     // User đặt booking
@@ -84,11 +84,11 @@ class Booking extends Model
 
     public function isCheckedIn(): bool
     {
-        return $this->status === self::STATUS_CHECKED_IN;
+        return $this->status === self::STATUS_CHECK_IN;
     }
 
     public function isCheckedOut(): bool
     {
-        return $this->status === self::STATUS_CHECKED_OUT;
+        return $this->status === self::STATUS_CHECK_OUT;
     }
 }

@@ -5,97 +5,103 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 
-// Models
+/*
+|--------------------------------------------------------------------------
+| MODELS
+|--------------------------------------------------------------------------
+*/
 use App\Models\Booking;
 use App\Models\Payment;
+use App\Models\ServiceInvoice;
+use App\Models\DamageInvoice;
+use App\Models\Penalty;
+use App\Models\AssignedRoom;
 
+/*
+|--------------------------------------------------------------------------
+| PaymentController
+|--------------------------------------------------------------------------
+| DÙNG CHUNG CHO:
+| 1. Thanh toán BOOKING ban đầu (prepaid)
+| 2. Thanh toán CHECK_OUT (service + damage + penalty)
+|--------------------------------------------------------------------------
+*/
 class PaymentController extends Controller
 {
     /* =========================================================
-     * POST /api/payments/vnpay/create
-     * Tạo URL thanh toán VNPAY
+     * 1. TẠO VNPAY – THANH TOÁN BOOKING BAN ĐẦU
+     * POST /api/payments/vnpay/booking
      * ========================================================= */
-   public function createVnpay(Request $request)
-{
-    $booking = Booking::findOrFail($request->booking_id);
+    public function createVnpayBooking(Request $request)
+    {
+        $data = $request->validate([
+            'booking_id' => 'required|exists:bookings,id'
+        ]);
 
-    $vnp_TmnCode    = config('vnpay.tmn_code');
-    $vnp_HashSecret = config('vnpay.hash_secret');
-    $vnp_Url        = config('vnpay.url');
-    $vnp_Returnurl = config('vnpay.return_url');
+        $booking = Booking::findOrFail($data['booking_id']);
 
-    $vnp_TxnRef = (string) $booking->id; 
-    $vnp_Amount = $booking->total_price * 100;   
+        // SỐ TIỀN THANH TOÁN = tiền đặt phòng ban đầu
+        $amount = $booking->total_price;
 
-    $vnp_Params = [
-        'vnp_Version'   => '2.1.0',
-        'vnp_Command'   => 'pay',
-        'vnp_TmnCode'   => $vnp_TmnCode,
-        'vnp_Amount'    => $vnp_Amount,
-        'vnp_CurrCode'  => 'VND',
-        'vnp_TxnRef'    => $vnp_TxnRef,
-        'vnp_OrderInfo' => 'Thanh toan booking #' . $booking->booking_id,
-        'vnp_OrderType' => 'other',
-        'vnp_Locale'    => 'vn',
-        'vnp_ReturnUrl' => $vnp_Returnurl,
-        'vnp_IpAddr'    => request()->ip(),
-        'vnp_CreateDate'=> date('YmdHis'),
-    ];
-
-    ksort($vnp_Params);
-
-    $hashData = '';
-    foreach ($vnp_Params as $key => $value) {
-        $hashData .= $key . '=' . $value . '&';
+        return $this->buildVnpayUrl(
+            'BOOKING',
+            $booking->id,
+            $amount
+        );
     }
-    $hashData = rtrim($hashData, '&');
-
-    $vnpSecureHash = hash_hmac('sha512', $hashData, $vnp_HashSecret);
-
-    $vnp_Params['vnp_SecureHash'] = $vnpSecureHash;
-
-    $paymentUrl = $vnp_Url . '?' . http_build_query($vnp_Params);
-
-    return response()->json([
-        'success' => true,
-        'payment_url' => $paymentUrl
-    ]);
-}
-
 
     /* =========================================================
+     * 2. TẠO VNPAY – THANH TOÁN CHECKOUT
+     * POST /api/payments/vnpay/checkout
+     * ========================================================= */
+    public function createVnpayCheckout(Request $request)
+    {
+        $data = $request->validate([
+            'booking_id' => 'required|exists:bookings,id',
+            'amount'     => 'required|integer|min:0'
+        ]);
+
+        // amount được truyền từ AdminCheckoutController (final_total)
+        return $this->buildVnpayUrl(
+            'CHECKOUT',
+            $data['booking_id'],
+            $data['amount']
+        );
+    }
+
+    /* =========================================================
+     * 3. CALLBACK VNPAY (DÙNG CHUNG)
      * GET /api/payments/vnpay/callback
-     * VNPAY redirect về
      * ========================================================= */
     public function vnpayCallback(Request $request)
     {
+        /* ---------- 1. VERIFY SIGNATURE ---------- */
         $vnp_HashSecret = config('vnpay.hash_secret');
         $inputData = $request->all();
 
-        $vnp_SecureHash = $inputData['vnp_SecureHash'] ?? null;
+        $secureHash = $inputData['vnp_SecureHash'] ?? null;
         unset($inputData['vnp_SecureHash'], $inputData['vnp_SecureHashType']);
 
         ksort($inputData);
         $hashData = urldecode(http_build_query($inputData));
         $calculatedHash = hash_hmac('sha512', $hashData, $vnp_HashSecret);
 
-        if ($calculatedHash !== $vnp_SecureHash) {
-            return $this->error(
-                'INVALID_SIGNATURE',
-                'Chữ ký không hợp lệ',
-                400
-            );
+        if ($secureHash !== $calculatedHash) {
+            return $this->error('INVALID_SIGNATURE', 'Chữ ký không hợp lệ');
         }
 
-        // Parse booking id
+        /* ---------- 2. PARSE TXN REF ---------- */
+        // Format: BOOKING_{id}_{time} | CHECKOUT_{id}_{time}
         $txnRef = $request->vnp_TxnRef ?? '';
-        preg_match('/BOOKING_(\d+)_/', $txnRef, $matches);
-        $bookingId = $matches[1] ?? null;
+        preg_match('/^(BOOKING|CHECKOUT)_(\d+)_/', $txnRef, $matches);
 
-        if (!$bookingId) {
-            return $this->error('INVALID_TXN_REF', 'Không xác định được booking');
+        $type      = $matches[1] ?? null;
+        $bookingId = $matches[2] ?? null;
+
+        if (!$type || !$bookingId) {
+            return $this->error('INVALID_TXN_REF', 'TxnRef không hợp lệ');
         }
 
         $booking = Booking::find($bookingId);
@@ -103,68 +109,110 @@ class PaymentController extends Controller
             return $this->error('BOOKING_NOT_FOUND', 'Booking không tồn tại');
         }
 
-        // Chỉ xử lý 1 lần
-        if ($booking->status === 'paid') {
-            return $this->success([
+        /* ---------- 3. PAYMENT FAIL ---------- */
+        if ($request->vnp_ResponseCode !== '00') {
+
+            Payment::create([
                 'booking_id' => $booking->id,
-                'status'     => 'paid'
+                'method'     => 'vnpay',
+                'amount'     => $request->vnp_Amount / 100,
+                'status'     => 'failed',
+                'raw_data'   => json_encode($request->all())
             ]);
+
+            return $this->error('PAYMENT_FAILED', 'Thanh toán không thành công');
         }
 
-        // Thành công
-        if ($request->vnp_ResponseCode === '00') {
-            DB::beginTransaction();
-            try {
-                Payment::create([
-                    'booking_id' => $booking->id,
-                    'method'     => 'vnpay',
-                    'amount'     => $request->vnp_Amount / 100,
-                    'status'     => 'success',
-                    'paid_at'    => now(),
-                    'raw_data'   => json_encode($request->all())
-                ]);
+        /* ---------- 4. PAYMENT SUCCESS ---------- */
+        DB::transaction(function () use ($type, $booking, $request) {
 
+            Payment::create([
+                'booking_id' => $booking->id,
+                'method'     => 'vnpay',
+                'amount'     => $request->vnp_Amount / 100,
+                'status'     => 'success',
+                'paid_at'    => now(),
+                'raw_data'   => json_encode($request->all())
+            ]);
+
+            /* ===== BOOKING PAYMENT ===== */
+            if ($type === 'BOOKING') {
                 $booking->update(['status' => 'paid']);
-
-                DB::commit();
-
-                return $this->success([
-                    'booking_id' => $booking->id,
-                    'status'     => 'paid'
-                ]);
-
-            } catch (\Exception $e) {
-                DB::rollBack();
-                return $this->error('PAYMENT_SAVE_FAILED', 'Lỗi lưu thanh toán');
             }
-        }
 
-        // Thất bại
-        Payment::create([
+            /* ===== CHECKOUT PAYMENT ===== */
+            if ($type === 'CHECKOUT') {
+
+                // bắt buộc đã confirm checkout
+                if (!Cache::get("checkout_confirmed_{$booking->id}")) {
+                    throw new \Exception('Checkout chưa được xác nhận');
+                }
+
+                // đóng booking
+                $booking->update(['status' => 'check_out']);
+
+                // mở lại phòng
+                AssignedRoom::where('booking_id', $booking->id)
+                    ->update(['status' => 'available']);
+
+                Cache::forget("checkout_confirmed_{$booking->id}");
+            }
+        });
+
+        return $this->success([
             'booking_id' => $booking->id,
-            'method'     => 'vnpay',
-            'amount'     => $request->vnp_Amount / 100,
-            'status'     => 'failed',
-            'raw_data'   => json_encode($request->all())
+            'type'       => $type,
+            'status'     => 'success'
         ]);
-
-        return $this->error(
-            'PAYMENT_FAILED',
-            'Thanh toán không thành công'
-        );
     }
 
     /* =========================================================
-     * HELPER RESPONSES
+     * PRIVATE – BUILD VNPAY URL (DÙNG CHUNG)
+     * ========================================================= */
+    private function buildVnpayUrl(string $type, int $bookingId, int $amount)
+    {
+        $vnp_TmnCode   = config('vnpay.tmn_code');
+        $vnp_HashSecret= config('vnpay.hash_secret');
+        $vnp_Url       = config('vnpay.url');
+        $vnp_Returnurl = config('vnpay.return_url');
+
+        $txnRef = $type . '_' . $bookingId . '_' . time();
+
+        $params = [
+            'vnp_Version'   => '2.1.0',
+            'vnp_Command'   => 'pay',
+            'vnp_TmnCode'   => $vnp_TmnCode,
+            'vnp_Amount'    => $amount * 100,
+            'vnp_CurrCode'  => 'VND',
+            'vnp_TxnRef'    => $txnRef,
+            'vnp_OrderInfo' => $type . ' PAYMENT booking #' . $bookingId,
+            'vnp_OrderType' => 'billpayment',
+            'vnp_Locale'    => 'vn',
+            'vnp_ReturnUrl' => $vnp_Returnurl,
+            'vnp_IpAddr'    => request()->ip(),
+            'vnp_CreateDate'=> date('YmdHis'),
+        ];
+
+        ksort($params);
+
+        $hashData = urldecode(http_build_query($params));
+        $secureHash = hash_hmac('sha512', $hashData, $vnp_HashSecret);
+
+        return response()->json([
+            'success' => true,
+            'payment_url' => $vnp_Url . '?' . http_build_query($params) . '&vnp_SecureHash=' . $secureHash
+        ]);
+    }
+
+    /* =========================================================
+     * RESPONSE HELPERS
      * ========================================================= */
     private function success($data, $status = 200)
     {
         return response()->json([
             'success' => true,
             'data'    => $data,
-            'meta'    => [
-                'timestamp' => now()->toISOString()
-            ]
+            'meta'    => ['timestamp' => now()->toISOString()]
         ], $status);
     }
 
@@ -172,19 +220,7 @@ class PaymentController extends Controller
     {
         return response()->json([
             'success' => false,
-            'error' => [
-                'code'    => $code,
-                'message' => $message
-            ]
+            'error'   => ['code' => $code, 'message' => $message]
         ], $status);
-    }
-
-    private function unauthenticated()
-    {
-        return $this->error(
-            'UNAUTHENTICATED',
-            'Token không hợp lệ hoặc đã hết hạn',
-            401
-        );
     }
 }

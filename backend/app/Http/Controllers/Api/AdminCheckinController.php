@@ -22,7 +22,7 @@ class AdminCheckinController extends Controller
     {
         /* ================= AUTH (ADMIN) ================= */
         $user = $request->user();
-        if (!$user || !$user->is_admin) {
+        if (!$user || !$user->role=='admin') {
             return $this->error(
                 'FORBIDDEN',
                 'Bạn không có quyền thực hiện thao tác này',
@@ -33,11 +33,11 @@ class AdminCheckinController extends Controller
         /* ================= VALIDATION ================= */
         try {
             $validated = $request->validate([
-                'guests' => 'required|array|min:1',
+                'room_id' => 'required|exists:rooms,room_id',
 
+                'guests' => 'required|array|min:1',
                 'guests.*.name' => 'required|string|max:255',
-                'guests.*.age'       => 'required|integer|min:0',
-                'guests.*.room_id'   => 'required|exists:rooms,room_id',
+                'guests.*.age'  => 'required|integer|min:0',
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return $this->validationError($e->errors());
@@ -62,85 +62,67 @@ class AdminCheckinController extends Controller
 
         /* ================= CHECK ROOM COUNT ================= */
         $requiredRooms = $booking->items->sum('quantity');
-        $inputRooms    = collect($validated['guests'])
-                            ->pluck('room_id')
-                            ->unique()
-                            ->count();
-
-        if ($requiredRooms !== $inputRooms) {
+        if ($requiredRooms < 1) {
             return $this->error(
                 'ROOM_COUNT_MISMATCH',
-                'Số phòng gán không khớp với booking'
+                'Booking này không phải đặt 1 phòng'
             );
         }
 
-        /* ================= TRANSACTION ================= */
         DB::beginTransaction();
         try {
-            foreach ($validated['guests'] as $guest) {
+            /* ================= LOCK ROOM ================= */
+            $room = Room::lockForUpdate()
+                ->where('room_id', $validated['room_id'])
+                ->first();
 
-                // 🔒 Lock phòng
-                $room = Room::lockForUpdate()
-                    ->where('room_id', $guest['room_id'])
-                    ->first();
-
-                if (!$room) {
-                    throw new \Exception('ROOM_NOT_FOUND');
-                }
-
-                if ($room->status !== 'available') {
-                    throw new \Exception('ROOM_NOT_AVAILABLE');
-                }
-
-                // ✅ Lưu guest
-                BookingGuest::create([
-                    'booking_id' => $booking->booking_id,
-                    'room_id'    => $room->room_id,
-                    'name'  => $guest['name'],
-                    'age'        => $guest['age'],
-                    'checked_in' => true,
-                ]);
-
-                // ✅ Gán phòng cho booking (1 lần / phòng)
-                AssignedRoom::firstOrCreate(
-                    [
-                        'booking_id' => $booking->booking_id,
-                        'room_id'    => $room->room_id,
-                    ],
-                    [
-                        'check_in_at' => now(),
-                    ]
-                );
-
-                // ✅ Đổi trạng thái phòng
-                $room->update(['status' => 'occupied']);
+            if (!$room || $room->room_status !== 'available') {
+                throw new \Exception('ROOM_NOT_AVAILABLE');
             }
 
-            // ✅ Đổi trạng thái booking
-            $booking->update(['status' => 'checked_in']);
+            /* ================= ASSIGN ROOM ================= */
+            AssignedRoom::create([
+                'booking_id'    => $booking->id,
+                'room_id'       => $room->room_id,
+                'room_type_id'  => $room->room_type_id,
+                'check_in'      => $booking->check_in,
+                'check_out'     => $booking->check_out,
+                'status'        => 'check_in',
+                'checked_in_at' => now(),
+            ]);
+
+            /* ================= SAVE GUESTS ================= */
+            foreach ($validated['guests'] as $guest) {
+                \App\Models\BookingGuest::create([
+                    'booking_id' => $booking->id,
+                    'name'       => $guest['name'],
+                    'age'        => $guest['age'],
+                    'verified'   => true,
+                ]);
+            }
+
+            /* ================= UPDATE ROOM + BOOKING ================= */
+            $room->update(['room_status' => 'đang sử dụng']);
+            $booking->update(['status' => Booking::STATUS_CHECK_IN]);
 
             DB::commit();
 
             return $this->success([
-                'booking_id' => $booking->booking_id,
-                'status'     => 'checked_in',
+                'booking_id' => $booking->id,
+                'room_id'    => $room->room_id,
+                'guests'     => count($validated['guests']),
+                'status'     => 'checked_in'
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
 
-            $code = match ($e->getMessage()) {
-                'ROOM_NOT_AVAILABLE' => 'ROOM_NOT_AVAILABLE',
-                'ROOM_NOT_FOUND'     => 'ROOM_NOT_FOUND',
-                default              => 'CHECKIN_FAILED'
-            };
-
             return $this->error(
-                $code,
-                'Không thể thực hiện check-in'
+                'CHECKIN_FAILED',
+                $e->getMessage()
             );
         }
     }
+
 
     /* ================= HELPERS ================= */
 
