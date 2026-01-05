@@ -111,37 +111,34 @@ export const ClientGallery: React.FC = () => {
   return (
     <div className="client-gallery-container">
       {/* HERO BANNER */}
-      <div className="gallery-hero-banner">
-        <div className="hero-overlay" />
-        <div className="hero-content">
-          <h1 className="hero-title">Gallery</h1>
-        </div>
-      </div>
+<div className="gallery-hero">
+  <div className="gallery-hero-content">
+    <h1 className="gallery-hero-title">Gallery</h1>
+  </div>
+</div>
 
       {/* GALLERY CONTENT */}
       <div className="gallery-content-section">
         <div className="gallery-container-wrapper">
           {/* PAGE HEADER */}
-          <div className="gallery-page-header">
-            <Title level={1} className="gallery-page-title">
-              THƯ VIỆN HÌNH ẢNH
-            </Title>
-            <Text type="secondary" className="gallery-subtitle">
-              {total} ảnh
-            </Text>
-          </div>
+         <div className="gallery-page-header">
+  <Title level={2} className="gallery-page-title">
+    Image library
+  </Title>
+  <Text className="gallery-subtitle">{total} Image</Text>
+</div>
 
           {isLoading ? (
             <div className="gallery-loading">
               <Spin size="large" />
               <Text style={{ marginTop: 16, display: "block", color: "#666" }}>
-                Đang tải hình ảnh...
+              Loading images...
               </Text>
             </div>
           ) : galleries.length === 0 ? (
             <div className="gallery-empty">
               <Text type="secondary" style={{ fontSize: 16 }}>
-                Chưa có hình ảnh nào.
+                No images are available yet.
               </Text>
             </div>
           ) : (

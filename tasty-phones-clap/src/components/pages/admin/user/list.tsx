@@ -1,32 +1,28 @@
 import React, { useState } from "react";
-import { List, useTable, DateField } from "@refinedev/antd";
-import { useDelete, useUpdate } from "@refinedev/core";
+import {
+  List,
+  useTable,
+  DateField,
+} from "@refinedev/antd";
+import { useUpdate } from "@refinedev/core";
 import {
   Table,
   Tag,
   Typography,
-  Alert,
   Button,
-  Tooltip,
-  Popconfirm,
   message,
   Space,
   Select,
   Modal,
+  Spin,
 } from "antd";
-import { useNavigate } from "react-router-dom";
-import {
-  DeleteOutlined,
-  EyeOutlined,
-  UserOutlined,
-  EditOutlined,
-} from "@ant-design/icons";
+import { EditOutlined, UserOutlined } from "@ant-design/icons";
 
 const { Text } = Typography;
 
 interface User {
-  id: number;
-  name: string;
+  user_id: number;
+  user_name: string;
   email: string;
   role: "admin" | "customer";
   created_at: string;
@@ -34,88 +30,47 @@ interface User {
 }
 
 const getRoleColor = (role: string) => {
-  switch (role) {
-    case "admin":
-      return "red";
-    case "customer":
-      return "blue";
-    default:
-      return "default";
-  }
+  return role === "admin" ? "red" : role === "customer" ? "blue" : "default";
 };
 
 const getRoleLabel = (role: string) => {
-  switch (role) {
-    case "admin":
-      return "Quản trị viên";
-    case "customer":
-      return "Khách hàng";
-    default:
-      return role;
-  }
+  return role === "admin" ? "Quản trị viên" : role === "customer" ? "Khách hàng" : role;
 };
 
 export const UserList: React.FC = () => {
-  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedRole, setSelectedRole] = useState<string>("");
 
-  const { tableProps, queryResult } = useTable<User>({
+  const { tableProps, tableQueryResult } = useTable<User>({
     resource: "users",
+    pagination: {
+      mode: "server",
+      pageSize: 20,
+    },
   });
-  const { data, isLoading, isError, error } = queryResult || {};
 
-  const { mutate: deleteUser } = useDelete<User>();
+  const data = tableQueryResult?.data;
+  const isLoading = tableQueryResult?.isLoading ?? false;
+  const isError = tableQueryResult?.isError ?? false;
+  const error = tableQueryResult?.error;
+  const refetch = tableQueryResult?.refetch ?? (() => {});
+
   const { mutate: updateUser, isLoading: isUpdating } = useUpdate<User>();
 
-  const handleDelete = (id: number) => {
-    if (!id) {
-      message.error("ID không hợp lệ");
-      return;
-    }
-
-    deleteUser(
-      { resource: "users", id: String(id) },
-      {
-        onSuccess: () => {
-          message.success("Xóa tài khoản thành công");
-          queryResult?.refetch?.();
-        },
-        onError: (err) => {
-          console.error("Error deleting user:", err);
-          message.error("Xóa tài khoản thất bại");
-        },
-      }
-    );
-  };
-
   const openRoleModal = (user: User) => {
-    console.log("Opening modal for user:", user);
-    if (!user || !user.id) {
-      message.error("Dữ liệu người dùng không hợp lệ");
-      return;
-    }
     setSelectedUser(user);
     setSelectedRole(user.role);
     setIsModalOpen(true);
   };
 
   const handleRoleUpdate = () => {
-    if (!selectedUser || !selectedUser.id) {
-      message.error("Không tìm thấy thông tin người dùng");
-      return;
-    }
-
-    if (!selectedRole) {
-      message.error("Vui lòng chọn quyền");
-      return;
-    }
+    if (!selectedUser || !selectedRole) return;
 
     updateUser(
       {
         resource: "users",
-        id: String(selectedUser.id),
+        id: String(selectedUser.user_id),
         values: { role: selectedRole },
       },
       {
@@ -123,55 +78,74 @@ export const UserList: React.FC = () => {
           message.success("Cập nhật quyền thành công");
           setIsModalOpen(false);
           setSelectedUser(null);
-          queryResult?.refetch?.();
+          refetch();
         },
-        onError: (err) => {
-          console.error("Error updating user:", err);
+        onError: () => {
           message.error("Cập nhật quyền thất bại");
         },
       }
     );
   };
 
+  if (isLoading) {
+    return (
+      <div style={{ textAlign: "center", padding: "100px" }}>
+        <Spin size="large" />
+        <div style={{ marginTop: 16 }}>Đang tải danh sách tài khoản...</div>
+      </div>
+    );
+  }
+
   if (isError) {
     return (
-      <Alert
-        message="Lỗi tải dữ liệu"
-        description={error?.message || "Không thể kết nối đến API."}
-        type="error"
-        showIcon
-      />
+      <div style={{ padding: "24px" }}>
+        <Alert
+          message="Lỗi tải dữ liệu"
+          description={error?.message || "Không thể kết nối đến server."}
+          type="error"
+          showIcon
+          action={<Button onClick={() => refetch()}>Thử lại</Button>}
+        />
+      </div>
     );
   }
 
   return (
     <List>
       <div style={{ marginBottom: 16, display: "flex", alignItems: "center" }}>
-        <Button onClick={() => queryResult?.refetch?.()} loading={isLoading}>
+        <Button onClick={() => refetch()} loading={isLoading}>
           Làm mới dữ liệu
         </Button>
         <Text style={{ marginLeft: 16 }}>
-          Tổng số: {data?.meta?.total || 0} tài khoản
+          Tổng số: {data?.total || tableProps.dataSource?.length || 0} tài khoản
         </Text>
       </div>
 
       <Table
         {...tableProps}
-        rowKey="id"
+        rowKey="user_id"
         loading={isLoading}
         dataSource={tableProps.dataSource || []}
-        scroll={{ x: 1000 }}
+        scroll={{ x: "max-content" }}
+        pagination={
+          tableProps.pagination === false
+            ? false
+            : {
+                ...tableProps.pagination,
+                total: data?.total,
+              }
+        }
       >
-        <Table.Column dataIndex="id" title="ID" sorter width={80} />
+        <Table.Column dataIndex="user_id" title="ID" sorter width={80} />
 
         <Table.Column
-          dataIndex="name"
+          dataIndex="user_name"
           title="Họ tên"
           sorter
-          render={(name: string) => (
+          render={(user_name: string) => (
             <Space>
               <UserOutlined />
-              <span>{name}</span>
+              <span>{user_name || "Chưa đặt tên"}</span>
             </Space>
           )}
         />
@@ -181,11 +155,6 @@ export const UserList: React.FC = () => {
           title="Email"
           sorter
           ellipsis
-          render={(email: string) => (
-            <Tooltip title={email}>
-              <span>{email}</span>
-            </Tooltip>
-          )}
         />
 
         <Table.Column
@@ -204,43 +173,25 @@ export const UserList: React.FC = () => {
         <Table.Column
           dataIndex="created_at"
           title="Ngày tạo"
-          render={(value: string) => <DateField value={value} />}
+          render={(value: string) => <DateField value={value} format="DD/MM/YYYY" />}
           sorter
         />
 
+        {/* Chỉ giữ lại nút Thay đổi quyền */}
         <Table.Column
           title="Hành động"
           fixed="right"
-          width={180}
+          width={100}
           render={(_, record: User) => (
             <Space>
-              <Tooltip title="Chi tiết">
-                <Button
-                  icon={<EyeOutlined />}
-                  onClick={() => navigate(`/admin/users/show/${record.id}`)}
-                />
-              </Tooltip>
-
-              <Tooltip title="Thay đổi quyền">
-                <Button
-                  type="primary"
-                  icon={<EditOutlined />}
-                  onClick={() => openRoleModal(record)}
-                />
-              </Tooltip>
-
-              <Tooltip title="Xóa">
-                <Popconfirm
-                  title="Bạn có chắc muốn xóa tài khoản này không?"
-                  description="Hành động này không thể hoàn tác!"
-                  onConfirm={() => handleDelete(record.id)}
-                  okText="Xóa"
-                  cancelText="Hủy"
-                  okButtonProps={{ danger: true }}
-                >
-                  <Button danger icon={<DeleteOutlined />} />
-                </Popconfirm>
-              </Tooltip>
+              <Button
+                type="primary"
+                icon={<EditOutlined />}
+                onClick={() => openRoleModal(record)}
+                size="small"
+              >
+                Quyền
+              </Button>
             </Space>
           )}
         />
@@ -251,7 +202,7 @@ export const UserList: React.FC = () => {
         title={
           <Space>
             <EditOutlined />
-            {`Thay đổi quyền: ${selectedUser?.name || ""}`}
+            {`Thay đổi quyền: ${selectedUser?.user_name || selectedUser?.email || ""}`}
           </Space>
         }
         open={isModalOpen}
@@ -277,10 +228,7 @@ export const UserList: React.FC = () => {
             <div>
               <Text type="secondary">Quyền hiện tại:</Text>
               <div style={{ marginTop: 8 }}>
-                <Tag
-                  color={getRoleColor(selectedUser?.role || "")}
-                  style={{ fontSize: 14, padding: "4px 12px" }}
-                >
+                <Tag color={getRoleColor(selectedUser?.role || "")} style={{ fontSize: 14, padding: "4px 12px" }}>
                   {getRoleLabel(selectedUser?.role || "")}
                 </Tag>
               </div>
@@ -296,14 +244,8 @@ export const UserList: React.FC = () => {
                 onChange={(value) => setSelectedRole(value)}
                 size="large"
                 options={[
-                  {
-                    value: "admin",
-                    label: "Quản trị viên",
-                  },
-                  {
-                    value: "customer",
-                    label: "Khách hàng",
-                  },
+                  { value: "admin", label: "Quản trị viên" },
+                  { value: "customer", label: "Khách hàng" },
                 ]}
               />
             </div>
