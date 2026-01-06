@@ -1,9 +1,5 @@
 <?php
 
-use App\Http\Controllers\Api\AdminCheckinController;
-use App\Http\Controllers\Api\AdminCheckoutController;
-use App\Http\Controllers\Api\AdminPenaltyController;
-use App\Http\Controllers\Api\AdminServiceController;
 use App\Http\Controllers\Api\AmenityController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BookingController;
@@ -19,7 +15,6 @@ use App\Http\Controllers\Api\RoomTypeImageController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ChatbotController;
 use App\Http\Controllers\Api\DashboardController;
-use App\Http\Controllers\Api\PaymentController;
 
 Route::get('/bookings/my', [BookingController::class, 'myBookings'])->middleware('auth:sanctum');
 
@@ -55,64 +50,13 @@ Route::middleware('auth:sanctum')->prefix('client')->group(function () {
 });
 
 
-/* =========================================================
-| BOOKING – CUSTOMER
-========================================================= */
-
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/bookings', [BookingController::class, 'store']);
-});
-Route::get('my/bookings',             [BookingController::class, 'myBookings'])->middleware('auth:sanctum');
-Route::get('bookings/{id}',           [BookingController::class, 'show'])->middleware('auth:sanctum');
-Route::post('bookings/{id}/cancel',   [BookingController::class, 'cancel'])->middleware('auth:sanctum');
-
-
-/* =========================================================
-| PAYMENT – VNPAY
-========================================================= */
-
-Route::post('payments/vnpay/create',   [PaymentController::class, 'createVnpay'])->middleware('auth:sanctum');
-Route::get('payments/vnpay/callback',  [PaymentController::class, 'vnpayCallback']);
-
-
-/* =========================================================
-| ADMIN – CHECK-IN
-========================================================= */
-
-Route::post(
-    'bookings/{id}/checkin',
-    [AdminCheckinController::class, 'checkin']
-)->middleware('auth:sanctum');
-
-
-/* =========================================================
-| ADMIN – SERVICE (DỊCH VỤ PHÁT SINH)
-========================================================= */
-
-Route::post(
-    'bookings/{id}/services',
-    [AdminServiceController::class, 'addService']
-)->middleware('auth:sanctum');
-
-
-/* =========================================================
-| ADMIN – PENALTY (HƯ HỎNG / PHẠT)
-========================================================= */
-
-Route::post(
-    'bookings/{id}/penalties',
-    [AdminPenaltyController::class, 'addPenalty']
-)->middleware('auth:sanctum');
-
-
-/* =========================================================
-| ADMIN – CHECK-OUT (FINAL ACCOUNTING)
-========================================================= */
-
-Route::post(
-    'bookings/{id}/checkout',
-    [AdminCheckoutController::class, 'checkout']
-)->middleware('auth:sanctum');
+Route::post('/bookings', [BookingController::class, 'store']);
+Route::get('/bookings', [BookingController::class, 'index']);
+Route::get('/bookings/{id}', [BookingController::class, 'show']);
+Route::put('/bookings/{booking}/assign-rooms', [BookingController::class, 'assignRooms']);
+Route::put('/bookings/{booking}/add-services', [BookingController::class, 'addServices']);
+Route::put('/bookings/{booking}/add-penalties', [BookingController::class, 'addPenalties']);
+Route::put('/bookings/{booking}/confirm-payment', [BookingController::class, 'confirmPayment']);
 
 //chatbot
 Route::post('/chatbot', [ChatbotController::class, 'handle']);

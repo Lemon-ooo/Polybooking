@@ -1,9 +1,5 @@
 <?php
 
-use App\Http\Controllers\Api\AdminCheckinController;
-use App\Http\Controllers\Api\AdminCheckoutController;
-use App\Http\Controllers\Api\AdminPenaltyController;
-use App\Http\Controllers\Api\AdminServiceController;
 use App\Http\Controllers\Api\AmenityController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BookingController;
@@ -19,7 +15,6 @@ use App\Http\Controllers\Api\RoomTypeImageController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ChatbotController;
 use App\Http\Controllers\Api\DashboardController;
-use App\Http\Controllers\Api\PaymentController;
 
 Route::get('/bookings/my', [BookingController::class, 'myBookings'])->middleware('auth:sanctum');
 
@@ -80,7 +75,7 @@ Route::get('payments/vnpay/callback',  [PaymentController::class, 'vnpayCallback
 ========================================================= */
 
 Route::post(
-    'bookings/{id}/checkin',
+    'admin/bookings/{id}/checkin',
     [AdminCheckinController::class, 'checkin']
 )->middleware('auth:sanctum');
 
@@ -90,7 +85,7 @@ Route::post(
 ========================================================= */
 
 Route::post(
-    'bookings/{id}/services',
+    'admin/bookings/{id}/services',
     [AdminServiceController::class, 'addService']
 )->middleware('auth:sanctum');
 
@@ -100,7 +95,7 @@ Route::post(
 ========================================================= */
 
 Route::post(
-    'bookings/{id}/penalties',
+    'admin/bookings/{id}/penalties',
     [AdminPenaltyController::class, 'addPenalty']
 )->middleware('auth:sanctum');
 
@@ -110,7 +105,7 @@ Route::post(
 ========================================================= */
 
 Route::post(
-    'bookings/{id}/checkout',
+    'admin/bookings/{id}/checkout',
     [AdminCheckoutController::class, 'checkout']
 )->middleware('auth:sanctum');
 
