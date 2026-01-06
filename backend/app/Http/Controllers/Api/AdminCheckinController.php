@@ -10,21 +10,19 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Booking;
 use App\Models\Room;
 use App\Models\AssignedRoom;
+use App\Models\BookingGuest;
 
 class AdminCheckinController extends Controller
 {
-    /* =========================================================
-     * POST /api/admin/bookings/{id}/checkin
-     * Admin thực hiện check-in
-     * ========================================================= */
-    public function checkin(Request $request, $id)
+    /**
+     * POST /api/admin/bookings/{booking_id}/checkin
+     * Check-in + nhập thông tin guest + gán phòng
+     */
+    public function checkin(Request $request, $bookingId)
     {
-        /**
-         * 1. AUTH + ROLE CHECK (ADMIN)
-         * Giả định User có field is_admin = true
-         */
+        /* ================= AUTH (ADMIN) ================= */
         $user = $request->user();
-        if (!$user || !$user->is_admin) {
+        if (!$user || !$user->role=='admin') {
             return $this->error(
                 'FORBIDDEN',
                 'Bạn không có quyền thực hiện thao tác này',
@@ -32,22 +30,21 @@ class AdminCheckinController extends Controller
             );
         }
 
-        /**
-         * 2. VALIDATE INPUT
-         */
+        /* ================= VALIDATION ================= */
         try {
             $validated = $request->validate([
-                'rooms' => 'required|array|min:1',
-                'rooms.*.room_id' => 'required|exists:rooms,id'
+                'room_id' => 'required|exists:rooms,room_id',
+
+                'guests' => 'required|array|min:1',
+                'guests.*.name' => 'required|string|max:255',
+                'guests.*.age'  => 'required|integer|min:0',
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return $this->validationError($e->errors());
         }
 
-        /**
-         * 3. LOAD BOOKING
-         */
-        $booking = Booking::with('items')->find($id);
+        /* ================= LOAD BOOKING ================= */
+        $booking = Booking::with('items')->find($bookingId);
         if (!$booking) {
             return $this->error(
                 'BOOKING_NOT_FOUND',
@@ -63,72 +60,72 @@ class AdminCheckinController extends Controller
             );
         }
 
-        /**
-         * 4. CHECK SỐ LƯỢNG PHÒNG
-         */
+        /* ================= CHECK ROOM COUNT ================= */
         $requiredRooms = $booking->items->sum('quantity');
-        $inputRooms    = count($validated['rooms']);
-
-        if ($requiredRooms !== $inputRooms) {
+        if ($requiredRooms < 1) {
             return $this->error(
                 'ROOM_COUNT_MISMATCH',
-                'Số phòng gán không khớp với booking'
+                'Booking này không phải đặt 1 phòng'
             );
         }
 
-        /**
-         * 5. TRANSACTION CHECK-IN
-         */
         DB::beginTransaction();
         try {
-            foreach ($validated['rooms'] as $item) {
-                $room = Room::lockForUpdate()->find($item['room_id']);
+            /* ================= LOCK ROOM ================= */
+            $room = Room::lockForUpdate()
+                ->where('room_id', $validated['room_id'])
+                ->first();
 
-                if (!$room) {
-                    throw new \Exception('ROOM_NOT_FOUND');
-                }
-
-                if ($room->status !== 'available') {
-                    throw new \Exception('ROOM_NOT_AVAILABLE');
-                }
-
-                AssignedRoom::create([
-                    'booking_id' => $booking->id,
-                    'room_id'    => $room->id,
-                    'check_in_at'=> now()
-                ]);
-
-                $room->update(['status' => 'occupied']);
+            if (!$room || $room->room_status !== 'available') {
+                throw new \Exception('ROOM_NOT_AVAILABLE');
             }
 
-            $booking->update(['status' => 'checked_in']);
+            /* ================= ASSIGN ROOM ================= */
+            AssignedRoom::create([
+                'booking_id'    => $booking->id,
+                'room_id'       => $room->room_id,
+                'room_type_id'  => $room->room_type_id,
+                'check_in'      => $booking->check_in,
+                'check_out'     => $booking->check_out,
+                'status'        => 'check_in',
+                'checked_in_at' => now(),
+            ]);
+
+            /* ================= SAVE GUESTS ================= */
+            foreach ($validated['guests'] as $guest) {
+                \App\Models\BookingGuest::create([
+                    'booking_id' => $booking->id,
+                    'name'       => $guest['name'],
+                    'age'        => $guest['age'],
+                    'verified'   => true,
+                ]);
+            }
+
+            /* ================= UPDATE ROOM + BOOKING ================= */
+            $room->update(['room_status' => 'đang sử dụng']);
+            $booking->update(['status' => Booking::STATUS_CHECK_IN]);
 
             DB::commit();
 
             return $this->success([
                 'booking_id' => $booking->id,
+                'room_id'    => $room->room_id,
+                'guests'     => count($validated['guests']),
                 'status'     => 'checked_in'
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
 
-            $code = match ($e->getMessage()) {
-                'ROOM_NOT_AVAILABLE' => 'ROOM_NOT_AVAILABLE',
-                'ROOM_NOT_FOUND'     => 'ROOM_NOT_FOUND',
-                default              => 'CHECKIN_FAILED'
-            };
-
             return $this->error(
-                $code,
-                'Không thể thực hiện check-in'
+                'CHECKIN_FAILED',
+                $e->getMessage()
             );
         }
     }
 
-    /* =========================================================
-     * HELPER RESPONSES (Refile-safe)
-     * ========================================================= */
+
+    /* ================= HELPERS ================= */
+
     private function success($data, $status = 200)
     {
         return response()->json([

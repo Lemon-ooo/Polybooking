@@ -99,19 +99,44 @@ Route::post(
 | ADMIN – PENALTY (HƯ HỎNG / PHẠT)
 ========================================================= */
 
+// 1️⃣ Thêm thiệt hại
 Route::post(
-    'bookings/{id}/penalties',
-    [AdminPenaltyController::class, 'addPenalty']
+    'admin/bookings/{id}/damages',
+    [AdminCheckoutController::class, 'addDamage']
 )->middleware('auth:sanctum');
 
-
-/* =========================================================
-| ADMIN – CHECK-OUT (FINAL ACCOUNTING)
-========================================================= */
-
+// 2️⃣ Thêm penalty (trả phòng trễ)
 Route::post(
+<<<<<<< HEAD
+    'bookings/{id}/penalties',
+    [AdminPenaltyController::class, 'addPenalty']
+=======
+    'admin/bookings/{id}/penalties',
+    [AdminCheckoutController::class, 'addPenalty']
+>>>>>>> clone
+)->middleware('auth:sanctum');
+
+// 3️⃣ Xác nhận checkout (bắt buộc)
+Route::post(
+<<<<<<< HEAD
     'bookings/{id}/checkout',
     [AdminCheckoutController::class, 'checkout']
+=======
+    'admin/bookings/{id}/checkout/confirm',
+    [AdminCheckoutController::class, 'confirmCheckout']
+)->middleware('auth:sanctum');
+
+// 4️⃣ Xem tổng tiền checkout
+Route::get(
+    'admin/bookings/{id}/checkout/summary',
+    [AdminCheckoutController::class, 'summary']
+)->middleware('auth:sanctum');
+
+// 5️⃣ Thanh toán checkout (cash / vnpay)
+Route::post(
+    'admin/bookings/{id}/checkout/pay',
+    [AdminCheckoutController::class, 'pay']
+>>>>>>> clone
 )->middleware('auth:sanctum');
 
 //chatbot

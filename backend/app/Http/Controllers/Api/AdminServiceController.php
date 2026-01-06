@@ -6,119 +6,90 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-// Models
 use App\Models\Booking;
 use App\Models\Service;
+use App\Models\ServiceInvoice;
 use App\Models\ServiceCharge;
 
 class AdminServiceController extends Controller
 {
-    /* =========================================================
-     * POST /api/admin/bookings/{id}/services
-     * Ghi nhận dịch vụ phát sinh
-     * ========================================================= */
-    public function addService(Request $request, $id)
+    /**
+     * Thêm dịch vụ cho booking (sau check-in)
+     */
+    public function addService(Request $request, $bookingId)
     {
-        $user = $request->user();
-        if (!$user || !$user->is_admin) {
-            return $this->forbidden();
+        // 1. Lấy booking
+        $booking = Booking::findOrFail($bookingId);
+
+        // 2. Kiểm tra trạng thái booking
+        if ($booking->status !== Booking::STATUS_CHECK_IN) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Booking chưa check-in, không thể thêm dịch vụ'
+            ], 400);
         }
 
-        try {
-            $validated = $request->validate([
-                'services' => 'required|array|min:1',
-                'services.*.service_id' => 'required|exists:services,id',
-                'services.*.quantity'   => 'required|integer|min:1'
-            ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return $this->validationError($e->errors());
-        }
-
-        $booking = Booking::find($id);
-        if (!$booking) {
-            return $this->error('BOOKING_NOT_FOUND', 'Không tìm thấy booking', 404);
-        }
-
-        if ($booking->status !== 'checked_in') {
-            return $this->error(
-                'INVALID_BOOKING_STATUS',
-                'Chỉ ghi nhận dịch vụ khi khách đang lưu trú'
-            );
-        }
+        // 3. Validate input
+        $validated = $request->validate([
+            'services' => 'required|array|min:1',
+            'services.*.service_id' => 'required|exists:services,service_id',
+            'services.*.quantity' => 'required|integer|min:1'
+        ]);
 
         DB::beginTransaction();
+
         try {
-            $lines = [];
+            // 4. Lấy hoặc tạo service_invoice
+            $invoice = ServiceInvoice::firstOrCreate(
+                ['booking_id' => $booking->id],
+                ['total_amount' => 0]
+            );
 
+            $addedTotal = 0;
+
+            // 5. Thêm từng dịch vụ
             foreach ($validated['services'] as $item) {
-                $service = Service::find($item['service_id']);
-                if (!$service) {
-                    throw new \Exception('SERVICE_NOT_FOUND');
-                }
 
-                $lineTotal = $service->price * $item['quantity'];
+                $service = Service::where('service_id', $item['service_id'])->firstOrFail();
 
-                $charge = ServiceCharge::create([
-                    'booking_id'  => $booking->id,
-                    'service_id'  => $service->id,
-                    'quantity'    => $item['quantity'],
-                    'unit_price'  => $service->price,
-                    'total_price' => $lineTotal
+                $price  = (int) $service->service_price;
+                $qty    = $item['quantity'];
+                $amount = $price * $qty;
+
+                ServiceCharge::create([
+                    'service_invoice_id' => $invoice->id,
+                    'service_id'         => $service->service_id,
+                    'quantity'           => $qty,
+                    'price'              => $price,
+                    'amount'             => $amount
                 ]);
 
-                $lines[] = [
-                    'service' => $service->name,
-                    'quantity'=> $item['quantity'],
-                    'total'   => $lineTotal
-                ];
+                $addedTotal += $amount;
             }
+
+            // 6. Cập nhật tổng tiền invoice
+            $invoice->increment('total_amount', $addedTotal);
 
             DB::commit();
 
-            return $this->success([
-                'booking_id' => $booking->id,
-                'services'   => $lines
+            return response()->json([
+                'success' => true,
+                'message' => 'Thêm dịch vụ thành công',
+                'data' => [
+                    'service_invoice_id' => $invoice->id,
+                    'added_amount'       => $addedTotal,
+                    'total_amount'       => $invoice->fresh()->total_amount
+                ]
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->error('SERVICE_ADD_FAILED', 'Không thể ghi nhận dịch vụ');
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi khi thêm dịch vụ',
+                'error'   => $e->getMessage()
+            ], 500);
         }
-    }
-
-    /* ================= HELPERS ================= */
-
-    private function success($data, $status = 200)
-    {
-        return response()->json([
-            'success' => true,
-            'data'    => $data,
-            'meta'    => ['timestamp' => now()->toISOString()]
-        ], $status);
-    }
-
-    private function error($code, $message, $status = 400)
-    {
-        return response()->json([
-            'success' => false,
-            'error'   => ['code' => $code, 'message' => $message]
-        ], $status);
-    }
-
-    private function forbidden()
-    {
-        return $this->error('FORBIDDEN', 'Không có quyền truy cập', 403);
-    }
-
-    private function validationError($details)
-    {
-        return response()->json([
-            'success' => false,
-            'error' => [
-                'code'    => 'VALIDATION_ERROR',
-                'message' => 'Dữ liệu không hợp lệ',
-                'details' => $details
-            ]
-        ], 422);
     }
 }

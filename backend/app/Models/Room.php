@@ -45,7 +45,7 @@ class Room extends Model
      */
     public function isAvailable(): bool
     {
-        return $this->room_status === 'trống';
+        return $this->room_status === 'available';
         // nếu DB dùng 'available' thì đổi lại cho khớp
     }
 }
