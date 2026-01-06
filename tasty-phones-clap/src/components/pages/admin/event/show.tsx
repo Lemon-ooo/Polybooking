@@ -58,7 +58,7 @@ export const EventShow: React.FC = () => {
   return (
     <Card
       style={{ maxWidth: 10000, margin: "0 auto", marginTop: 32, padding: 24 }}
-      title={<Title level={2}>Chi tiết Sự kiện: {event.name}</Title>}
+      title={<Title level={2}>Chi tiết Sự kiện</Title>}
       extra={
         <Link to="/admin/events">
           {/* Cập nhật đường dẫn quay lại */}
@@ -74,16 +74,17 @@ export const EventShow: React.FC = () => {
       <Divider dashed /> */}
 
       <Paragraph>
-        <Text strong>Tên sự kiện:</Text> {event.name}
-      </Paragraph>
-
-      <Paragraph>
-        <Text strong>Địa điểm:</Text> <Tag color="blue">{event.location}</Tag>
+        <Text strong>Tên sự kiện:</Text> {event.title}
       </Paragraph>
 
       <Paragraph>
         <Text strong>Ngày diễn ra:</Text>{" "}
-        <Tag color="volcano">{dayjs(event.date).format(DATETIME_FORMAT)}</Tag>
+        <Tag color="volcano">{dayjs(event.start_date).format(DATETIME_FORMAT)}</Tag>
+      </Paragraph>
+      
+      <Paragraph>
+        <Text strong>Ngày kết thúc:</Text>{" "}
+        <Tag color="volcano">{dayjs(event.end_date).format(DATETIME_FORMAT)}</Tag>
       </Paragraph>
       <Divider dashed />
 
@@ -101,10 +102,10 @@ export const EventShow: React.FC = () => {
       <div style={{ marginTop: 16 }}>
         <Text strong>Ảnh Bìa Sự kiện:</Text>
         <br />
-        {event.image ? (
+        {event.banner ? (
           <img
-            src={`http://localhost:8000/storage/${event.image}`}
-            alt={event.name}
+            src={`http://localhost:8000/storage/${event.banner}`}
+            alt={event.banner}
             style={{
               width: 400,
               borderRadius: 10,

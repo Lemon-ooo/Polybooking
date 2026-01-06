@@ -1,93 +1,92 @@
-import React from "react";
-import { Create, useForm } from "@refinedev/antd";
-import { Form, Input, DatePicker, Switch, Upload, Button } from "antd";
+import React, { useState } from "react";
+import { Create } from "@refinedev/antd";
+import { Form, Input, DatePicker, Upload, message, Button } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
-import dayjs from "dayjs";
+import { RcFile, UploadFile } from "antd/es/upload/interface";
+import axiosInstance from "../../../../providers/data/axiosConfig";
+import { useNavigate } from "react-router-dom";
 
-export const EventCreate: React.FC = () => {
-  const { formProps, saveButtonProps } = useForm({
-    resource: "events",
-    redirect: "list",
+export const EventCreate = () => {
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const navigate = useNavigate();
 
-    transformValues: (values) => {
-      const formData = new FormData();
-      formData.append("title", values.title);
-      formData.append("description", values.description || "");
-      formData.append(
-        "start_date",
-        dayjs(values.start_date).format("YYYY-MM-DD")
-      );
-      formData.append("end_date", dayjs(values.end_date).format("YYYY-MM-DD"));
-      formData.append("is_active", values.is_active ? "1" : "0");
+  const handleFinish = async (values: any) => {
+    if (!fileList[0]?.originFileObj) {
+      message.error("Vui lòng chọn banner!");
+      return;
+    }
 
-      // 🎯 Append file đúng cách
-      if (values.banner instanceof Array && values.banner.length > 0) {
-        const file = values.banner[0].originFileObj;
-        if (file instanceof File) {
-          formData.append("banner", file);
-        }
+    const formData = new FormData();
+    formData.append("title", values.title.trim());
+    formData.append("description", values.description || "");
+    formData.append("start_date", values.start_date.format("YYYY-MM-DD"));
+    formData.append("end_date", values.end_date.format("YYYY-MM-DD"));
+    formData.append("banner", fileList[0].originFileObj as RcFile);
+
+    try {
+      await axiosInstance.post("/events", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      message.success("Thêm sự kiện thành công!");
+      navigate("/admin/events");
+    } catch (error: any) {
+      const errs = error.response?.data?.errors;
+      if (errs) {
+        Object.values(errs).forEach((msg: any) =>
+          message.error(Array.isArray(msg) ? msg[0] : msg)
+        );
+      } else {
+        message.error("Thêm sự kiện thất bại!");
       }
-
-      return formData;
-    },
-  });
+    }
+  };
 
   return (
-    <Create title="Tạo sự kiện mới" saveButtonProps={saveButtonProps}>
-      <Form {...formProps} layout="vertical">
-        <Form.Item
-          label="Tiêu đề"
-          name="title"
-          rules={[{ required: true, message: "Không được bỏ trống" }]}
-        >
-          <Input placeholder="Nhập tên sự kiện" />
+    <Create title="Thêm sự kiện" footerButtons={() => null}>
+      <Form layout="vertical" onFinish={handleFinish}>
+        <Form.Item label="Tiêu đề" name="title" rules={[{ required: true }]}>
+          <Input />
         </Form.Item>
 
         <Form.Item label="Mô tả" name="description">
-          <Input.TextArea rows={3} placeholder="Mô tả sự kiện" />
+          <Input.TextArea rows={4} />
         </Form.Item>
 
-        <Form.Item
-          label="Banner"
-          name="banner"
-          valuePropName="fileList"
-          getValueFromEvent={(e) => {
-            if (Array.isArray(e)) {
-              return e;
-            }
-            return e?.fileList;
-          }}
-        >
-          <Upload beforeUpload={() => false} maxCount={1}>
-            <Button icon={<UploadOutlined />}>Chọn ảnh</Button>
+        <Form.Item label="Banner" required>
+          <Upload
+            listType="picture-card"
+            maxCount={1}
+            fileList={fileList}
+            onChange={({ fileList }) => setFileList(fileList.slice(-1))}
+            beforeUpload={() => false}
+            accept="image/*"
+          >
+            {fileList.length === 0 && (
+              <div>
+                <UploadOutlined />
+                <div style={{ marginTop: 8 }}>Tải lên</div>
+              </div>
+            )}
           </Upload>
         </Form.Item>
 
-        <Form.Item
-          label="Ngày bắt đầu"
-          name="start_date"
-          rules={[{ required: true, message: "Chọn ngày bắt đầu" }]}
-        >
-          <DatePicker format="YYYY-MM-DD" style={{ width: "100%" }} />
+        <Form.Item label="Ngày bắt đầu" name="start_date" rules={[{ required: true }]}>
+          <DatePicker style={{ width: "100%" }} />
         </Form.Item>
 
-        <Form.Item
-          label="Ngày kết thúc"
-          name="end_date"
-          rules={[{ required: true, message: "Chọn ngày kết thúc" }]}
-        >
-          <DatePicker format="YYYY-MM-DD" style={{ width: "100%" }} />
+        <Form.Item label="Ngày kết thúc" name="end_date" rules={[{ required: true }]}>
+          <DatePicker style={{ width: "100%" }} />
         </Form.Item>
 
-        <Form.Item
-          name="is_active"
-          label="Kích hoạt sự kiện"
-          valuePropName="checked"
-          initialValue={true}
-        >
-          <Switch checkedChildren="Bật" unCheckedChildren="Tắt" />
-        </Form.Item>
+       <Form.Item style={{ textAlign: "right" }}>
+  <Button type="primary" htmlType="submit">
+    Thêm sự kiện
+  </Button>
+</Form.Item>
+
       </Form>
     </Create>
   );
 };
+
+

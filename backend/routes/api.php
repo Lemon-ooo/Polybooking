@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\UserController;
 Route::get('/bookings/my', [BookingController::class, 'myBookings'])->middleware('auth:sanctum');
 
 Route::apiResource('amenities', AmenityController::class);
+<<<<<<< HEAD
 Route::apiResource('bookings', BookingController::class);
 // Route::apiResource('events', EventController::class);
    Route::get('events', [EventController::class, 'index']);
@@ -36,6 +37,29 @@ Route::apiResource('bookings', BookingController::class);
     Route::patch('events/{id}/toggle', [EventController::class, 'toggleStatus']);
 
 
+=======
+<<<<<<< HEAD
+Route::apiResource('events', EventController::class);
+Route::apiResource('services', ServiceController::class);
+
+
+/* =========================================================
+| ROOMS & ROOM TYPES
+========================================================= */
+
+=======
+Route::apiResource('bookings', BookingController::class);
+// Route::apiResource('events', EventController::class);
+   Route::get('events', [EventController::class, 'index']);
+    Route::post('events', [EventController::class, 'store']);
+    Route::get('events/{id}', [EventController::class, 'show']);
+    Route::put('events/{id}', [EventController::class, 'update']);
+    Route::delete('events/{id}', [EventController::class, 'destroy']);
+    Route::patch('events/{id}/toggle', [EventController::class, 'toggleStatus']);
+
+
+>>>>>>> 0dcb666059564721355394cfa000b2f2dade0bf9
+>>>>>>> toanndph49547
 Route::apiResource('rooms', RoomController::class);
 Route::apiResource('galleries', GalleryController::class);
 Route::apiResource('roomimages', RoomImageController::class);
@@ -92,15 +116,20 @@ Route::post('payments/vnpay/create',   [PaymentController::class, 'createVnpay']
 Route::get('payments/vnpay/callback',  [PaymentController::class, 'vnpayCallback']);
 
 
+<<<<<<< HEAD
 /* =========================================================
 | ADMIN – CHECK-IN
 ========================================================= */
+=======
+
+>>>>>>> 0dcb666059564721355394cfa000b2f2dade0bf9
 
 Route::post(
     'admin/bookings/{id}/checkin',
     [AdminCheckinController::class, 'checkin']
 )->middleware('auth:sanctum');
 
+<<<<<<< HEAD
 
 /* =========================================================
 | ADMIN – SERVICE (DỊCH VỤ PHÁT SINH)
@@ -130,8 +159,14 @@ Route::post(
     'admin/bookings/{id}/checkout',
     [AdminCheckoutController::class, 'checkout']
 )->middleware('auth:sanctum');
+<<<<<<< HEAD
 
 //chatbot
 Route::post('/chatbot', [ChatbotController::class, 'handle']);
 
 Route::get('/admin/dashboard', [DashboardController::class, 'stats']);
+=======
+=======
+Route::get('/admin/dashboard', [DashboardController::class, 'stats']);
+>>>>>>> 0dcb666059564721355394cfa000b2f2dade0bf9
+>>>>>>> toanndph49547
