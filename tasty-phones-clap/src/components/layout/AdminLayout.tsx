@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Layout,
   Menu,
@@ -6,7 +6,6 @@ import {
   Button,
   Space,
   Badge,
-  message,
   Dropdown,
   Spin,
 } from "antd";
@@ -16,7 +15,6 @@ import {
   BookOutlined,
   TeamOutlined,
   DollarOutlined,
-  CalendarOutlined,
   SettingOutlined,
   UserOutlined,
   LogoutOutlined,
@@ -25,7 +23,6 @@ import {
   CommentOutlined,
   BellOutlined,
   ScheduleOutlined,
-  AppstoreOutlined,
   FolderOpenOutlined,
   ToolOutlined,
   CustomerServiceOutlined,
@@ -39,29 +36,38 @@ export const AdminLayout: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
   const { data: user, isLoading } = useGetIdentity<{
     id: number;
     name: string;
     email: string;
-    avatar: string;
-    role: string;
+    avatar?: string;
+    role?: string;
   }>();
-  const { mutate: logout } = useLogout();
 
-  // 🚨 SỬA: Chỉ kiểm tra đơn giản, không redirect
-  useEffect(() => {
-    if (!isLoading && !user) {
-      console.log("❌ AdminLayout: No user, redirecting to login");
-      navigate("/login");
-    }
-  }, [user, isLoading, navigate]);
+  const { mutate: logout } = useLogout();
 
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
 
-  // 🚨 SỬA: Menu items - fix duplicate key "gallery"
+  // ✅ Chỉ hiển thị loading – KHÔNG redirect
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          height: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Spin size="large" />
+      </div>
+    );
+  }
+
   const menuItems = [
     { key: "dashboard", icon: <HomeOutlined />, label: "Dashboard" },
     { key: "room-types", icon: <ApartmentOutlined />, label: "Loại Phòng" },
@@ -78,7 +84,7 @@ export const AdminLayout: React.FC = () => {
 
   const userMenuItems = [
     { key: "profile", icon: <UserOutlined />, label: "Hồ sơ" },
-    { type: "divider", key: "divider" },
+    { type: "divider" as const },
     {
       key: "logout",
       icon: <LogoutOutlined />,
@@ -86,27 +92,6 @@ export const AdminLayout: React.FC = () => {
       onClick: handleLogout,
     },
   ];
-
-  // 🚨 THÊM: Hiển thị loading
-  if (isLoading) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-        }}
-      >
-        <Spin size="large" />
-      </div>
-    );
-  }
-
-  // 🚨 THÊM: Nếu không có user, không render layout
-  if (!user) {
-    return null;
-  }
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -132,7 +117,8 @@ export const AdminLayout: React.FC = () => {
         >
           {!collapsed && "PolyStay Admin"}
         </div>
-        {!collapsed && (
+
+        {!collapsed && user && (
           <div
             style={{
               padding: 16,
@@ -144,10 +130,13 @@ export const AdminLayout: React.FC = () => {
             <Avatar size={40} src={user.avatar} icon={<UserOutlined />} />
             <div>
               <div style={{ color: "#fff" }}>{user.name}</div>
-              <div style={{ fontSize: 12, color: "#aaa" }}>{user.role}</div>
+              <div style={{ fontSize: 12, color: "#aaa" }}>
+                {user.role || "admin"}
+              </div>
             </div>
           </div>
         )}
+
         <Menu
           theme="dark"
           mode="inline"
@@ -159,9 +148,12 @@ export const AdminLayout: React.FC = () => {
         />
       </Sider>
 
-      {/* Main layout */}
+      {/* Main */}
       <Layout
-        style={{ marginLeft: collapsed ? 80 : 240, transition: "all 0.2s" }}
+        style={{
+          marginLeft: collapsed ? 80 : 240,
+          transition: "all 0.2s",
+        }}
       >
         <Header
           style={{
@@ -194,7 +186,7 @@ export const AdminLayout: React.FC = () => {
             </Badge>
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
               <Avatar
-                src={user.avatar}
+                src={user?.avatar}
                 icon={<UserOutlined />}
                 style={{ cursor: "pointer" }}
               />

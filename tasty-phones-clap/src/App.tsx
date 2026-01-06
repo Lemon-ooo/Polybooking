@@ -51,7 +51,6 @@ import { EventEdit } from "./components/pages/admin/event/edit";
 import Amenities from "./components/pages/admin/amenities";
 
 import { RoomTypeList } from "./components/pages/admin/room-types/list";
-import { RoomTypeCreate } from "./components/pages/admin/room-types/create";
 import { RoomTypeEdit } from "./components/pages/admin/room-types/edit";
 import { RoomTypeShow } from "./components/pages/admin/room-types/show";
 import { RoomShow } from "./components/pages/admin/rooms/show";
@@ -60,8 +59,12 @@ import { AmenitiesShow } from "./components/pages/admin/amenities/show";
 import AdminBookingManagement from "./components/pages/admin/bookings";
 import MyBookings from "./components/pages/client/booking/MyBookings";
 import BookingDetail from "./components/pages/client/booking/BookingDetail";
+<<<<<<< HEAD
 import GalleryEdit from "./components/pages/admin/Gallery/edit";
 import { UserList } from "./components/pages/admin/user/list";
+=======
+import { ClientEventDetail } from "./components/pages/client/events/ClientEventDetail";
+>>>>>>> lamtangthanh
 
 // ======================================================
 // 🚀 APP CHÍNH - ĐÃ SỬA
@@ -111,6 +114,8 @@ export default function App() {
             <Route path="services/:id" element={<ServicesDetail />} />
             <Route path="galleries" element={<ClientGallery />} />
             <Route path="events" element={<ClientEvent />} />
+            <Route path="events/:id" element={<ClientEventDetail />} />
+
             <Route path="profile" element={<ProfileClient />} />
             <Route path="bookings" element={<ClientBooking />} />
             <Route path="my-bookings" element={<MyBookings />} />
@@ -141,7 +146,7 @@ export default function App() {
             {/* Room Types */}
             <Route path="room-types" element={<RoomTypeList />} />
             <Route path="room-types/show/:id" element={<RoomTypeShow />} />
-            <Route path="room-types/create" element={<RoomTypeCreate />} />
+            <Route path="room-types/create" element={<RoomCreate />} />
             <Route path="room-types/edit/:id" element={<RoomTypeEdit />} />
 
             {/* Amenities */}

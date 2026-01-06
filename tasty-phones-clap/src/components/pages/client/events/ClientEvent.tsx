@@ -1,59 +1,110 @@
 import React from "react";
-import { useTable } from "@refinedev/antd";
-import { Row, Col, Typography, Spin, Alert, Button, Card } from "antd";
+import { Row, Col, Typography, Card } from "antd";
 import { useNavigate } from "react-router-dom";
-
-import { EventType } from "../../../../interfaces/eventTypes";
 
 import "./ClientEvent.css";
 import "../../../../../src/assets/fonts/fonts.css";
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Paragraph } = Typography;
+
+/* =======================
+   EVENT TYPE
+======================= */
+interface EventType {
+  event_id: number;
+  event_name: string;
+  description: string;
+  event_image: string;
+  start_date: string;
+  end_date: string;
+  is_active: boolean;
+}
+
+/* =======================
+   FAKE EVENTS (6 ITEMS)
+======================= */
+const fakeEvents: EventType[] = [
+  {
+    event_id: 1,
+    event_name: "Luxury Wedding Ceremony",
+    description:
+      "Elegant wedding event with premium decoration and services.",
+    event_image:
+      "https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=800",
+    start_date: "2026-02-10",
+    end_date: "2026-02-11",
+    is_active: true,
+  },
+  {
+    event_id: 2,
+    event_name: "Corporate Business Meeting",
+    description:
+      "Professional meeting space with modern conference facilities.",
+    event_image:
+      "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800",
+    start_date: "2026-03-05",
+    end_date: "2026-03-05",
+    is_active: true,
+  },
+  {
+    event_id: 3,
+    event_name: "Annual Gala Dinner",
+    description:
+      "Classy gala dinner with fine dining and live entertainment.",
+    event_image:
+      "https://ngununggula.com/img/asset/YXNzZXRzL2FydGlzdHMvMjUwNV9uZ3VudW5nZ3VsYV9nYWxhX3I1Xy03MzU4LWVuaGFuY2VkLW5yLmpwZw==?w=2000&h=950&fit=crop&s=83007eaa696c46ce8da0d70cf5c1a36b",
+    start_date: "2026-04-18",
+    end_date: "2026-04-18",
+    is_active: true,
+  },
+  {
+    event_id: 4,
+    event_name: "Luxury Birthday Party",
+    description:
+      "Private birthday celebration with custom themes.",
+    event_image:
+      "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800",
+    start_date: "2026-05-12",
+    end_date: "2026-05-12",
+    is_active: true,
+  },
+  {
+    event_id: 5,
+    event_name: "Product Launch Event",
+    description:
+      "Impressive product launch with media coverage.",
+    event_image:
+      "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=800",
+    start_date: "2026-06-02",
+    end_date: "2026-06-02",
+    is_active: true,
+  },
+  {
+    event_id: 6,
+    event_name: "Private Cocktail Party",
+    description:
+      "Exclusive cocktail party with elegant atmosphere.",
+    event_image:
+      "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=800",
+    start_date: "2026-07-20",
+    end_date: "2026-07-20",
+    is_active: true,
+  },
+];
 
 export const ClientEvent: React.FC = () => {
   const navigate = useNavigate();
 
-  const { tableProps, tableQueryResult } = useTable<EventType>({
-    resource: "events",
-  });
-
-  const events = tableProps?.dataSource || [];
-  const isLoading = tableQueryResult?.isLoading;
-  const isError = tableQueryResult?.isError;
-  const error = tableQueryResult?.error;
-  const API_URL = "http://localhost:8000/storage/";
-
-  const getEventImage = (event: EventType) =>
-    event.event_image
-      ? `${API_URL}${event.event_image}`
-      : "https://images.unsplash.com/photo-1533174072545-7a46c2fe5e44?w=600&h=400&fit=crop"; // Ảnh mặc định cho sự kiện
+  const events = fakeEvents.filter((e) => e.is_active);
 
   const handleViewDetails = (eventId: number) => {
     navigate(`/client/events/${eventId}`);
     window.scrollTo(0, 0);
   };
 
-  if (isError) {
-    return (
-      <div style={{ padding: "80px 20px" }}>
-        <Alert
-          message="Lỗi tải dữ liệu"
-          description={error?.message || "Không thể kết nối đến server."}
-          type="error"
-          showIcon
-          action={
-            <Button size="small" onClick={() => tableQueryResult?.refetch()}>
-              Thử lại
-            </Button>
-          }
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="client-events-container">
-      {/* ================== HERO BANNER ================== */}
+      {/* HERO */}
       <div className="events-hero-banner">
         <div className="hero-overlay" />
         <div className="hero-content">
@@ -61,128 +112,111 @@ export const ClientEvent: React.FC = () => {
         </div>
       </div>
 
-      {/* ================== EVENT CARDS ================== */}
-      <section
-        className="featured-events-section"
-        style={{ padding: "40px 64px" }}
-      >
-        <div className="container">
-          <Title
-            level={2}
-            style={{
-              textAlign: "center",
-              marginBottom: 16,
-              fontFamily: "'Playfair Display', serif",
-              fontSize: 42,
-              color: "#000",
-            }}
-          >
-            Special Events
-          </Title>
+      {/* EVENTS */}
+      <section style={{ padding: "40px 56px" }}>
+        <Title
+          level={2}
+          style={{
+            textAlign: "center",
+            fontFamily: "'Playfair Display', serif",
+            fontSize: 38,
+            marginBottom: 8,
+          }}
+        >
+          Special Events
+        </Title>
 
-          <Paragraph
-            style={{
-              textAlign: "center",
-              marginBottom: 40,
-              color: "#000",
-              fontSize: 16,
-            }}
-          >
-            We organize professional meetings and memorable events.
-          </Paragraph>
+        <Paragraph
+          style={{
+            textAlign: "center",
+            marginBottom: 40,
+            fontSize: 15,
+          }}
+        >
+          Professional meetings & memorable experiences.
+        </Paragraph>
 
-          {isLoading ? (
-            <div style={{ textAlign: "center" }}>
-              <Spin size="large" />
-              <Text style={{ marginTop: 16, display: "block" }}>
-                Loading events...
-              </Text>
-            </div>
-          ) : events.length === 0 ? (
-            <div style={{ textAlign: "center" }}>
-              <Text type="secondary" style={{ fontSize: 16 }}>
-                No events available.
-              </Text>
-            </div>
-          ) : (
-            <Row gutter={[32, 32]} justify="center">
-              {events.map((event) => (
-                <Col xs={24} sm={12} md={8} lg={6} key={event.event_id}>
-                  <Card
-                    bodyStyle={{ padding: 0 }}
-                    hoverable
+        <Row gutter={[24, 24]} justify="center">
+          {events.map((event) => (
+            <Col xs={24} sm={12} md={8} key={event.event_id}>
+              <Card
+                hoverable
+                onClick={() => handleViewDetails(event.event_id)}
+                bodyStyle={{
+                  padding: 0,
+                  height: 320, // 👈 SMALLER CARD
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+                style={{
+                  borderRadius: 14,
+                  overflow: "hidden",
+                  boxShadow: "0 8px 22px rgba(0,0,0,0.12)",
+                }}
+              >
+                {/* IMAGE */}
+                <div style={{ height: 180, overflow: "hidden" }}>
+                  <img
+                    src={event.event_image}
+                    alt={event.event_name}
                     style={{
-                      borderRadius: 12,
-                      overflow: "hidden",
-                      background: "#fff",
-                      boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-                      cursor: "pointer",
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
                     }}
-                    onClick={() => handleViewDetails(event.event_id)} // Click card
-                  >
-                    <div
-                      style={{ width: "100%", height: 220, overflow: "hidden" }}
+                  />
+                </div>
+
+                {/* CONTENT */}
+                <div
+                  style={{
+                    padding: 16,
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <div>
+                    <h3
+                      style={{
+                        fontFamily: "'Playfair Display', serif",
+                        fontSize: 20,
+                        color: "#8a6e5b",
+                        marginBottom: 8,
+                      }}
                     >
-                      <img
-                        src={getEventImage(event)}
-                        alt={event.event_name}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                        }}
-                        onError={(e) =>
-                          ((e.target as HTMLImageElement).src =
-                            "https://images.unsplash.com/photo-1533174072545-7a46c2fe5e44?w=600&h=400&fit=crop")
-                        }
-                      />
-                    </div>
+                      {event.event_name}
+                    </h3>
 
-                    <div style={{ padding: "20px" }}>
-                      <h3
-                        style={{
-                          fontFamily: "'Playfair Display', serif",
-                          color: "#8a6e5b",
-                          fontSize: 22,
-                          marginBottom: 8,
-                        }}
-                      >
-                        {event.event_name}
-                      </h3>
-                      <p
-                        style={{
-                          color: "#444",
-                          fontSize: 14,
-                          lineHeight: 1.5,
-                          marginBottom: 16,
-                        }}
-                      >
-                        {event.description ||
-                          "An exclusive event not to be missed."}
-                      </p>
+                    <p
+                      style={{
+                        fontSize: 13,
+                        color: "#555",
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      {event.description}
+                    </p>
+                  </div>
 
-                      <div style={{ textAlign: "right" }}>
-                        <button
-                          style={{
-                            background: "transparent",
-                            border: "none",
-                            color: "#8a6e5b",
-                            fontSize: 14,
-                            fontWeight: 600,
-                            cursor: "pointer",
-                            textTransform: "uppercase",
-                          }}
-                        >
-                          EVENT DETAILS
-                        </button>
-                      </div>
-                    </div>
-                  </Card>
-                </Col>
-              ))}
-            </Row>
-          )}
-        </div>
+                  <div style={{ textAlign: "right", marginTop: 12 }}>
+                    <span
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: "#8a6e5b",
+                        letterSpacing: 1,
+                      }}
+                    >
+                      VIEW DETAILS →
+                    </span>
+                  </div>
+                </div>
+              </Card>
+            </Col>
+          ))}
+        </Row>
       </section>
     </div>
   );
