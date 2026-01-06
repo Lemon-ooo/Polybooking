@@ -46,7 +46,6 @@ import { GalleryShow } from "./components/pages/admin/Gallery/show";
 import { EventList } from "./components/pages/admin/event/list";
 import { EventCreate } from "./components/pages/admin/event/create";
 import { EventShow } from "./components/pages/admin/event/show";
-import { EventEdit } from "./components/pages/admin/event/edit";
 
 import Amenities from "./components/pages/admin/amenities";
 
@@ -62,6 +61,7 @@ import MyBookings from "./components/pages/client/booking/MyBookings";
 import BookingDetail from "./components/pages/client/booking/BookingDetail";
 import GalleryEdit from "./components/pages/admin/Gallery/edit";
 import { UserList } from "./components/pages/admin/user/list";
+import EventEdit from "./components/pages/admin/event/edit";
 
 // ======================================================
 // 🚀 APP CHÍNH - ĐÃ SỬA

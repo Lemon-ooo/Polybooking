@@ -101,9 +101,10 @@ const handleToggle = (id: number) => {
           Làm mới
         </Button>
 
-        <Text style={{ marginLeft: 16 }}>
-          Tổng số: {data?.meta?.total || 0} sự kiện
-        </Text>
+      <Text style={{ marginLeft: 16 }}>
+  Tổng số: {tableProps.pagination?.total || 0} sự kiện
+</Text>
+
       </div>
 
       <Table
