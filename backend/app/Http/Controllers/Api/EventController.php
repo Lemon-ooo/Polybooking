@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class EventController extends Controller
 {
@@ -42,39 +43,30 @@ class EventController extends Controller
      * GET /events
      */
     public function index(Request $request)
-{
-    $perPage = $request->get('pageSize', 10); // refine gửi pageSize
-    $page = $request->get('current', 1);     // refine gửi current
+    {
+        $perPage = $request->get('pageSize', 10);
+        $page = $request->get('current', 1);
 
-    $query = Event::query();
+        $query = Event::query();
 
-    // 🔍 Search (nếu cần)
-    if ($request->filled('search')) {
-        $query->where('title', 'like', '%' . $request->search . '%');
-    }
-
-    // ↕️ Sort
-    if ($request->filled('sorter')) {
-        $sorter = json_decode($request->sorter, true);
-        foreach ($sorter as $field => $order) {
-            $query->orderBy($field, $order === 'ascend' ? 'asc' : 'desc');
+        if ($request->filled('search')) {
+            $query->where('title', 'like', '%' . $request->search . '%');
         }
-    } else {
+
         $query->latest();
+
+        $events = $query->paginate($perPage, ['*'], 'page', $page);
+
+        return response()->json([
+            'data' => $events->items(),
+            'meta' => [
+                'total' => $events->total(),
+                'current_page' => $events->currentPage(),
+                'per_page' => $events->perPage(),
+                'last_page' => $events->lastPage(),
+            ],
+        ]);
     }
-
-    $events = $query->paginate($perPage, ['*'], 'page', $page);
-
-    return response()->json([
-        'data' => $events->items(),
-        'meta' => [
-            'total' => $events->total(),
-            'current_page' => $events->currentPage(),
-            'per_page' => $events->perPage(),
-            'last_page' => $events->lastPage(),
-        ],
-    ]);
-}
 
     /**
      * POST /events
@@ -84,10 +76,15 @@ class EventController extends Controller
         $data = $request->validate([
             'title'       => 'required|string|max:255',
             'description' => 'nullable|string',
-            'banner'      => 'nullable|string',
+            'banner'      => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'start_date'  => 'required|date',
             'end_date'    => 'required|date|after_or_equal:start_date',
         ]);
+
+        // 📸 Upload banner
+        if ($request->hasFile('banner')) {
+            $data['banner'] = $request->file('banner')->store('events', 'public');
+        }
 
         $event = Event::create($data);
 
@@ -115,14 +112,26 @@ class EventController extends Controller
     {
         $event = Event::findOrFail($id);
 
-        $event->update($request->only([
-            'title',
-            'description',
-            'banner',
-'start_date',
-            'end_date',
-            'is_active',
-        ]));
+        $data = $request->validate([
+            'title'       => 'sometimes|string|max:255',
+            'description' => 'nullable|string',
+            'banner'      => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'start_date'  => 'sometimes|date',
+            'end_date'    => 'sometimes|date|after_or_equal:start_date',
+            'is_active'   => 'sometimes|boolean',
+        ]);
+
+        // 📸 Update banner
+        if ($request->hasFile('banner')) {
+            // Xóa ảnh cũ
+            if ($event->banner) {
+                Storage::disk('public')->delete($event->banner);
+            }
+
+            $data['banner'] = $request->file('banner')->store('events', 'public');
+        }
+
+        $event->update($data);
 
         return response()->json([
             'data' => $event
@@ -135,6 +144,11 @@ class EventController extends Controller
     public function destroy($id)
     {
         $event = Event::findOrFail($id);
+
+        if ($event->banner) {
+            Storage::disk('public')->delete($event->banner);
+        }
+
         $event->delete();
 
         return response()->json([
