@@ -15,12 +15,14 @@ return new class extends Migration
         $table->unsignedBigInteger('room_type_id');
 
         $table->integer('quantity');
-        $table->integer('price');
+        $table->integer('base_price');
+        $table->integer('number_of_nights');
+        $table->integer('amount');
 
         $table->timestamps();
 
         $table->foreign('booking_id')
-              ->references('booking_id')
+              ->references('id')
               ->on('bookings')
               ->onDelete('cascade');
 

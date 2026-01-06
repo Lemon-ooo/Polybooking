@@ -126,7 +126,7 @@ class BookingController extends Controller
                 BookingItem::create([
                     'booking_id'   => $booking->id,
                     'room_type_id' => $roomType->room_type_id,
-                    'quantity'     => $item['quantity'],
+                    'quantity'     => $item['quantity'],    
                     'base_price'   => $roomType->base_price,
                     'number_of_nights' =>$booking->nights,
                     'amount' => $roomType->base_price * $item['quantity'] * $nights,

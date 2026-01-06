@@ -5,147 +5,226 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
-// Models
+/*
+|--------------------------------------------------------------------------
+| MODELS
+|--------------------------------------------------------------------------
+*/
 use App\Models\Booking;
+use App\Models\ServiceInvoice;
+use App\Models\DamageType;
+use App\Models\DamageInvoice;
+use App\Models\Penalty;
 use App\Models\AssignedRoom;
-use App\Models\Room;
-use App\Models\ServiceCharge;
-use App\Models\PenaltyCharge;
+use App\Http\Controllers\Api\PaymentController;
+
+/*
+|--------------------------------------------------------------------------
+| AdminCheckoutController
+|--------------------------------------------------------------------------
+| FULL CHECK-OUT FLOW (API-ONLY)
+|
+| 1. Thêm thiệt hại (0..n)
+| 2. Thêm penalty (trả phòng trễ)
+| 3. Xác nhận checkout (BẮT BUỘC)
+| 4. Xem tổng tiền
+| 5. Thanh toán:
+|    - CASH  -> checkout ngay
+|    - VNPAY -> gọi PaymentController
+| 6. Hoàn tất checkout + mở phòng
+|
+| KHÔNG xử lý booking payment ban đầu
+| KHÔNG sửa DB
+|--------------------------------------------------------------------------
+*/
 
 class AdminCheckoutController extends Controller
 {
     /* =========================================================
-     * POST /api/admin/bookings/{id}/checkout
-     * Admin check-out (final accounting)
+     * 1. ADD DAMAGE (0..n)
+     * POST /api/admin/bookings/{id}/damages
      * ========================================================= */
-    public function checkout(Request $request, $id)
+    public function addDamage(Request $request, $id)
     {
-        /**
-         * 1. AUTH + ROLE CHECK (ADMIN)
-         * Giả định User có field is_admin = true
-         */
-        $user = $request->user();
-        if (!$user || !$user->is_admin) {
-            return $this->forbidden();
+        $booking = Booking::findOrFail($id);
+
+        if (!in_array($booking->status, ['check_in', 'in_use'])) {
+            return response()->json(['success' => false, 'message' => 'Booking không hợp lệ'], 400);
         }
 
-        /**
-         * 2. LOAD BOOKING
-         */
-        $booking = Booking::find($id);
-        if (!$booking) {
-            return $this->error(
-                'BOOKING_NOT_FOUND',
-                'Không tìm thấy booking',
-                404
-            );
+        $data = $request->validate([
+            'damage_type_id' => 'required|exists:damage_types,id',
+            'image' => 'nullable|string'
+        ]);
+
+        $damageType = DamageType::findOrFail($data['damage_type_id']);
+
+        DamageInvoice::create([
+            'booking_id'     => $booking->id,
+            'damage_type_id' => $damageType->id,
+            'amount'         => $damageType->price,
+            'image'          => $data['image'] ?? null
+        ]);
+
+        // đảm bảo booking đang in_use
+        if ($booking->status === 'check_in') {
+            $booking->update(['status' => 'in_use']);
         }
 
-        if ($booking->status !== 'checked_in') {
-            return $this->error(
-                'INVALID_BOOKING_STATUS',
-                'Chỉ check-out khi booking đang lưu trú'
-            );
-        }
-
-        /**
-         * 3. TÍNH TOÁN TỔNG TIỀN
-         * - Tiền phòng: booking.total_price
-         * - Dịch vụ: sum(service_charges.total_price)
-         * - Phạt: sum(penalty_charges.amount)
-         */
-        $roomTotal    = (float) $booking->total_price;
-
-        $serviceTotal = (float) ServiceCharge::where('booking_id', $booking->id)
-            ->sum('total_price');
-
-        $penaltyTotal = (float) PenaltyCharge::where('booking_id', $booking->id)
-            ->sum('amount');
-
-        $grandTotal = $roomTotal + $serviceTotal + $penaltyTotal;
-
-        /**
-         * 4. TRANSACTION CHECK-OUT
-         */
-        DB::beginTransaction();
-        try {
-            // 4.1 Cập nhật booking
-            $booking->update([
-                'status' => 'checked_out'
-                // Nếu có cột snapshot tổng tiền cuối, lưu tại đây
-                // 'final_total' => $grandTotal
-            ]);
-
-            // 4.2 Giải phóng phòng
-            $assignedRooms = AssignedRoom::where('booking_id', $booking->id)->get();
-
-            foreach ($assignedRooms as $ar) {
-                // cập nhật thời điểm check-out
-                $ar->update([
-                    'check_out_at' => now()
-                ]);
-
-                // mở lại phòng
-                $room = Room::find($ar->room_id);
-                if ($room) {
-                    $room->update(['status' => 'available']);
-                }
-            }
-
-            DB::commit();
-
-            return $this->success([
-                'booking_id'   => $booking->id,
-                'status'       => 'checked_out',
-                'summary' => [
-                    'room_total'    => $roomTotal,
-                    'service_total' => $serviceTotal,
-                    'penalty_total' => $penaltyTotal,
-                    'grand_total'   => $grandTotal
-                ]
-            ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return $this->error(
-                'CHECKOUT_FAILED',
-                'Không thể thực hiện check-out'
-            );
-        }
+        return response()->json(['success' => true, 'message' => 'Đã thêm thiệt hại']);
     }
 
     /* =========================================================
-     * HELPER RESPONSES (Refile-safe)
+     * 2. ADD PENALTY (TRẢ PHÒNG TRỄ)
+     * POST /api/admin/bookings/{id}/penalties
      * ========================================================= */
-    private function success($data, $status = 200)
+    public function addPenalty(Request $request, $id)
     {
+        $booking = Booking::findOrFail($id);
+
+        if (!in_array($booking->status, ['check_in', 'in_use'])) {
+            return response()->json(['success' => false, 'message' => 'Booking không hợp lệ'], 400);
+        }
+
+        $data = $request->validate([
+            'days_late' => 'required|integer|min:1',
+            'amount'    => 'required|integer|min:0'
+        ]);
+
+        Penalty::create([
+            'booking_id' => $booking->id,
+            'days_late'  => $data['days_late'],
+            'amount'     => $data['amount']
+        ]);
+
+        if ($booking->status === 'check_in') {
+            $booking->update(['status' => 'in_use']);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Đã thêm penalty']);
+    }
+
+    /* =========================================================
+     * 3. CONFIRM CHECKOUT (BẮT BUỘC)
+     * POST /api/admin/bookings/{id}/checkout/confirm
+     * ========================================================= */
+    public function confirmCheckout($id)
+    {
+        $booking = Booking::findOrFail($id);
+
+        if ($booking->status !== 'in_use') {
+            return response()->json(['success' => false, 'message' => 'Chưa sẵn sàng checkout'], 400);
+        }
+
+        // dùng cache làm cờ xác nhận
+        Cache::put("checkout_confirmed_{$id}", true, now()->addMinutes(60));
+
         return response()->json([
             'success' => true,
-            'data'    => $data,
-            'meta'    => [
-                'timestamp' => now()->toISOString()
-            ]
-        ], $status);
+            'message' => 'Đã xác nhận checkout'
+        ]);
     }
 
-    private function error($code, $message, $status = 400)
+    /* =========================================================
+     * 4. CHECKOUT SUMMARY (TÍNH TIỀN)
+     * GET /api/admin/bookings/{id}/checkout/summary
+     * ========================================================= */
+    public function summary($id)
     {
+        $booking = Booking::findOrFail($id);
+
+        // 🔥 TIỀN PHÒNG GỐC: LẤY total_price
+        $room = (int) ($booking->total_price ?? 0);
+
+        // Tổng service
+        $service = (int) ServiceInvoice::where('booking_id', $id)
+            ->sum('total_amount');
+
+        // Tổng thiệt hại
+        $damage = (int) DamageInvoice::where('booking_id', $id)
+            ->sum('amount');
+
+        // Tổng penalty
+        $penalty = (int) Penalty::where('booking_id', $id)
+            ->sum('amount');
+
+        // Đã trả trước
+        $prepaid = (int) ($booking->total_price ?? 0);
+
+        // Tổng cuối cùng
+        $final = $room + $service + $damage + $penalty - $prepaid;
+
         return response()->json([
-            'success' => false,
-            'error' => [
-                'code'    => $code,
-                'message' => $message
+            'success' => true,
+            'data' => [
+                'room'    => $room,
+                'service' => $service,
+                'damage'  => $damage,
+                'penalty' => $penalty,
+                'prepaid' => $prepaid,
+                'final'   => max(0, $final)
             ]
-        ], $status);
+        ]);
     }
 
-    private function forbidden()
+
+    /* =========================================================
+     * 5. PAY CHECKOUT (CASH / VNPAY)
+     * POST /api/admin/bookings/{id}/checkout/pay
+     * ========================================================= */
+    public function pay(Request $request, $id)
     {
-        return $this->error(
-            'FORBIDDEN',
-            'Bạn không có quyền thực hiện thao tác này',
-            403
+        $booking = Booking::findOrFail($id);
+
+        if (!Cache::get("checkout_confirmed_{$id}")) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Chưa xác nhận checkout'
+            ], 400);
+        }
+
+        $data = $request->validate([
+            'method' => 'required|in:cash,vnpay'
+        ]);
+
+        // CASH -> checkout ngay
+        if ($data['method'] === 'cash') {
+            $this->completeCheckout($booking);
+            return response()->json([
+                'success' => true,
+                'message' => 'Checkout thành công (tiền mặt)'
+            ]);
+        }
+
+        // VNPAY -> gọi PaymentController (checkout payment)
+        $summary = $this->summary($id)->getData(true)['data'];
+
+        return app(PaymentController::class)->createVnpayCheckout(
+            new Request([
+                'booking_id' => $booking->id,
+                'amount'     => $summary['final']
+            ])
         );
+    }
+
+    /* =========================================================
+     * 6. COMPLETE CHECKOUT (CHỈ 1 NƠI DUY NHẤT)
+     * ========================================================= */
+    public function completeCheckout(Booking $booking)
+    {
+        DB::transaction(function () use ($booking) {
+
+            // đóng booking
+            $booking->update(['status' => 'check_out']);
+
+            // mở lại phòng
+            AssignedRoom::where('booking_id', $booking->id)
+                ->update(['status' => 'checked_out']);
+
+            // xóa cờ xác nhận
+            Cache::forget("checkout_confirmed_{$booking->id}");
+        });
     }
 }

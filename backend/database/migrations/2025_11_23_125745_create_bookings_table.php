@@ -38,6 +38,7 @@ public function up()
             'paid',                // đã thanh toán
             'canceled_by_user',
             'canceled_by_admin',
+            'check_in',
             'in_use',
             'check_out'
         ])->default('draft');

@@ -20,7 +20,7 @@ class AssignedRoom extends Model
         'room_type_id',
         'check_in',
         'check_out',
-         'status',
+        'room_status',
         'checked_in_at',
         'checked_out_at'
     ];
