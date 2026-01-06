@@ -1,9 +1,5 @@
 <?php
 
-use App\Http\Controllers\Api\AdminCheckinController;
-use App\Http\Controllers\Api\AdminCheckoutController;
-use App\Http\Controllers\Api\AdminPenaltyController;
-use App\Http\Controllers\Api\AdminServiceController;
 use App\Http\Controllers\Api\AmenityController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BookingController;
@@ -20,7 +16,6 @@ use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ChatbotController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\DashboardController;
-use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\UserController;
 
 Route::get('/bookings/my', [BookingController::class, 'myBookings'])->middleware('auth:sanctum');

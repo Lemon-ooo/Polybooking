@@ -62,7 +62,6 @@ import BookingDetail from "./components/pages/client/booking/BookingDetail";
 import GalleryEdit from "./components/pages/admin/Gallery/edit";
 import { UserList } from "./components/pages/admin/user/list";
 import { ClientEventDetail } from "./components/pages/client/events/ClientEventDetail";
-import { RoomTypeCreate } from "./components/pages/admin/room-types/create";
 
 // ======================================================
 // 🚀 APP CHÍNH - ĐÃ SỬA
@@ -141,7 +140,7 @@ export default function App() {
             {/* Room Types */}
             <Route path="room-types" element={<RoomTypeList />} />
             <Route path="room-types/show/:id" element={<RoomTypeShow />} />
-            <Route path="room-types/create" element={<RoomTypeCreate />} />
+            <Route path="room-types/create" element={<RoomCreate />} />
             <Route path="room-types/edit/:id" element={<RoomTypeEdit />} />
 
             {/* Amenities */}
