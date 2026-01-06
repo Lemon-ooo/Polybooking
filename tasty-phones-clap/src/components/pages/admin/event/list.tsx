@@ -1,141 +1,196 @@
 import React from "react";
-import { List, useTable } from "@refinedev/antd";
-import { useDelete } from "@refinedev/core";
+import { List, useTable, DateField } from "@refinedev/antd";
+import { useDelete, useCustomMutation, useInvalidate  } from "@refinedev/core";
+
 import {
   Table,
-  Button,
-  Space,
-  Tooltip,
-  message,
-  Popconfirm,
+  Tag,
   Typography,
+  Alert,
+  Button,
+  Tooltip,
+  Popconfirm,
+  message,
+  Space,
+  Switch,
 } from "antd";
 import { useNavigate } from "react-router-dom";
-import { EyeOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
-
-interface EventType {
-  id: number;
-  title: string;
-  description: string;
-  banner: string | null;
-  start_date: string;
-  end_date: string;
-  is_active: number;
-}
+import { DeleteOutlined, EditOutlined, EyeOutlined } from "@ant-design/icons";
 
 const { Text } = Typography;
 
 export const EventList: React.FC = () => {
   const navigate = useNavigate();
+  const invalidate = useInvalidate();
 
-  // 📌 Lấy dữ liệu bằng useTable
-  const { tableProps, refetch, isFetching } = useTable<EventType>({
-    resource: "events",
+  const { tableProps, queryResult } = useTable({
+    resource: "events", // ✅ API: /events
   });
 
-  // ❌ Xoá bằng useDelete
-  const { mutate: deleteEvent } = useDelete<EventType>();
+  const { data, isLoading, isError, error } = queryResult || {};
 
+  const { mutate: deleteEvent } = useDelete();
+  const { mutate: toggleEvent } = useCustomMutation();
+
+  // 🗑️ Xóa event
   const handleDelete = (id: number) => {
     deleteEvent(
       { resource: "events", id },
       {
         onSuccess: () => {
-          message.success("Xoá thành công");
-          refetch(); // reload table
+          message.success("Xóa sự kiện thành công");
+          queryResult?.refetch?.();
         },
-        onError: () => message.error("Xoá thất bại!"),
+        onError: () => {
+          message.error("Xóa sự kiện thất bại");
+        },
       }
     );
   };
 
-  const baseUrl = "http://localhost:8000/storage/";
+  /// 🔁 Toggle active/inactive
+const handleToggle = (id: number) => {
+  toggleEvent(
+    {
+      url: `events/${id}/toggle`,
+      method: "patch",
+      values: {},
+    },
+    {
+      onSuccess: () => {
+        message.success("Cập nhật trạng thái thành công");
+
+        // ✅ CẬP NHẬT LẠI TABLE NGAY
+        invalidate({
+          resource: "events",
+          invalidates: ["list"],
+        });
+      },
+      onError: (error) => {
+        console.error(error);
+        message.error("Cập nhật trạng thái thất bại");
+      },
+    }
+  );
+};
+
+  if (isError) {
+    return (
+      <Alert
+        message="Lỗi tải dữ liệu"
+        description={error?.message || "Không thể kết nối API"}
+        type="error"
+        showIcon
+      />
+    );
+  }
 
   return (
-    <List title="Danh sách sự kiện">
-      {/* 🔼 Thanh điều khiển phía trên */}
-      <div style={{ marginBottom: 16, display: "flex", gap: 12 }}>
-        <Button type="primary" onClick={() => navigate("/admin/events/create")}>
-          ➕ Thêm sự kiện
+    <List>
+      {/* Header actions */}
+      <div style={{ marginBottom: 16, display: "flex", alignItems: "center" }}>
+        <Button
+          type="primary"
+          onClick={() => navigate("/admin/events/create")}
+          style={{ marginRight: 16 }}
+        >
+          Thêm sự kiện
         </Button>
-        <Button onClick={() => refetch()} loading={isFetching}>
-          🔄 Làm mới
+
+        <Button onClick={() => queryResult?.refetch?.()} loading={isLoading}>
+          Làm mới
         </Button>
+
+        <Text style={{ marginLeft: 16 }}>
+          Tổng số: {data?.meta?.total || 0} sự kiện
+        </Text>
       </div>
 
-      {/* 📌 Bảng dữ liệu */}
-      <Table {...tableProps} rowKey="id">
+      <Table
+        {...tableProps}
+        rowKey="id"
+        loading={isLoading}
+        scroll={{ x: 1000 }}
+      >
+        <Table.Column dataIndex="title" title="Tên sự kiện" sorter />
+
         <Table.Column
-          title="Banner"
-          render={(_, record: EventType) =>
-            record.banner ? (
-              <img
-                src={`${baseUrl}${record.banner}`}
-                alt="banner"
-                style={{
-                  width: 100,
-                  height: 50,
-                  objectFit: "cover",
-                  borderRadius: 6,
-                }}
+          dataIndex="start_date"
+          title="Ngày bắt đầu"
+          render={(value: string) => <DateField value={value} />}
+          sorter
+        />
+
+        <Table.Column
+          dataIndex="end_date"
+          title="Ngày kết thúc"
+          render={(value: string) => <DateField value={value} />}
+          sorter
+        />
+
+        <Table.Column
+          dataIndex="is_active"
+          title="Trạng thái"
+          render={(active: boolean, record: any) => (
+            <Space>
+              <Tag color={active ? "green" : "red"}>
+                {active ? "Đang hoạt động" : "Tắt"}
+              </Tag>
+              <Switch
+                checked={active}
+                onChange={() => handleToggle(record.id)}
               />
-            ) : (
-              <Text>—</Text>
-            )
+            </Space>
+          )}
+          filters={[
+            { text: "Đang hoạt động", value: 1 },
+            { text: "Tắt", value: 0 },
+          ]}
+          onFilter={(value, record: any) =>
+            Number(record.is_active) === Number(value)
           }
         />
 
-        <Table.Column dataIndex="title" title="Tên sự kiện" />
-
         <Table.Column
-          title="Mô tả"
-          dataIndex="description"
-          ellipsis
-          render={(value: string) => (
-            <Tooltip title={value}>
-              <span>{value || "—"}</span>
-            </Tooltip>
-          )}
+          dataIndex="created_at"
+          title="Ngày tạo"
+          render={(value: string) => <DateField value={value} />}
+          sorter
         />
 
-        <Table.Column title="Bắt đầu" dataIndex="start_date" />
-        <Table.Column title="Kết thúc" dataIndex="end_date" />
-
-        <Table.Column
-          title="Trạng thái"
-          render={(_, record: EventType) => (
-            <Text type={record.is_active ? "success" : "secondary"}>
-              {record.is_active ? "Đang diễn ra" : "Tắt"}
-            </Text>
-          )}
-        />
-
+        {/* Actions */}
         <Table.Column
           title="Hành động"
-          render={(_, record: EventType) => (
+          render={(_, record: any) => (
             <Space>
-              <Tooltip title="Xem chi tiết">
+              <Tooltip title="Chi tiết">
                 <Button
                   icon={<EyeOutlined />}
-                  onClick={() => navigate(`/admin/events/show/${record.id}`)}
+                  onClick={() =>
+                    navigate(`/admin/events/show/${record.id}`)
+                  }
                 />
               </Tooltip>
 
               <Tooltip title="Sửa">
                 <Button
                   icon={<EditOutlined />}
-                  onClick={() => navigate(`/admin/events/edit/${record.id}`)}
+                  onClick={() =>
+                    navigate(`/admin/events/edit/${record.id}`)
+                  }
                 />
               </Tooltip>
 
-              <Popconfirm
-                title="Bạn chắc chắn muốn xoá?"
-                okText="Xóa"
-                cancelText="Hủy"
-                onConfirm={() => handleDelete(record.id)}
-              >
-                <Button danger icon={<DeleteOutlined />} />
-              </Popconfirm>
+              <Tooltip title="Xóa">
+                <Popconfirm
+                  title="Bạn có chắc muốn xóa sự kiện này?"
+                  onConfirm={() => handleDelete(record.id)}
+                  okText="Xóa"
+                  cancelText="Hủy"
+                >
+                  <Button danger icon={<DeleteOutlined />} />
+                </Popconfirm>
+              </Tooltip>
             </Space>
           )}
         />
