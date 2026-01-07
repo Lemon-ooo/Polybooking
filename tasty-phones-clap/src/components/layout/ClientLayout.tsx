@@ -7,6 +7,7 @@ import { useLogout } from "@refinedev/core";
 import { HeroSection } from "./HeroSection";
 import { Footer } from "./Footer";
 import { axiosInstance } from './../../providers/data/axiosConfig';
+import { ClientChatWidget } from "./ClientChatWidget";
 
 const { Header, Content } = Layout;
 
@@ -177,7 +178,7 @@ export const ClientLayout: React.FC = () => {
   style={{ flex: "0 0 auto", display: "flex", alignItems: "center" }}
 >
   <img
-    src="https://scontent.fhan14-4.fna.fbcdn.net/v/t39.30808-6/607513074_1202054532031169_1606756904976277477_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=dNtaGkzknVkQ7kNvwGSOO69&_nc_oc=Adm6Ig-UD9vcXYrhejq6u8rx66xQnamAj4HjNcreOWi9qUkvn6jMPHzFVwAQDapmjqw&_nc_zt=23&_nc_ht=scontent.fhan14-4.fna&_nc_gid=sNYLZAhL1YLXjVA7OTYWHg&oh=00_Afr6kMBtvB1DS9mgutm4eU2KcAwfi9YoyRLgixgiELfdrA&oe=695DADB2"
+    src="https://png.pngtree.com/png-clipart/20240911/original/pngtree-3d-beautiful-letter-p-png-image_15989738.png"
     alt="Hotel Deluxe"
     style={{
       height: 76,
@@ -308,6 +309,7 @@ export const ClientLayout: React.FC = () => {
           <Outlet />
         </div>
       </Content>
+  <ClientChatWidget />
 
       <Footer />
     </Layout>

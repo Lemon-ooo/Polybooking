@@ -1,40 +1,46 @@
-// src/providers/data/axiosConfig.ts
 import axios from "axios";
 
-// Dùng VITE environment (nếu có .env.local thì tự động lấy, không thì fallback)
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
 
 export const axiosInstance = axios.create({
   baseURL: API_URL,
-  withCredentials: true, // BẬT ĐỂ SANCTUM GỬI COOKIE (laravel_session + XSRF-TOKEN)
+  withCredentials: true,
   headers: {
     Accept: "application/json",
-    // KHÔNG ĐẶT Content-Type ở đây → để browser tự set khi có FormData
   },
 });
 
-// INTERCEPTOR QUAN TRỌNG NHẤT – GIẢI QUYẾT 100% VẤN ĐỀ CỦA ANH
-axiosInstance.interceptors.request.use((config) => {
-  // 1. Ưu tiên dùng Bearer Token nếu có trong localStorage (từ login thủ công hoặc Clerk)
+// 🔥 FLAG để chỉ gọi csrf-cookie 1 lần
+let csrfLoaded = false;
+
+axiosInstance.interceptors.request.use(async (config) => {
+  // 1️⃣ Load CSRF cookie cho Sanctum (CHỈ 1 LẦN)
+  if (!csrfLoaded) {
+    await axios.get("http://localhost:8000/sanctum/csrf-cookie", {
+      withCredentials: true,
+    });
+    csrfLoaded = true;
+  }
+
+  // 2️⃣ Gắn Bearer token nếu có
   const token = localStorage.getItem("token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
-  // 2. Nếu request là upload file (FormData) → xóa Content-Type để browser tự set boundary
+  // 3️⃣ Upload file → để browser tự set Content-Type
   if (config.data instanceof FormData) {
     delete config.headers["Content-Type"];
   }
 
-  // 3. Đảm bảo luôn gửi cookie Sanctum (rất quan trọng khi F5 trang)
   config.withCredentials = true;
 
   return config;
 });
 
-// Thêm response interceptor để bắt lỗi 401 → tự động logout nếu token hết hạn
+// 4️⃣ Auto logout nếu 401
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (res) => res,
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem("token");

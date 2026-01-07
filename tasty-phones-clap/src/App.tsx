@@ -63,6 +63,7 @@ import { UserList } from "./components/pages/admin/user/list";
 import EventEdit from "./components/pages/admin/event/edit";
 import { ClientEventDetail } from "./components/pages/client/events/ClientEventDetail";
 import { RoomTypeCreate } from "./components/pages/admin/room-types/create";
+import AdminConversations from "./components/pages/admin/conversations/AdminConversations";
 
 // ======================================================
 // 🚀 APP CHÍNH - ĐÃ SỬA
@@ -131,6 +132,8 @@ export default function App() {
             <Route index element={<AdminDashboard />} />
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="bookings" element={<AdminBookingManagement />} />
+              <Route path="conversations" element={<AdminConversations />} /> {/* 👈 CHAT */}
+
 
             {/* Rooms */}
             <Route path="rooms" element={<RoomList />} />
