@@ -96,7 +96,7 @@ Route::get('payments/vnpay/callback',  [PaymentController::class, 'vnpayCallback
 ========================================================= */
 
 Route::post(
-    'bookings/{id}/checkin',
+    'admin/bookings/{id}/checkin',
     [AdminCheckinController::class, 'checkin']
 )->middleware('auth:sanctum');
 
