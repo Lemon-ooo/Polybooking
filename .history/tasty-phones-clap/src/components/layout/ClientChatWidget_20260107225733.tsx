@@ -1,12 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  FloatButton,
-  Drawer,
-  Input,
-  Button,
-  List,
-  message as antdMessage,
-} from "antd";
+import { FloatButton, Drawer, Input, Button, List, message as antdMessage } from "antd";
 import { MessageOutlined } from "@ant-design/icons";
 import axiosInstance from "../../providers/data/axiosConfig";
 
@@ -24,56 +17,37 @@ export const ClientChatWidget: React.FC = () => {
   const [sending, setSending] = useState(false);
 
   /* =========================
-     LOAD MESSAGES BY CONVERSATION
-  ========================== */
-  const loadMessages = async (convId: number) => {
-    try {
-      const res = await axiosInstance.get(`/chat/${convId}`);
-      if (res.data?.data?.messages) {
-        setMessages(res.data.data.messages);
-      }
-    } catch {
-      // silent fail
-    }
-  };
-
-  /* =========================
-     LOAD CONVERSATION + MESSAGES
-     WHEN OPENING THE CHAT WIDGET
+     LOAD CHAT CŨ KHI MỞ WIDGET
   ========================== */
   useEffect(() => {
     if (!open) return;
 
+    // 1️⃣ lấy conversation của user
     axiosInstance
       .get("/chat")
       .then((res) => {
         const conversations = res.data.data;
+
         if (!conversations || conversations.length === 0) return;
 
-        const conv = conversations[0]; // client has only one conversation
+        const conv = conversations[0]; // client chỉ có 1 conversation
         setConversationId(conv.id);
-        loadMessages(conv.id);
+
+        // 2️⃣ load messages
+        return axiosInstance.get(`/chat/${conv.id}`);
+      })
+      .then((res) => {
+        if (res?.data?.data?.messages) {
+          setMessages(res.data.data.messages);
+        }
       })
       .catch(() => {
-        antdMessage.error("Failed to load chat history");
+        antdMessage.error("Không tải được lịch sử chat");
       });
   }, [open]);
 
   /* =========================
-     REALTIME POLLING (3s)
-  ========================== */
-  useEffect(() => {
-    if (!conversationId || !open) return;
-
-    const interval = setInterval(() => {
-      loadMessages(conversationId);
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, [conversationId, open]);
-
-  /* =========================
-     SEND MESSAGE
+     GỬI TIN NHẮN
   ========================== */
   const handleSend = async () => {
     if (!text.trim()) return;
@@ -81,13 +55,22 @@ export const ClientChatWidget: React.FC = () => {
     try {
       setSending(true);
 
-      await axiosInstance.post("/chat/send", {
+      const res = await axiosInstance.post("/chat/send", {
         message: text,
       });
 
+      if (res.data.conversation_id) {
+        setConversationId(res.data.conversation_id);
+      }
+
+      setMessages((prev) => [
+        ...prev,
+        { message: text, sender_type: "user" },
+      ]);
+
       setText("");
-    } catch {
-      antdMessage.error("Failed to send message");
+    } catch (err) {
+      antdMessage.error("Không gửi được tin nhắn");
     } finally {
       setSending(false);
     }
@@ -103,7 +86,7 @@ export const ClientChatWidget: React.FC = () => {
       />
 
       <Drawer
-        title="Chat with Us"
+        title="Chat với Admin"
         placement="right"
         width={360}
         open={open}
@@ -136,7 +119,7 @@ export const ClientChatWidget: React.FC = () => {
 
         <Input.TextArea
           rows={2}
-          placeholder="Type your message..."
+          placeholder="Nhập tin nhắn..."
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
@@ -148,7 +131,7 @@ export const ClientChatWidget: React.FC = () => {
           style={{ marginTop: 8 }}
           onClick={handleSend}
         >
-          Send
+          Gửi
         </Button>
       </Drawer>
     </>

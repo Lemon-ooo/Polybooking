@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Row, Col, Card, message as antdMessage } from "antd";
 import axiosInstance from "../../../../providers/data/axiosConfig";
 
@@ -6,6 +6,9 @@ import ConversationList from "./ConversationList";
 import ChatWindow from "./ChatWindow";
 import MessageInput from "./MessageInput";
 
+/* =====================
+   TYPE
+===================== */
 interface Conversation {
   id: number;
   user_id: number;
@@ -27,47 +30,42 @@ const AdminConversations: React.FC = () => {
   const [selectedConversation, setSelectedConversation] =
     useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [loadingMessages, setLoadingMessages] = useState(false);
 
-  const lastMessageIdRef = useRef<number | null>(null);
-
-  /* LOAD CONVERSATIONS */
+  /* =========================
+     LOAD DANH SÁCH CONVERSATION
+  ========================== */
   useEffect(() => {
     axiosInstance
       .get("/chat")
-      .then((res) => setConversations(res.data.data))
-      .catch(() => antdMessage.error("Không tải được danh sách chat"));
+      .then((res) => {
+        setConversations(res.data.data ?? []);
+      })
+      .catch(() => {
+        antdMessage.error("Không tải được danh sách chat");
+      });
   }, []);
 
-  /* LOAD + POLL MESSAGE */
-  useEffect(() => {
-    if (!selectedConversation) return;
+  /* =========================
+     LOAD MESSAGE
+  ========================== */
+  const loadMessages = async (conversationId: number) => {
+    try {
+      setLoadingMessages(true);
+      const res = await axiosInstance.get(`/chat/${conversationId}`);
+      setMessages(res.data.data.messages ?? []);
+    } catch {
+      antdMessage.error("Không tải được tin nhắn");
+    } finally {
+      setLoadingMessages(false);
+    }
+  };
 
-    const fetchMessages = async () => {
-      try {
-        const res = await axiosInstance.get(`/chat/${selectedConversation.id}`);
-
-        const newMessages = res.data.data.messages ?? [];
-        if (!newMessages.length) return;
-
-        const lastId = newMessages[newMessages.length - 1].id;
-
-        if (lastMessageIdRef.current === lastId) return;
-
-        lastMessageIdRef.current = lastId;
-        setMessages(newMessages);
-      } catch {
-        antdMessage.error("Không tải được tin nhắn");
-      }
-    };
-
-    fetchMessages();
-    const interval = setInterval(fetchMessages, 3000);
-    return () => clearInterval(interval);
-  }, [selectedConversation]);
-
-  /* SEND MESSAGE */
+  /* =========================
+     ADMIN GỬI TIN NHẮN
+  ========================== */
   const sendMessage = async (text: string) => {
-    if (!selectedConversation) return;
+    if (!selectedConversation || !text.trim()) return;
 
     try {
       const res = await axiosInstance.post(
@@ -76,7 +74,6 @@ const AdminConversations: React.FC = () => {
       );
 
       setMessages((prev) => [...prev, res.data]);
-      lastMessageIdRef.current = res.data.id;
     } catch {
       antdMessage.error("Gửi tin nhắn thất bại");
     }
@@ -90,8 +87,7 @@ const AdminConversations: React.FC = () => {
             conversations={conversations}
             onSelect={(conv) => {
               setSelectedConversation(conv);
-              setMessages([]);
-              lastMessageIdRef.current = null;
+              loadMessages(conv.id);
             }}
           />
         </Card>
@@ -108,9 +104,12 @@ const AdminConversations: React.FC = () => {
               : "Chọn cuộc hội thoại"
           }
           style={{ height: 600 }}
+          loading={loadingMessages}
         >
           <ChatWindow messages={messages} />
-          {selectedConversation && <MessageInput onSend={sendMessage} />}
+          {selectedConversation && (
+            <MessageInput onSend={sendMessage} />
+          )}
         </Card>
       </Col>
     </Row>

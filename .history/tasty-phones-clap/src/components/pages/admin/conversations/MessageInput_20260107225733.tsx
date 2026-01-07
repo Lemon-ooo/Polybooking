@@ -7,41 +7,28 @@ interface Props {
 
 const MessageInput: React.FC<Props> = ({ onSend }) => {
   const [text, setText] = useState("");
-  const [sending, setSending] = useState(false);
 
-  const handleSend = async () => {
+  const handleSend = () => {
     const message = text.trim();
-    if (!message || sending) return;
+    if (!message) return;
 
-    try {
-      setSending(true);
-      onSend(message);
-      setText("");
-    } finally {
-      setSending(false);
-    }
+    onSend(message);
+    setText("");
   };
 
   return (
     <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-      <Input.TextArea
+      <Input
         value={text}
-        rows={2}
-        placeholder="Nhập tin nhắn..."
         onChange={(e) => setText(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            handleSend();
-          }
-        }}
+        onPressEnter={handleSend}
+        placeholder="Nhập tin nhắn..."
       />
 
       <Button
         type="primary"
         onClick={handleSend}
-        disabled={!text.trim() || sending}
-        loading={sending}
+        disabled={!text.trim()}
       >
         Gửi
       </Button>
