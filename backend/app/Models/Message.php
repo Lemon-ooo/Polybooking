@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
+use App\Models\Conversation;
 
 class Message extends Model
 {
@@ -10,12 +12,12 @@ class Message extends Model
         'conversation_id',
         'sender_id',
         'sender_type',
-        'message'
+        'message',
     ];
 
     public function sender()
     {
-        return $this->belongsTo(User::class, 'sender_id', 'user_id');
+        return $this->belongsTo(User::class, 'sender_id', 'id');
     }
 
     public function conversation()

@@ -148,15 +148,5 @@ Route::post(
 
 //chatbot
 Route::post('/chatbot', [ChatbotController::class, 'handle']);
-/*
-|-------------------------------------------------------------------------- 
-| CHAT 
-|-------------------------------------------------------------------------- 
-*/
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('chat', [ChatController::class, 'list']);
-    Route::post('chat/send', [ChatController::class, 'sendMessage']);
-    Route::get('chat/{id}', [ChatController::class, 'show']);
-    Route::post('chat/{id}/reply', [ChatController::class, 'reply']);
-});
+
 Route::get('/admin/dashboard', [DashboardController::class, 'stats']);

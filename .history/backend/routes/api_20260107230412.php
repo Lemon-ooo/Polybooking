@@ -1,8 +1,5 @@
 <?php
 
-use App\Http\Controllers\Api\AdminCheckinController;
-use App\Http\Controllers\Api\AdminCheckoutController;
-use App\Http\Controllers\Api\AdminServiceController;
 use App\Http\Controllers\Api\AmenityController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BookingController;
@@ -19,7 +16,6 @@ use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ChatbotController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\DashboardController;
-use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\UserController;
 
 Route::get('/bookings/my', [BookingController::class, 'myBookings'])->middleware('auth:sanctum');
@@ -71,92 +67,18 @@ Route::get('/profile', [ProfileController::class, 'show']);
 });
 
 
-/* =========================================================
-| BOOKING – CUSTOMER
-========================================================= */
-
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/bookings', [BookingController::class, 'store']);
-});
-Route::get('my/bookings',             [BookingController::class, 'myBookings'])->middleware('auth:sanctum');
-Route::get('bookings/{id}',           [BookingController::class, 'show'])->middleware('auth:sanctum');
-Route::post('bookings/{id}/cancel',   [BookingController::class, 'cancel'])->middleware('auth:sanctum');
+Route::post('/bookings', [BookingController::class, 'store']);
+Route::get('/bookings', [BookingController::class, 'index']);
+Route::get('/bookings/{id}', [BookingController::class, 'show']);
+Route::put('/bookings/{booking}/assign-rooms', [BookingController::class, 'assignRooms']);
+Route::put('/bookings/{booking}/add-services', [BookingController::class, 'addServices']);
+Route::put('/bookings/{booking}/add-penalties', [BookingController::class, 'addPenalties']);
+Route::put('/bookings/{booking}/confirm-payment', [BookingController::class, 'confirmPayment']);
 
 
-/* =========================================================
-| PAYMENT – VNPAY
-========================================================= */
-
-Route::post('payments/vnpay/booking',   [PaymentController::class, 'createVnpayBooking'])->middleware('auth:sanctum');
-Route::get('payments/vnpay/callback',  [PaymentController::class, 'vnpayCallback']);
-
-
-/* =========================================================
-| ADMIN – CHECK-IN
-========================================================= */
-
-Route::post(
-    'admin/bookings/{id}/checkin',
-    [AdminCheckinController::class, 'checkin']
-)->middleware('auth:sanctum');
-
-
-/* =========================================================
-| ADMIN – SERVICE (DỊCH VỤ PHÁT SINH)
-========================================================= */
-
-Route::post(
-    'admin/bookings/{id}/services',
-    [AdminServiceController::class, 'addService']
-)->middleware('auth:sanctum');
-
-
-/* =========================================================
-| ADMIN – PENALTY (HƯ HỎNG / PHẠT)
-========================================================= */
-
-// 1️⃣ Thêm thiệt hại
-Route::post(
-    'admin/bookings/{id}/damages',
-    [AdminCheckoutController::class, 'addDamage']
-)->middleware('auth:sanctum');
-
-// 2️⃣ Thêm penalty (trả phòng trễ)
-Route::post(
-    'admin/bookings/{id}/penalties',
-    [AdminCheckoutController::class, 'addPenalty']
-)->middleware('auth:sanctum');
-
-// 3️⃣ Xác nhận checkout (bắt buộc)
-Route::post(
-    'admin/bookings/{id}/checkout/confirm',
-    [AdminCheckoutController::class, 'confirmCheckout']
-)->middleware('auth:sanctum');
-
-// 4️⃣ Xem tổng tiền checkout
-Route::get(
-    'admin/bookings/{id}/checkout/summary',
-    [AdminCheckoutController::class, 'summary']
-)->middleware('auth:sanctum');
-
-// 5️⃣ Thanh toán checkout (cash / vnpay)
-Route::post(
-    'admin/bookings/{id}/checkout/pay',
-    [AdminCheckoutController::class, 'pay']
-)->middleware('auth:sanctum');
 
 
 //chatbot
 Route::post('/chatbot', [ChatbotController::class, 'handle']);
-/*
-|-------------------------------------------------------------------------- 
-| CHAT 
-|-------------------------------------------------------------------------- 
-*/
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('chat', [ChatController::class, 'list']);
-    Route::post('chat/send', [ChatController::class, 'sendMessage']);
-    Route::get('chat/{id}', [ChatController::class, 'show']);
-    Route::post('chat/{id}/reply', [ChatController::class, 'reply']);
-});
+
 Route::get('/admin/dashboard', [DashboardController::class, 'stats']);

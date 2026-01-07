@@ -179,8 +179,12 @@ export const AdminLayout: React.FC = () => {
 
           <Space size="large">
             <Badge count={4}>
-              <CommentOutlined style={{ fontSize: 18, color: "#fff" }} />
+              <CommentOutlined
+                style={{ fontSize: 18, color: "#fff", cursor: "pointer" }}
+                onClick={() => navigate("/admin/conversations")}
+              />
             </Badge>
+
             <Badge count={7}>
               <BellOutlined style={{ fontSize: 18, color: "#fff" }} />
             </Badge>

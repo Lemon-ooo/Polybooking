@@ -3,26 +3,39 @@
 use App\Http\Controllers\Api\AdminCheckinController;
 use App\Http\Controllers\Api\AdminCheckoutController;
 use App\Http\Controllers\Api\AdminServiceController;
-use App\Http\Controllers\Api\AmenityController;
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\BookingController;
-// use App\Http\Controllers\Api\EventController;
-use App\Http\Controllers\Api\EventController;
-use App\Http\Controllers\Api\GalleryController;
-use App\Http\Controllers\Api\RoomController;
-use App\Http\Controllers\Api\RoomImageController;
-use App\Http\Controllers\Api\RoomTypeController;
 use Illuminate\Support\Facades\Route;
+
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\AmenityController;
+use App\Http\Controllers\Api\BookingController;
+use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\ServiceController;
+use App\Http\Controllers\Api\RoomController;
+use App\Http\Controllers\Api\RoomTypeController;
+use App\Http\Controllers\Api\RoomImageController;
 use App\Http\Controllers\Api\RoomTypeImageController;
+use App\Http\Controllers\Api\GalleryController;
+use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ProfileController;
-use App\Http\Controllers\Api\ChatbotController;
 use App\Http\Controllers\Api\ChatController;
+use App\Http\Controllers\Api\ChatbotController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\PaymentController;
-use App\Http\Controllers\Api\UserController;
 
-Route::get('/bookings/my', [BookingController::class, 'myBookings'])->middleware('auth:sanctum');
+use App\Http\Controllers\Api\AdminCheckinController;
+use App\Http\Controllers\Api\AdminCheckoutController;
+use App\Http\Controllers\Api\AdminPenaltyController;
+use App\Http\Controllers\Api\AdminServiceController;
+
+/*
+|--------------------------------------------------------------------------
+| AUTH
+|--------------------------------------------------------------------------
+*/
+Route::post('login', [AuthController::class, 'login']);
+Route::post('register', [AuthController::class, 'register']);
+Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 Route::apiResource('amenities', AmenityController::class);
 Route::apiResource('bookings', BookingController::class);
@@ -35,21 +48,65 @@ Route::apiResource('bookings', BookingController::class);
     Route::patch('events/{id}/toggle', [EventController::class, 'toggleStatus']);
 
 
+/*
+|--------------------------------------------------------------------------
+| PROFILE (CLIENT)
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth:sanctum')->prefix('client')->group(function () {
+    Route::get('profile', [ProfileController::class, 'show']);
+    Route::put('profile', [ProfileController::class, 'update']);
+    Route::put('profile/password', [ProfileController::class, 'updatePassword']);
+    Route::post('profile/avatar', [ProfileController::class, 'uploadAvatar']);
+    Route::delete('profile', [ProfileController::class, 'destroy']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| BOOKINGS
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('bookings/my', [BookingController::class, 'myBookings']);
+    Route::post('bookings/{id}/cancel', [BookingController::class, 'cancel']);
+});
+
+Route::apiResource('bookings', BookingController::class);
+
+/*
+|--------------------------------------------------------------------------
+| EVENTS
+|--------------------------------------------------------------------------
+*/
+Route::get('events', [EventController::class, 'index']);
+Route::post('events', [EventController::class, 'store']);
+Route::get('events/{id}', [EventController::class, 'show']);
+Route::put('events/{id}', [EventController::class, 'update']);
+Route::delete('events/{id}', [EventController::class, 'destroy']);
+Route::patch('events/{id}/toggle', [EventController::class, 'toggleStatus']);
+
+/*
+|--------------------------------------------------------------------------
+| BASIC RESOURCES
+|--------------------------------------------------------------------------
+*/
+Route::apiResource('amenities', AmenityController::class);
+Route::apiResource('services', ServiceController::class);
 Route::apiResource('rooms', RoomController::class);
-Route::apiResource('galleries', GalleryController::class);
-Route::apiResource('roomimages', RoomImageController::class);
 Route::apiResource('room-types', RoomTypeController::class);
+Route::apiResource('roomimages', RoomImageController::class);
 Route::apiResource('roomtypeimages', RoomTypeImageController::class);
+Route::apiResource('galleries', GalleryController::class);
 Route::apiResource('users', UserController::class);
-// USER
-Route::post('/chat/send', [ChatController::class, 'sendMessage']);
-// ADMIN
-Route::get('/chat', [ChatController::class, 'list']);
-Route::get('/chat/{id}', [ChatController::class, 'show']);
-Route::post('/chat/{id}/reply', [ChatController::class, 'reply']);
+
+/*
+|--------------------------------------------------------------------------
+| ROOM TYPE IMAGES
+|--------------------------------------------------------------------------
+*/
 Route::post('room-types/{id}/images', [RoomTypeImageController::class, 'store']);
 Route::delete('room-types/{roomTypeId}/images/{imageId}', [RoomTypeImageController::class, 'destroy']);
-Route::delete('/room-types/{roomTypeId}/main-image', [RoomTypeImageController::class, 'destroyMainImage']);
+Route::delete('room-types/{roomTypeId}/main-image', [RoomTypeImageController::class, 'destroyMainImage']);
 
 // Route::apiResource('roomtype-images/{roomType}', RoomTypeImageController::class);
 Route::apiResource('services', ServiceController::class);
@@ -96,7 +153,7 @@ Route::get('payments/vnpay/callback',  [PaymentController::class, 'vnpayCallback
 ========================================================= */
 
 Route::post(
-    'admin/bookings/{id}/checkin',
+    'bookings/{id}/checkin',
     [AdminCheckinController::class, 'checkin']
 )->middleware('auth:sanctum');
 
@@ -106,7 +163,7 @@ Route::post(
 ========================================================= */
 
 Route::post(
-    'admin/bookings/{id}/services',
+    'bookings/{id}/services',
     [AdminServiceController::class, 'addService']
 )->middleware('auth:sanctum');
 
@@ -117,46 +174,34 @@ Route::post(
 
 // 1️⃣ Thêm thiệt hại
 Route::post(
-    'admin/bookings/{id}/damages',
+    'bookings/{id}/damages',
     [AdminCheckoutController::class, 'addDamage']
 )->middleware('auth:sanctum');
 
 // 2️⃣ Thêm penalty (trả phòng trễ)
 Route::post(
-    'admin/bookings/{id}/penalties',
+    'bookings/{id}/penalties',
     [AdminCheckoutController::class, 'addPenalty']
 )->middleware('auth:sanctum');
 
 // 3️⃣ Xác nhận checkout (bắt buộc)
 Route::post(
-    'admin/bookings/{id}/checkout/confirm',
+    'bookings/{id}/checkout/confirm',
     [AdminCheckoutController::class, 'confirmCheckout']
 )->middleware('auth:sanctum');
 
 // 4️⃣ Xem tổng tiền checkout
 Route::get(
-    'admin/bookings/{id}/checkout/summary',
+    'bookings/{id}/checkout/summary',
     [AdminCheckoutController::class, 'summary']
 )->middleware('auth:sanctum');
 
 // 5️⃣ Thanh toán checkout (cash / vnpay)
 Route::post(
-    'admin/bookings/{id}/checkout/pay',
+    'bookings/{id}/checkout/pay',
     [AdminCheckoutController::class, 'pay']
 )->middleware('auth:sanctum');
-
-
 //chatbot
 Route::post('/chatbot', [ChatbotController::class, 'handle']);
-/*
-|-------------------------------------------------------------------------- 
-| CHAT 
-|-------------------------------------------------------------------------- 
-*/
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('chat', [ChatController::class, 'list']);
-    Route::post('chat/send', [ChatController::class, 'sendMessage']);
-    Route::get('chat/{id}', [ChatController::class, 'show']);
-    Route::post('chat/{id}/reply', [ChatController::class, 'reply']);
-});
+
 Route::get('/admin/dashboard', [DashboardController::class, 'stats']);
