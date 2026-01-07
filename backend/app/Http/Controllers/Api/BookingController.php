@@ -50,10 +50,8 @@ class BookingController extends Controller
         $validator = Validator::make($request->all(), [
             'check_in'  => 'required|date|after_or_equal:today',
             'check_out' => 'required|date|after:check_in',
-
             'adults'   => 'required|integer|min:1',
             'children' => 'nullable|integer|min:0',
-
             'room_types' => 'required|array|min:1',
             'room_types.*.room_type_id' => 'required|exists:room_types,room_type_id',
             'room_types.*.quantity'     => 'required|integer|min:1',
