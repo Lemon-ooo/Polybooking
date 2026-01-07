@@ -85,7 +85,7 @@ class PaymentController extends Controller
         unset($inputData['vnp_SecureHash'], $inputData['vnp_SecureHashType']);
 
         ksort($inputData);
-        $hashData = urldecode(http_build_query($inputData));
+        $hashData = http_build_query($inputData);
         $calculatedHash = hash_hmac('sha512', $hashData, $vnp_HashSecret);
 
         if ($secureHash !== $calculatedHash) {
@@ -171,9 +171,8 @@ class PaymentController extends Controller
      * ========================================================= */
     private function buildVnpayUrl(string $type, int $bookingId, int $amount)
     {
-        $vnp_TmnCode   = config('vnpay.tmn_code');
         $vnp_HashSecret= config('vnpay.hash_secret');
-        $vnp_Url       = config('vnpay.url');
+        $vnp_Url = config('vnpay.url');
         $vnp_Returnurl = config('vnpay.return_url');
 
         $txnRef = $type . '_' . $bookingId . '_' . time();
@@ -181,21 +180,21 @@ class PaymentController extends Controller
         $params = [
             'vnp_Version'   => '2.1.0',
             'vnp_Command'   => 'pay',
-            'vnp_TmnCode'   => $vnp_TmnCode,
+            'vnp_TmnCode'   => config('vnpay.tmn_code'),
             'vnp_Amount'    => $amount * 100,
             'vnp_CurrCode'  => 'VND',
             'vnp_TxnRef'    => $txnRef,
-            'vnp_OrderInfo' => $type . ' PAYMENT booking #' . $bookingId,
-            'vnp_OrderType' => 'billpayment',
+            'vnp_OrderInfo' => 'BOOKING PAYMENT booking ' . $bookingId,
+            'vnp_OrderType' => 'other',
             'vnp_Locale'    => 'vn',
             'vnp_ReturnUrl' => $vnp_Returnurl,
-            'vnp_IpAddr'    => request()->ip(),
+            'vnp_IpAddr' => '8.8.8.8',
             'vnp_CreateDate'=> date('YmdHis'),
         ];
 
         ksort($params);
 
-        $hashData = urldecode(http_build_query($params));
+        $hashData = http_build_query($params);
         $secureHash = hash_hmac('sha512', $hashData, $vnp_HashSecret);
 
         return response()->json([

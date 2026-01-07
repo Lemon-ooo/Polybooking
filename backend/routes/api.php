@@ -105,7 +105,7 @@ Route::post('bookings/{id}/cancel',   [BookingController::class, 'cancel'])->mid
 | PAYMENT – VNPAY
 ========================================================= */
 
-Route::post('payments/vnpay/create',   [PaymentController::class, 'createVnpay'])->middleware('auth:sanctum');
+Route::post('payments/vnpay/booking',   [PaymentController::class, 'createVnpayBooking'])->middleware('auth:sanctum');
 Route::get('payments/vnpay/callback',  [PaymentController::class, 'vnpayCallback']);
 
 
