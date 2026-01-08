@@ -1,68 +1,69 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Typography, Button, Card, Row, Col, Divider } from "antd";
+import { Typography, Button, Card, Row, Col, Divider, Spin, Empty } from "antd";
+import axiosInstance from "../../../../providers/data/axiosConfig";
 
 import "../../../../../src/assets/fonts/fonts.css";
 
 const { Title, Paragraph, Text } = Typography;
 
 interface EventType {
-  event_id: number;
-  event_name: string;
+  id: number;
+  title: string;
   description: string;
-  event_image: string;
+  banner: string;
   start_date: string;
   end_date: string;
+  is_active: number;
 }
 
-/* =======================
-   FAKE DATA
-======================= */
-const fakeEvents: EventType[] = [
-  {
-    event_id: 1,
-    event_name: "Luxury Wedding Ceremony",
-    description:
-      "An elegant wedding event with premium decoration, lighting, music and full-service planning. Every detail is carefully designed to create unforgettable memories for your special day. Our luxury wedding package includes professional coordination, bespoke styling, gourmet catering, and a stunning venue ambiance.",
-    event_image:
-      "https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=1600",
-    start_date: "2026-02-10",
-    end_date: "2026-02-11",
-  },
-  {
-    event_id: 2,
-    event_name: "Corporate Business Meeting",
-    description:
-      "A professional environment for meetings, conferences, and corporate events. Equipped with modern technology, flexible seating arrangements, and premium services to ensure a productive and successful business experience.",
-    event_image:
-      "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600",
-    start_date: "2026-03-05",
-    end_date: "2026-03-05",
-  },
-  {
-    event_id: 3,
-    event_name: "Annual Gala Dinner",
-    description:
-      "A prestigious gala dinner featuring fine dining, live entertainment, elegant decor, and an exclusive guest list. Perfect for celebrations, charity events, and high-profile social gatherings.",
-    event_image:
-      "https://ngununggula.com/img/asset/YXNzZXRzL2FydGlzdHMvMjUwNV9uZ3VudW5nZ3VsYV9nYWxhX3I1Xy03MzU4LWVuaGFuY2VkLW5yLmpwZw==?w=2000&h=950&fit=crop&s=83007eaa696c46ce8da0d70cf5c1a36b",
-    start_date: "2026-04-18",
-    end_date: "2026-04-18",
-  },
-];
+const BASE_IMAGE_URL = "http://localhost:8000/storage/";
 
 export const ClientEventDetail: React.FC = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const event = fakeEvents.find(
-    (e) => e.event_id === Number(id)
-  );
+  const [event, setEvent] = useState<EventType | null>(null);
+  const [loading, setLoading] = useState(true);
 
+  /* =======================
+     FETCH EVENT DETAIL
+  ======================= */
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchEventDetail = async () => {
+      try {
+        const res = await axiosInstance.get(`/events/${id}`);
+        setEvent(res.data.data || res.data);
+      } catch (error) {
+        console.error("Error loading event detail:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEventDetail();
+  }, [id]);
+
+  /* =======================
+     LOADING
+  ======================= */
+  if (loading) {
+    return (
+      <div style={{ padding: 120, textAlign: "center" }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  /* =======================
+     NOT FOUND
+  ======================= */
   if (!event) {
     return (
       <div style={{ padding: 80, textAlign: "center" }}>
-        <Text>Event not found</Text>
+        <Empty description="Event not found" />
       </div>
     );
   }
@@ -79,12 +80,16 @@ export const ClientEventDetail: React.FC = () => {
         }}
       >
         <img
-          src={event.event_image}
-          alt={event.event_name}
+          src={`${BASE_IMAGE_URL}${event.banner}`}
+          alt={event.title}
           style={{
             width: "100%",
             height: "100%",
             objectFit: "cover",
+          }}
+          onError={(e) => {
+            (e.target as HTMLImageElement).src =
+              "https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=1600";
           }}
         />
 
@@ -117,7 +122,7 @@ export const ClientEventDetail: React.FC = () => {
               marginBottom: 8,
             }}
           >
-            {event.event_name}
+            {event.title}
           </Title>
           <Text style={{ color: "#eee", fontSize: 16 }}>
             {event.start_date} – {event.end_date}
@@ -188,3 +193,5 @@ export const ClientEventDetail: React.FC = () => {
     </>
   );
 };
+
+export default ClientEventDetail;

@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axiosInstance from "../../../../providers/data/axiosConfig";
-import { Typography, Row, Col, Button, Empty, Carousel } from "antd";
+import { Typography, Row, Col, Button, Empty, Carousel, Spin } from "antd";
 import {
   UserOutlined,
   DollarOutlined,
@@ -13,38 +13,95 @@ import {
 } from "@ant-design/icons";
 import "./RoomDetail.css";
 
-const { Title, Paragraph } = Typography;
+const { Paragraph } = Typography;
 const BASE_URL = "http://localhost:8000/storage/";
 
 export const RoomDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [room, setRoom] = useState<any>(null);
+  const [roomImages, setRoomImages] = useState<any[]>([]); // Ảnh từ RoomTypeImage (main + secondary)
+  const [loading, setLoading] = useState(true);
+  const [loadingImages, setLoadingImages] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchRoomData = async () => {
+      if (!id) return;
       try {
+        setLoading(true);
         const res = await axiosInstance.get(`/room-types/${id}`);
         const data = res.data.data || res.data;
         setRoom(data);
       } catch (err) {
         console.error("Error loading room details:", err);
+      } finally {
+        setLoading(false);
       }
     };
-    fetchData();
+
+    const fetchRoomImages = async () => {
+      if (!id) return;
+      try {
+        setLoadingImages(true);
+        const res = await axiosInstance.get(`/room-types/${id}/images`, {
+          params: { per_page: 50 }, // Lấy đủ ảnh, không cần phân trang ở client
+        });
+        // Backend trả về { data: [...], total: ... } do paginate
+        const images = res.data.data || [];
+        setRoomImages(images);
+        console.log("Room Images API:", res.data);
+
+      } catch (err) {
+        console.error("Error loading room images:", err);
+        setRoomImages([]);
+      } finally {
+        setLoadingImages(false);
+      }
+    };
+
+    fetchRoomData();
+    fetchRoomImages();
   }, [id]);
 
-  if (!room) {
+  if (loading) {
     return (
       <div style={{ textAlign: "center", padding: "120px", fontSize: "20px" }}>
-        Loading...
+        Loading room details...
       </div>
     );
   }
 
-  const roomImageOnly = `${BASE_URL}${room.room_type_image}`;
+  if (!room) {
+    return (
+      <div style={{ textAlign: "center", padding: "120px", fontSize: "20px", color: "#999" }}>
+        Room not found.
+      </div>
+    );
+  }
 
-  const amenitiesList =
-    room.amenities && room.amenities.length > 0 ? room.amenities : [];
+  const amenitiesList = room.amenities && room.amenities.length > 0 ? room.amenities : [];
+
+  // Xây dựng danh sách ảnh cho carousel
+  // Ưu tiên: ảnh từ RoomTypeImage (đã được backend sort: main trước, rồi secondary theo sort_order)
+  // Nếu không có ảnh nào trong RoomTypeImage → fallback về ảnh chính từ room_type_image
+ const carouselImages: string[] = [];
+
+if (room && room.room_type_image) {
+  carouselImages.push(room.room_type_image);
+}
+
+if (roomImages && roomImages.length > 0) {
+  for (let i = 0; i < roomImages.length; i++) {
+    const img = roomImages[i];
+    if (
+      img &&
+      img.image_url &&
+      img.image_url !== room?.room_type_image
+    ) {
+      carouselImages.push(img.image_url);
+    }
+  }
+}
+
 
   return (
     <div className="room-detail-wrapper">
@@ -104,35 +161,39 @@ export const RoomDetail: React.FC = () => {
           </Col>
 
           <Col xs={24} sm={24} md={24} lg={12} xl={12}>
-            {/* Auto-playing slideshow */}
-            <Carousel
-              autoplay
-              autoplaySpeed={2000}
-              effect="fade"
-              dots={{ className: "custom-dots" }}
-              arrows
-              prevArrow={<div className="custom-arrow prev"><LeftOutlined /></div>}
-              nextArrow={<div className="custom-arrow next"><RightOutlined /></div>}
-            >
-              {/* Main image */}
-              <div className="room-slide">
-                <img src={`${BASE_URL}${room.room_type_image}`} alt={room.room_type_name} />
+            {loadingImages ? (
+              <div style={{ height: "620px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Spin size="large" />
               </div>
-
-              {/* Sample additional images - replace with real ones when backend supports gallery */}
-              <div className="room-slide">
-                <img src="https://plus.unsplash.com/premium_photo-1661964402307-02267d1423f5?w=1200" alt="Room view" />
-              </div>
-              <div className="room-slide">
-                <img src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=1200" alt="Bed detail" />
-              </div>
-              <div className="room-slide">
-                <img src="https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=1200" alt="Bathroom" />
-              </div>
-              <div className="room-slide">
-                <img src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=1200" alt="Balcony" />
-              </div>
-            </Carousel>
+            ) : carouselImages.length > 0 ? (
+              <Carousel
+                autoplay
+                autoplaySpeed={3000}
+                effect="fade"
+                dots={{ className: "custom-dots" }}
+                arrows
+                prevArrow={<div className="custom-arrow prev"><LeftOutlined /></div>}
+                nextArrow={<div className="custom-arrow next"><RightOutlined /></div>}
+              >
+                {carouselImages.map((imageUrl: string, index: number) => (
+                  <div className="room-slide" key={index}>
+                    <img
+                      src={`${BASE_URL}${imageUrl}`}
+                      alt={`${room.room_type_name} - Image ${index + 1}`}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          "https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=1200";
+                      }}
+                    />
+                  </div>
+                ))}
+              </Carousel>
+            ) : (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description="No images available for this room type"
+              />
+            )}
           </Col>
         </Row>
       </div>

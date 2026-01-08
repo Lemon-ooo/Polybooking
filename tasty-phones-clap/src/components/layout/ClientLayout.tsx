@@ -80,19 +80,25 @@ export const ClientLayout: React.FC = () => {
   };
 
   // Fetch user từ API /client/profile
-  const fetchCurrentUser = async () => {
-    try {
-      const res = await axiosInstance.get("/client/profile");
-      if (res.data.success && res.data.data) {
-        setUser(res.data.data);
-      } else {
-        setUser(null);
-      }
-    } catch (err: any) {
-      // Nếu chưa đăng nhập hoặc lỗi → không hiện avatar
+ const fetchCurrentUser = async () => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    setUser(null);
+    return;
+  }
+
+  try {
+    const res = await axiosInstance.get("/client/profile");
+    if (res.data.success && res.data.data) {
+      setUser(res.data.data);
+    } else {
       setUser(null);
     }
-  };
+  } catch {
+    setUser(null);
+  }
+};
+
 
   // Fetch lần đầu khi load layout
   useEffect(() => {
