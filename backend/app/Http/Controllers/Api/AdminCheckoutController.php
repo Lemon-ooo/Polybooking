@@ -65,7 +65,7 @@ class AdminCheckoutController extends Controller
             'booking_id'     => $booking->id,
             'damage_type_id' => $damageType->id,
             'amount'         => $damageType->price,
-            'image'          => $data['image'] ?? null
+            'image_path'     => $data['image'] ?? null
         ]);
 
         // đảm bảo booking đang in_use

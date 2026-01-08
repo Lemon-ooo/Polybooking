@@ -10,4 +10,8 @@ return [
     // Return URL của hệ thống bro (LOCALHOST vẫn CHẠY được)
     'return_url' => 'http://127.0.0.1:8000/api/payments/vnpay/callback',
 
+<<<<<<< HEAD
 ];
+=======
+];
+>>>>>>> 72738559944cbd40a4640adc192a9b2c2ee80303
