@@ -3,8 +3,7 @@
 /* ======================================= */
 .booking-hero-banner {
   height: 500px;
-  background: url("https://vietthanhdecor.com/wp-content/uploads/2024/02/aeros-sanh-khach-san-14-800x488.webp")
-    center/cover no-repeat;
+  background: url("https://vietthanhdecor.com/wp-content/uploads/2024/02/aeros-sanh-khach-san-14-800x488.webp") center/cover no-repeat;
   position: relative;
   display: flex;
   align-items: center;
@@ -62,14 +61,14 @@
   box-shadow: none !important;
 }
 
-.ant-picker-input > input,
-.date-item .ant-picker-input > input {
+.ant-picker-input>input,
+.date-item .ant-picker-input>input {
   font-size: 16px !important;
   font-weight: 500;
   color: #6b4f3a !important;
 }
 
-.date-item .ant-picker-input > input::placeholder {
+.date-item .ant-picker-input>input::placeholder {
   color: #6b4f3a !important;
 }
 
@@ -1196,6 +1195,7 @@ textarea::placeholder {
   cursor: pointer;
 }
 
+
 /* ===================== HERO ===================== */
 .my-bookings-hero {
   position: relative;
@@ -1276,205 +1276,4 @@ textarea::placeholder {
   font-weight: 400;
   margin: 0;
   letter-spacing: 1px;
-}
-/* Nút Add/Remove ở Step 1 */
-.quantity-controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  width: 100%;
-}
-
-.quantity-display {
-  font-size: 18px;
-  font-weight: bold;
-  min-width: 40px;
-  text-align: center;
-}
-
-.add-room-btn {
-  background: linear-gradient(135deg, #1890ff, #096dd9);
-  border: none;
-  height: 44px;
-  font-weight: 600;
-}
-
-/* Step 2 - Confirmation sang trọng */
-.confirmation-wrapper {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 24px 0;
-}
-
-.confirmation-main {
-  display: grid;
-  grid-template-columns: 1fr 380px;
-  gap: 32px;
-  margin-bottom: 100px; /* để chỗ cho footer cố định */
-}
-
-.booking-details-card,
-.summary-card {
-  border: none;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
-}
-
-.section-title,
-.summary-title {
-  font-size: 28px;
-  font-weight: 600;
-  color: #1a3e5d;
-  margin-bottom: 24px;
-}
-
-.subsection-title {
-  font-size: 20px;
-  margin: 32px 0 16px;
-  color: #1a3e5d;
-}
-
-.booking-info .info-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 12px 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.info-row .label {
-  color: #666;
-  font-weight: 500;
-}
-
-.info-row .value {
-  font-weight: 600;
-  color: #1a3e5d;
-}
-
-.selected-rooms-list {
-  background: #fafafa;
-  border-radius: 12px;
-  padding: 16px;
-}
-
-.selected-room-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 0;
-  border-bottom: 1px dashed #e0e0e0;
-}
-
-.selected-room-item:last-child {
-  border-bottom: none;
-}
-
-.room-name {
-  font-weight: 600;
-  font-size: 16px;
-  color: #1a3e5d;
-}
-
-.room-calc {
-  font-size: 13px;
-  color: #888;
-  margin-top: 4px;
-}
-
-.room-total {
-  font-weight: bold;
-  color: #1a3e5d;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-}
-
-.total-section {
-  margin-top: 32px;
-  padding-top: 24px;
-  border-top: 2px solid #1890ff;
-  text-align: right;
-}
-
-.total-label {
-  font-size: 20px;
-  color: #666;
-}
-
-.total-amount {
-  font-size: 32px;
-  font-weight: bold;
-  color: #1890ff;
-}
-
-/* Summary sidebar */
-.summary-item,
-.summary-room {
-  display: flex;
-  justify-content: space-between;
-  padding: 12px 0;
-  font-size: 15px;
-}
-
-.summary-total {
-  font-size: 20px;
-  font-weight: bold;
-  color: #1a3e5d;
-  padding-top: 16px;
-  border-top: 1px solid #eee;
-}
-
-.total-price {
-  color: #1890ff;
-}
-
-/* Footer cố định dưới cùng */
-.fixed-booking-footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-top: 1px solid #e0e0e0;
-  padding: 16px 24px;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
-  z-index: 1000;
-}
-
-.footer-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.footer-total-label {
-  font-size: 18px;
-  color: #666;
-}
-
-.footer-total-amount {
-  font-size: 28px;
-  font-weight: bold;
-  color: #1890ff;
-}
-
-.confirm-booking-btn {
-  background: linear-gradient(135deg, #13ce66, #089e46);
-  border: none;
-  height: 56px;
-  padding: 0 48px;
-  font-size: 18px;
-  font-weight: 600;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(19, 206, 102, 0.3);
-}
-
-.confirm-booking-btn:hover {
-  background: linear-gradient(135deg, #0fb357, #078a3b);
-  transform: translateY(-2px);
 }
