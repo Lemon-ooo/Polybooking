@@ -41,6 +41,12 @@ Route::apiResource('roomimages', RoomImageController::class);
 Route::apiResource('room-types', RoomTypeController::class);
 Route::apiResource('roomtypeimages', RoomTypeImageController::class);
 Route::apiResource('users', UserController::class);
+// ================= ROOM TYPE IMAGES (PUBLIC - CLIENT) =================
+Route::get(
+    'room-types/{id}/images',
+    [RoomTypeImageController::class, 'index']
+);
+
 // USER
 Route::post('/chat/send', [ChatController::class, 'sendMessage']);
 // ADMIN
@@ -160,3 +166,4 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('chat/{id}/reply', [ChatController::class, 'reply']);
 });
 Route::get('/admin/dashboard', [DashboardController::class, 'stats']);
+

@@ -1,6 +1,7 @@
-import React from "react";
-import { Row, Col, Typography, Card } from "antd";
+import React, { useEffect, useState } from "react";
+import { Row, Col, Typography, Card, Spin, Empty } from "antd";
 import { useNavigate } from "react-router-dom";
+import axiosInstance from "../../../../providers/data/axiosConfig";
 
 import "./ClientEvent.css";
 import "../../../../../src/assets/fonts/fonts.css";
@@ -8,103 +9,54 @@ import "../../../../../src/assets/fonts/fonts.css";
 const { Title, Paragraph } = Typography;
 
 /* =======================
-   EVENT TYPE
+   EVENT TYPE (API)
 ======================= */
 interface EventType {
-  event_id: number;
-  event_name: string;
+  id: number;
+  title: string;
   description: string;
-  event_image: string;
+  banner: string;
   start_date: string;
   end_date: string;
-  is_active: boolean;
+  is_active: number;
 }
 
-/* =======================
-   FAKE EVENTS (6 ITEMS)
-======================= */
-const fakeEvents: EventType[] = [
-  {
-    event_id: 1,
-    event_name: "Luxury Wedding Ceremony",
-    description:
-      "Elegant wedding event with premium decoration and services.",
-    event_image:
-      "https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=800",
-    start_date: "2026-02-10",
-    end_date: "2026-02-11",
-    is_active: true,
-  },
-  {
-    event_id: 2,
-    event_name: "Corporate Business Meeting",
-    description:
-      "Professional meeting space with modern conference facilities.",
-    event_image:
-      "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800",
-    start_date: "2026-03-05",
-    end_date: "2026-03-05",
-    is_active: true,
-  },
-  {
-    event_id: 3,
-    event_name: "Annual Gala Dinner",
-    description:
-      "Classy gala dinner with fine dining and live entertainment.",
-    event_image:
-      "https://ngununggula.com/img/asset/YXNzZXRzL2FydGlzdHMvMjUwNV9uZ3VudW5nZ3VsYV9nYWxhX3I1Xy03MzU4LWVuaGFuY2VkLW5yLmpwZw==?w=2000&h=950&fit=crop&s=83007eaa696c46ce8da0d70cf5c1a36b",
-    start_date: "2026-04-18",
-    end_date: "2026-04-18",
-    is_active: true,
-  },
-  {
-    event_id: 4,
-    event_name: "Luxury Birthday Party",
-    description:
-      "Private birthday celebration with custom themes.",
-    event_image:
-      "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800",
-    start_date: "2026-05-12",
-    end_date: "2026-05-12",
-    is_active: true,
-  },
-  {
-    event_id: 5,
-    event_name: "Product Launch Event",
-    description:
-      "Impressive product launch with media coverage.",
-    event_image:
-      "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=800",
-    start_date: "2026-06-02",
-    end_date: "2026-06-02",
-    is_active: true,
-  },
-  {
-    event_id: 6,
-    event_name: "Private Cocktail Party",
-    description:
-      "Exclusive cocktail party with elegant atmosphere.",
-    event_image:
-      "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=800",
-    start_date: "2026-07-20",
-    end_date: "2026-07-20",
-    is_active: true,
-  },
-];
+const BASE_IMAGE_URL = "http://localhost:8000/storage/";
 
 export const ClientEvent: React.FC = () => {
   const navigate = useNavigate();
 
-  const events = fakeEvents.filter((e) => e.is_active);
+  const [events, setEvents] = useState<EventType[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  /* =======================
+     FETCH EVENTS
+  ======================= */
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const res = await axiosInstance.get("/events");
+        setEvents(res.data.data || []);
+      } catch (error) {
+        console.error("Error loading events:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
 
   const handleViewDetails = (eventId: number) => {
     navigate(`/client/events/${eventId}`);
     window.scrollTo(0, 0);
   };
 
+  const activeEvents = events.filter((e) => e.is_active === 1);
+
   return (
     <div className="client-events-container">
-      {/* HERO */}
+      {/* ================= HERO ================= */}
       <div className="events-hero-banner">
         <div className="hero-overlay" />
         <div className="hero-content">
@@ -112,7 +64,7 @@ export const ClientEvent: React.FC = () => {
         </div>
       </div>
 
-      {/* EVENTS */}
+      {/* ================= EVENTS ================= */}
       <section style={{ padding: "40px 56px" }}>
         <Title
           level={2}
@@ -136,88 +88,110 @@ export const ClientEvent: React.FC = () => {
           Professional meetings & memorable experiences.
         </Paragraph>
 
-        <Row gutter={[24, 24]} justify="center">
-          {events.map((event) => (
-            <Col xs={24} sm={12} md={8} key={event.event_id}>
-              <Card
-                hoverable
-                onClick={() => handleViewDetails(event.event_id)}
-                bodyStyle={{
-                  padding: 0,
-                  height: 320, // 👈 SMALLER CARD
-                  display: "flex",
-                  flexDirection: "column",
-                }}
-                style={{
-                  borderRadius: 14,
-                  overflow: "hidden",
-                  boxShadow: "0 8px 22px rgba(0,0,0,0.12)",
-                }}
-              >
-                {/* IMAGE */}
-                <div style={{ height: 180, overflow: "hidden" }}>
-                  <img
-                    src={event.event_image}
-                    alt={event.event_name}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                    }}
-                  />
-                </div>
+        {/* LOADING */}
+        {loading && (
+          <div style={{ textAlign: "center", margin: "80px 0" }}>
+            <Spin size="large" />
+          </div>
+        )}
 
-                {/* CONTENT */}
-                <div
-                  style={{
-                    padding: 16,
-                    flex: 1,
+        {/* EMPTY */}
+        {!loading && activeEvents.length === 0 && (
+          <Empty description="No events available" />
+        )}
+
+        {/* LIST */}
+        {!loading && activeEvents.length > 0 && (
+          <Row gutter={[24, 24]} justify="center">
+            {activeEvents.map((event) => (
+              <Col xs={24} sm={12} md={8} key={event.id}>
+                <Card
+                  hoverable
+                  onClick={() => handleViewDetails(event.id)}
+                  bodyStyle={{
+                    padding: 0,
+                    height: 320,
                     display: "flex",
                     flexDirection: "column",
-                    justifyContent: "space-between",
+                  }}
+                  style={{
+                    borderRadius: 14,
+                    overflow: "hidden",
+                    boxShadow: "0 8px 22px rgba(0,0,0,0.12)",
+                    cursor: "pointer",
                   }}
                 >
-                  <div>
-                    <h3
+                  {/* IMAGE */}
+                  <div style={{ height: 180, overflow: "hidden" }}>
+                    <img
+                      src={`${BASE_IMAGE_URL}${event.banner}`}
+                      alt={event.title}
                       style={{
-                        fontFamily: "'Playfair Display', serif",
-                        fontSize: 20,
-                        color: "#8a6e5b",
-                        marginBottom: 8,
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
                       }}
-                    >
-                      {event.event_name}
-                    </h3>
-
-                    <p
-                      style={{
-                        fontSize: 13,
-                        color: "#555",
-                        lineHeight: 1.6,
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          "https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=800";
                       }}
-                    >
-                      {event.description}
-                    </p>
+                    />
                   </div>
 
-                  <div style={{ textAlign: "right", marginTop: 12 }}>
-                    <span
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 600,
-                        color: "#8a6e5b",
-                        letterSpacing: 1,
-                      }}
-                    >
-                      VIEW DETAILS →
-                    </span>
+                  {/* CONTENT */}
+                  <div
+                    style={{
+                      padding: 16,
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <div>
+                      <h3
+                        style={{
+                          fontFamily: "'Playfair Display', serif",
+                          fontSize: 20,
+                          color: "#8a6e5b",
+                          marginBottom: 8,
+                        }}
+                      >
+                        {event.title}
+                      </h3>
+
+                      <p
+                        style={{
+                          fontSize: 13,
+                          color: "#555",
+                          lineHeight: 1.6,
+                        }}
+                      >
+                        {event.description}
+                      </p>
+                    </div>
+
+                    <div style={{ textAlign: "right", marginTop: 12 }}>
+                      <span
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 600,
+                          color: "#8a6e5b",
+                          letterSpacing: 1,
+                        }}
+                      >
+                        VIEW DETAILS →
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </Card>
-            </Col>
-          ))}
-        </Row>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        )}
       </section>
     </div>
   );
 };
+
+export default ClientEvent;
