@@ -33,6 +33,10 @@ class Booking extends Model
         'check_in',
         'check_out',
         'nights',
+        'subtotal_price',      // Tổng tiền trước giảm
+        'voucher_code',        // Mã voucher áp dụng
+        'voucher_discount',    // Số tiền giảm
+
         'total_price',
         'status',
     ];
@@ -53,7 +57,14 @@ class Booking extends Model
     {
         return $this->belongsTo(User::class);
     }
-
+    public function bookingItems()
+    {
+        return $this->hasMany(BookingItem::class, 'booking_id');
+    }
+    public function damages()
+    {
+        return $this->hasMany(DamageType::class, 'booking_id', 'id');
+    }
     // Các phòng được gán khi check-in
     public function assignedRooms()
     {
@@ -90,5 +101,10 @@ class Booking extends Model
     public function isCheckedOut(): bool
     {
         return $this->status === self::STATUS_CHECK_OUT;
+    }
+
+    public function voucher()
+    {
+        return $this->belongsTo(Voucher::class);
     }
 }
