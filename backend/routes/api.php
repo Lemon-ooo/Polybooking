@@ -21,6 +21,8 @@ use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\VoucherController;
+use App\Http\Controllers\Api\AdminBookingController;
 
 Route::get('/bookings/my', [BookingController::class, 'myBookings'])->middleware('auth:sanctum');
 
@@ -83,10 +85,18 @@ Route::get('/profile', [ProfileController::class, 'show']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/bookings', [BookingController::class, 'store']);
+    Route::get('my/bookings',             [BookingController::class, 'myBookings']);
+    Route::get('bookings/{id}',           [BookingController::class, 'show']);
+    Route::post('bookings/{id}/cancel',   [BookingController::class, 'cancel']);
 });
-Route::get('my/bookings',             [BookingController::class, 'myBookings'])->middleware('auth:sanctum');
-Route::get('bookings/{id}',           [BookingController::class, 'show'])->middleware('auth:sanctum');
-Route::post('bookings/{id}/cancel',   [BookingController::class, 'cancel'])->middleware('auth:sanctum');
+
+///////////////////////Booking Admin Show & Index///////////////////////
+// routes/api.php
+
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('admin/bookings',        [AdminBookingController::class, 'index']);
+    Route::get('admin/bookings/{id}',   [AdminBookingController::class, 'show']);
+});
 
 
 /* =========================================================
@@ -166,4 +176,34 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('chat/{id}/reply', [ChatController::class, 'reply']);
 });
 Route::get('/admin/dashboard', [DashboardController::class, 'stats']);
+
+/* =========================================================
+| VOUCHER – CUSTOMER
+========================================================= */
+
+Route::post(
+    'vouchers/validate',
+    [VoucherController::class, 'validateVoucher']
+);
+
+
+/* =========================================================
+| VOUCHER – ADMIN
+========================================================= */
+
+Route::post(
+    'vouchers',
+    [VoucherController::class, 'store']
+)->middleware('auth:sanctum');
+
+Route::get(
+    'vouchers',
+    [VoucherController::class, 'index']
+)->middleware('auth:sanctum');
+
+Route::patch(
+    'vouchers/{id}/status',
+    [VoucherController::class, 'toggleStatus']
+)->middleware('auth:sanctum');
+
 
