@@ -87,63 +87,62 @@ const Amenities: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleSave = async (values: any) => {
-    if (fileList.length === 0) {
-      message.error("Vui lòng chọn ảnh tiện ích!");
-      return;
+ const handleSave = async (values: any) => {
+  if (!editing && fileList.length === 0) {
+    message.error("Vui lòng chọn ảnh tiện ích!");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("amenity_name", values.amenity_name.trim());
+
+  if (values.description?.trim()) {
+    formData.append("description", values.description.trim());
+  }
+
+  const file = fileList[0];
+  if (file?.originFileObj) {
+    formData.append("amenity_image", file.originFileObj as Blob);
+  }
+
+  try {
+    let newAmenity: Amenity | null = null;
+
+    if (editing) {
+      formData.append("_method", "PUT");
+      const res = await axiosInstance.post(
+        `/amenities/${editing.amenity_id}`,
+        formData
+      );
+      newAmenity = res.data.data;
+      message.success("Cập nhật thành công!");
+    } else {
+      const res = await axiosInstance.post("/amenities", formData);
+      newAmenity = res.data.data;
+      message.success("Thêm mới thành công!");
     }
 
-    const formData = new FormData();
-    formData.append("amenity_name", values.amenity_name.trim());
-
-    if (values.description?.trim()) {
-      formData.append("description", values.description.trim());
-    }
-
-    const file = fileList[0];
-    if (file?.originFileObj) {
-      formData.append("amenity_image", file.originFileObj as Blob);
-    } else if (editing) {
-      formData.append("amenity_image", editing.amenity_image);
-    }
-
-    try {
-      let newAmenity: Amenity | null = null;
-
-      if (editing) {
-        formData.append("_method", "PUT");
-        const res = await axiosInstance.post(
-          `/amenities/${editing.amenity_id}`,
-          formData
-        );
-        newAmenity = res.data.data;
-        message.success("Cập nhật thành công!");
-      } else {
-        const res = await axiosInstance.post("/amenities", formData);
-        newAmenity = res.data.data;
-        message.success("Thêm mới thành công!");
-      }
-
-      if (newAmenity) {
-        if (!editing) {
-          setAmenities((prev) => [newAmenity!, ...prev]);
-        } else {
-          setAmenities((prev) =>
-            prev.map((item) =>
-              item.amenity_id === newAmenity!.amenity_id ? newAmenity! : item
+    if (newAmenity) {
+      setAmenities((prev) =>
+        editing
+          ? prev.map((item) =>
+              item.amenity_id === newAmenity!.amenity_id
+                ? newAmenity!
+                : item
             )
-          );
-        }
-      }
-
-      setIsModalOpen(false);
-      setEditing(null);
-      setFileList([]);
-      form.resetFields();
-    } catch (err: any) {
-      message.error(err.response?.data?.message || "Lưu thất bại!");
+          : [newAmenity!, ...prev]
+      );
     }
-  };
+
+    setIsModalOpen(false);
+    setEditing(null);
+    setFileList([]);
+    form.resetFields();
+  } catch (err: any) {
+    message.error(err.response?.data?.message || "Lưu thất bại!");
+  }
+};
+
 
   const handleDelete = async (amenity_id: number) => {
     try {
@@ -270,10 +269,11 @@ const Amenities: React.FC = () => {
             <Input placeholder="VD: Wifi miễn phí" />
           </Form.Item>
 
-          <Form.Item
-            label="Ảnh tiện ích"
-            rules={[{ required: true, message: "Vui lòng chọn ảnh!" }]}
-          >
+         <Form.Item
+  label="Ảnh tiện ích"
+  required={!editing}
+>
+
             <Upload
               listType="picture-card"
               maxCount={1}

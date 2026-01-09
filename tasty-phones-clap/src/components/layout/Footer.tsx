@@ -80,7 +80,7 @@ export const Footer = () => {
             <Space size={14} style={{ alignItems: "flex-start" }}>
               <EnvironmentOutlined style={{ color: "#C49A6C", fontSize: 18 }} />
               <Text style={{ color: "#e5e5e5", fontSize: 15, lineHeight: 1.6 }}>
-                Tòa F Trịnh Văn Bô, Nam Từ Liêm, Hà Nội
+              Building F, Trinh Van Bo Street, Nam Tu Liem District, Hanoi
               </Text>
             </Space>
 
@@ -323,7 +323,7 @@ export const Footer = () => {
 
               <Space.Compact style={{ width: "100%" }}>
                 <Input
-                  placeholder="Nhập email của bạn"
+                  placeholder="Enter your email"
                   style={{
                     height: 50,
                     background: "rgba(34, 34, 34, 0.9)",
