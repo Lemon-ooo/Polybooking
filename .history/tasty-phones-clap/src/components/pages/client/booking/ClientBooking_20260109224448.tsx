@@ -1080,32 +1080,6 @@ export default function ClientBooking() {
         >
           {paymentStatus === "pending" && (
             <div style={{ textAlign: "center", padding: "20px 0" }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: 20,
-                }}
-              >
-                <Button
-                  type="text"
-                  onClick={() => setPaymentModalVisible(false)}
-                  icon={<ArrowLeftOutlined />}
-                >
-                  Back to Booking
-                </Button>
-                <span
-                  style={{
-                    fontSize: "16px",
-                    fontWeight: "bold",
-                    color: "#666",
-                  }}
-                >
-                  Booking #{bookingId}
-                </span>
-                <div style={{ width: 80 }}></div> {/* For spacing */}
-              </div>
               <h2
                 style={{ marginBottom: 24, fontSize: 24, fontWeight: "bold" }}
               >

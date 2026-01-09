@@ -19,14 +19,6 @@ import {
   DeleteOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
-  CalendarOutlined,
-  ClockCircleOutlined,
-  UserOutlined,
-  HomeOutlined,
-  ArrowLeftOutlined,
-  ArrowRightOutlined,
-  LoadingOutlined,
-  InfoCircleOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 import "./ClientBooking.css";
@@ -509,9 +501,7 @@ export default function ClientBooking() {
         </div>
 
         <div className="booking-content-wrapper">
-          <div
-            className={`booking-container ${step === 2 ? "step2-active" : ""}`}
-          >
+          <div className="booking-container">
             {/* FILTER BAR */}
             <div className="filter-container">
               <div className="filter-bar">
@@ -1080,32 +1070,6 @@ export default function ClientBooking() {
         >
           {paymentStatus === "pending" && (
             <div style={{ textAlign: "center", padding: "20px 0" }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: 20,
-                }}
-              >
-                <Button
-                  type="text"
-                  onClick={() => setPaymentModalVisible(false)}
-                  icon={<ArrowLeftOutlined />}
-                >
-                  Back to Booking
-                </Button>
-                <span
-                  style={{
-                    fontSize: "16px",
-                    fontWeight: "bold",
-                    color: "#666",
-                  }}
-                >
-                  Booking #{bookingId}
-                </span>
-                <div style={{ width: 80 }}></div> {/* For spacing */}
-              </div>
               <h2
                 style={{ marginBottom: 24, fontSize: 24, fontWeight: "bold" }}
               >

@@ -19,14 +19,6 @@ import {
   DeleteOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
-  CalendarOutlined,
-  ClockCircleOutlined,
-  UserOutlined,
-  HomeOutlined,
-  ArrowLeftOutlined,
-  ArrowRightOutlined,
-  LoadingOutlined,
-  InfoCircleOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 import "./ClientBooking.css";
@@ -509,9 +501,7 @@ export default function ClientBooking() {
         </div>
 
         <div className="booking-content-wrapper">
-          <div
-            className={`booking-container ${step === 2 ? "step2-active" : ""}`}
-          >
+          <div className="booking-container">
             {/* FILTER BAR */}
             <div className="filter-container">
               <div className="filter-bar">
@@ -598,38 +588,32 @@ export default function ClientBooking() {
 
               {/* CART BADGE */}
               {selectedRooms.length > 0 && step === 1 && (
-                <div className="confirm-booking-fixed-bar">
-                  <div className="booking-summary-left">
-                    <div className="booking-summary-label">Selected Rooms</div>
-                    <div className="booking-summary-details">
-                      {selectedRooms.map((room) => (
-                        <span key={room.room_type_id}>
-                          {room.room_type_name} × {room.quantity}
-                          {selectedRooms.indexOf(room) <
-                            selectedRooms.length - 1 && ", "}
-                        </span>
-                      ))}
-                      <strong> • {getTotalRooms()} room(s)</strong>
-                    </div>
-                  </div>
-
-                  <div className="booking-summary-right">
-                    <div className="booking-total">
-                      <div className="booking-total-label">Total</div>
-                      <div className="booking-total-amount">
-                        {calcTotal().toLocaleString()} ₫
-                      </div>
-                    </div>
-
-                    <Button
-                      type="primary"
-                      size="large"
-                      icon={<ShoppingCartOutlined />}
-                      onClick={handleGoToConfirmation}
-                      className="confirm-fixed-btn"
+                <div className="confirm-booking-container">
+                  <div className="confirm-booking-btn-wrapper">
+                    <Badge
+                      count={getTotalRooms()}
+                      size="small"
+                      style={{
+                        backgroundColor: "#f59e0b",
+                        fontSize: "12px",
+                        fontWeight: "bold",
+                        boxShadow: "0 0 0 2px #fff",
+                      }}
+                      offset={[-5, 5]}
                     >
-                      Confirm Booking
-                    </Button>
+                      <Button
+                        type="primary"
+                        icon={<ShoppingCartOutlined />}
+                        onClick={handleGoToConfirmation}
+                        size="large"
+                        className="confirm-booking-btn"
+                      >
+                        Confirm Booking
+                      </Button>
+                    </Badge>
+                    <div className="total-price-display">
+                      {calcTotal().toLocaleString()} ₫
+                    </div>
                   </div>
                 </div>
               )}
@@ -756,309 +740,166 @@ export default function ClientBooking() {
             )}
 
             {/* STEP 2 - CONFIRMATION */}
-            {/* STEP 2 - CONFIRMATION */}
             {step === 2 && (
               <div className="confirmation-wrapper">
-                {/* Header */}
-                <div className="confirmation-header">
-                  <h1 className="confirmation-title">Confirm Your Booking</h1>
-                  <p className="confirmation-subtitle">
-                    Please review your booking details below. Make sure all
-                    information is correct before proceeding to payment.
-                  </p>
-                </div>
-
                 <div className="confirmation-main">
-                  {/* Left - Booking Details */}
                   <div className="confirmation-left">
                     <Card className="booking-details-card">
-                      {/* User Info */}
-                      <div className="user-info-banner">
-                        <div className="user-avatar">
-                          {user?.user_name?.[0]?.toUpperCase() ||
-                            user?.email?.[0]?.toUpperCase() ||
-                            "G"}
-                        </div>
-                        <div className="user-details">
-                          <h4>Booking as: {user?.user_name || user?.email}</h4>
-                          <p>Member ID: {userId}</p>
-                        </div>
-                      </div>
+                      <h2 className="section-title">Booking Details</h2>
 
-                      <h2 className="section-title">Stay Details</h2>
+                      {isAuthenticated && user && (
+                        <Alert
+                          message={`Booking as: ${
+                            user.user_name || user.email
+                          }`}
+                          type="info"
+                          showIcon
+                          style={{ marginBottom: 24 }}
+                        />
+                      )}
 
-                      <div className="booking-info-grid">
-                        <div className="info-card">
-                          <div className="info-label">
-                            <CalendarOutlined /> Check-in
-                          </div>
-                          <div className="info-value">
+                      <div className="booking-info">
+                        <div className="info-row">
+                          <span className="label">Check-in</span>
+                          <span className="value">
                             {filters.dates?.[0].format("dddd, DD MMMM YYYY")}
-                          </div>
-                          <div
-                            className="info-subtext"
-                            style={{
-                              marginTop: "5px",
-                              fontSize: "14px",
-                              color: "#999",
-                            }}
-                          >
-                            14:00 - 22:00
-                          </div>
+                          </span>
                         </div>
-
-                        <div className="info-card">
-                          <div className="info-label">
-                            <CalendarOutlined /> Check-out
-                          </div>
-                          <div className="info-value">
+                        <div className="info-row">
+                          <span className="label">Check-out</span>
+                          <span className="value">
                             {filters.dates?.[1].format("dddd, DD MMMM YYYY")}
-                          </div>
-                          <div
-                            className="info-subtext"
-                            style={{
-                              marginTop: "5px",
-                              fontSize: "14px",
-                              color: "#999",
-                            }}
-                          >
-                            Before 12:00
-                          </div>
+                          </span>
                         </div>
-
-                        <div className="info-card">
-                          <div className="info-label">
-                            <ClockCircleOutlined /> Duration
-                          </div>
-                          <div className="info-value">
-                            {getNights()} night(s)
-                          </div>
-                          <div
-                            className="info-subtext"
-                            style={{
-                              marginTop: "5px",
-                              fontSize: "14px",
-                              color: "#999",
-                            }}
-                          >
-                            {filters.dates?.[0].format("DD/MM")} -{" "}
-                            {filters.dates?.[1].format("DD/MM/YYYY")}
-                          </div>
+                        <div className="info-row">
+                          <span className="label">Duration</span>
+                          <span className="value">{getNights()} night(s)</span>
                         </div>
-
-                        <div className="info-card">
-                          <div className="info-label">
-                            <UserOutlined /> Guests
-                          </div>
-                          <div className="info-value">
-                            {filters.adults + filters.children} guest(s)
-                          </div>
-                          <div
-                            className="info-subtext"
-                            style={{
-                              marginTop: "5px",
-                              fontSize: "14px",
-                              color: "#999",
-                            }}
-                          >
-                            {filters.adults} adult(s), {filters.children}{" "}
-                            child(ren)
-                          </div>
+                        <div className="info-row">
+                          <span className="label">Guests</span>
+                          <span className="value">
+                            {filters.adults} adult(s)
+                            {filters.children > 0 &&
+                              `, ${filters.children} child(ren)`}
+                          </span>
                         </div>
                       </div>
 
-                      <div className="selected-rooms-section">
-                        <h2 className="section-title">Selected Rooms</h2>
-
-                        <div className="selected-rooms-list">
-                          {selectedRooms.map((room) => (
-                            <div
-                              key={room.room_type_id}
-                              className="room-card-item"
-                            >
-                              <div className="room-info-left">
-                                <img
-                                  src={
-                                    room.images?.[0]?.image_url
-                                      ? `${API_URL}/storage/${room.images[0].image_url}`
-                                      : "https://images.unsplash.com/photo-1566073771259-6a8506099945"
-                                  }
-                                  className="room-image-small"
-                                  alt={room.room_type_name}
-                                />
-                                <div className="room-details">
-                                  <h4>{room.room_type_name}</h4>
-                                  <p>
-                                    <UserOutlined /> Max {room.maxGuests} guests
-                                  </p>
-                                  <p>
-                                    <HomeOutlined /> {room.quantity} room(s) ×{" "}
-                                    {getNights()} night(s)
-                                  </p>
-                                </div>
+                      <h3 className="subsection-title">Selected Rooms</h3>
+                      <div className="selected-rooms-list">
+                        {selectedRooms.map((room) => (
+                          <div
+                            key={room.room_type_id}
+                            className="selected-room-item"
+                          >
+                            <div className="room-info">
+                              <div className="room-name">
+                                {room.room_type_name}
                               </div>
-
-                              <div className="room-price-right">
-                                <div className="room-price">
-                                  {(
-                                    room.price *
-                                    room.quantity *
-                                    getNights()
-                                  ).toLocaleString()}{" "}
-                                  ₫
-                                </div>
-                                <div
-                                  className="room-price-breakdown"
-                                  style={{ fontSize: "13px", color: "#999" }}
-                                >
-                                  {room.price.toLocaleString()} ₫ ×{" "}
-                                  {room.quantity} × {getNights()}
-                                </div>
-                                <button
-                                  className="remove-btn"
-                                  onClick={() =>
-                                    handleRemoveRoom(room.room_type_id)
-                                  }
-                                >
-                                  <DeleteOutlined /> Remove
-                                </button>
+                              <div className="room-calc">
+                                {room.price.toLocaleString()} ₫ ×{" "}
+                                {room.quantity} room(s) × {getNights()} night(s)
                               </div>
                             </div>
-                          ))}
-                        </div>
-                      </div>
-                    </Card>
-                  </div>
-
-                  {/* Right - Booking Summary */}
-                  <div className="confirmation-right">
-                    <Card className="summary-card">
-                      <div className="summary-header">
-                        <h3 className="summary-title">Booking Summary</h3>
-                        <span className="summary-badge">STEP 2/3</span>
-                      </div>
-
-                      <div className="summary-content">
-                        <div className="summary-item">
-                          <span className="summary-label">Check-in</span>
-                          <span className="summary-value">
-                            {filters.dates?.[0].format("DD MMM YYYY")}
-                          </span>
-                        </div>
-
-                        <div className="summary-item">
-                          <span className="summary-label">Check-out</span>
-                          <span className="summary-value">
-                            {filters.dates?.[1].format("DD MMM YYYY")}
-                          </span>
-                        </div>
-
-                        <div className="summary-item">
-                          <span className="summary-label">Nights</span>
-                          <span className="summary-value">
-                            {getNights()} night(s)
-                          </span>
-                        </div>
-
-                        <div className="summary-item">
-                          <span className="summary-label">Guests</span>
-                          <span className="summary-value">
-                            {filters.adults + filters.children}
-                          </span>
-                        </div>
-
-                        <div
-                          style={{ marginTop: "20px", marginBottom: "20px" }}
-                        >
-                          <div
-                            style={{
-                              fontSize: "13px",
-                              color: "#666",
-                              marginBottom: "10px",
-                            }}
-                          >
-                            Room Charges
-                          </div>
-                          {selectedRooms.map((room) => (
-                            <div
-                              key={room.room_type_id}
-                              className="summary-item"
-                            >
-                              <span className="summary-label">
-                                {room.room_type_name} × {room.quantity}
-                              </span>
-                              <span className="summary-value">
-                                {(
-                                  room.price *
-                                  room.quantity *
-                                  getNights()
-                                ).toLocaleString()}{" "}
-                                ₫
-                              </span>
+                            <div className="room-total">
+                              {(
+                                room.price *
+                                room.quantity *
+                                getNights()
+                              ).toLocaleString()}{" "}
+                              ₫
+                              <Button
+                                type="text"
+                                danger
+                                size="small"
+                                icon={<DeleteOutlined />}
+                                onClick={() =>
+                                  handleRemoveRoom(room.room_type_id)
+                                }
+                                style={{ marginLeft: 8 }}
+                              />
                             </div>
-                          ))}
-                        </div>
-
-                        <div className="summary-total-section">
-                          <div className="summary-total-row">
-                            <span className="total-label">Total Amount</span>
-                            <span className="total-amount">
-                              {calcTotal().toLocaleString()} ₫
-                            </span>
                           </div>
-
-                          <div className="summary-note">
-                            <InfoCircleOutlined />
-                            Your booking will be confirmed after successful
-                            payment. Free cancellation up to 24 hours before
-                            check-in.
-                          </div>
-                        </div>
+                        ))}
                       </div>
-                    </Card>
-                  </div>
-                </div>
 
-                {/* Fixed Footer */}
-                <div className="fixed-booking-footer">
-                  <div className="footer-content">
-                    <div className="footer-left">
-                      <button
-                        className="back-to-rooms-btn"
-                        onClick={() => setStep(1)}
-                      >
-                        <ArrowLeftOutlined /> Back to Rooms
-                      </button>
-                    </div>
-
-                    <div className="footer-right">
-                      <div className="footer-total">
-                        <div className="footer-total-label">Total to Pay</div>
-                        <div className="footer-total-amount">
+                      <div className="total-section">
+                        <div className="total-label">Total Amount</div>
+                        <div className="total-amount">
                           {calcTotal().toLocaleString()} ₫
                         </div>
                       </div>
+                    </Card>
+                  </div>
 
-                      <button
-                        className="confirm-booking-btn-final"
-                        onClick={handleBooking}
-                        disabled={
-                          bookingLoading ||
-                          !filters.dates ||
-                          selectedRooms.length === 0
-                        }
-                      >
-                        {bookingLoading ? (
-                          <>
-                            <LoadingOutlined /> Processing...
-                          </>
-                        ) : (
-                          <>
-                            Proceed to Payment <ArrowRightOutlined />
-                          </>
-                        )}
-                      </button>
+                  <div className="confirmation-right">
+                    <Card className="summary-card">
+                      <h3 className="summary-title">Booking Summary</h3>
+                      <div className="summary-item">
+                        <span>Dates</span>
+                        <span>
+                          {filters.dates?.[0].format("DD/MM/YYYY")} →{" "}
+                          {filters.dates?.[1].format("DD/MM/YYYY")}
+                        </span>
+                      </div>
+                      <div className="summary-item">
+                        <span>Stay</span>
+                        <span>{getNights()} night(s)</span>
+                      </div>
+                      <div className="summary-item">
+                        <span>Guests</span>
+                        <span>
+                          {filters.adults + filters.children} guest(s)
+                        </span>
+                      </div>
+                      <hr />
+                      {selectedRooms.map((room) => (
+                        <div key={room.room_type_id} className="summary-room">
+                          <span>
+                            {room.room_type_name} × {room.quantity}
+                          </span>
+                          <span>
+                            {(
+                              room.price *
+                              room.quantity *
+                              getNights()
+                            ).toLocaleString()}{" "}
+                            ₫
+                          </span>
+                        </div>
+                      ))}
+                      <hr />
+                      <div className="summary-total">
+                        <span>Total</span>
+                        <span className="total-price">
+                          {calcTotal().toLocaleString()} ₫
+                        </span>
+                      </div>
+                    </Card>
+                  </div>
+                </div>
+
+                {/* Fixed footer with Confirm button */}
+                <div className="fixed-booking-footer">
+                  <div className="footer-content">
+                    <div>
+                      <div className="footer-total-label">Total</div>
+                      <div className="footer-total-amount">
+                        {calcTotal().toLocaleString()} ₫
+                      </div>
                     </div>
+                    <Button
+                      type="primary"
+                      size="large"
+                      loading={bookingLoading}
+                      onClick={handleBooking}
+                      className="confirm-booking-btn"
+                      disabled={!filters.dates || selectedRooms.length === 0}
+                    >
+                      {bookingLoading
+                        ? "Creating Booking..."
+                        : "Confirm Booking"}
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -1080,32 +921,6 @@ export default function ClientBooking() {
         >
           {paymentStatus === "pending" && (
             <div style={{ textAlign: "center", padding: "20px 0" }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: 20,
-                }}
-              >
-                <Button
-                  type="text"
-                  onClick={() => setPaymentModalVisible(false)}
-                  icon={<ArrowLeftOutlined />}
-                >
-                  Back to Booking
-                </Button>
-                <span
-                  style={{
-                    fontSize: "16px",
-                    fontWeight: "bold",
-                    color: "#666",
-                  }}
-                >
-                  Booking #{bookingId}
-                </span>
-                <div style={{ width: 80 }}></div> {/* For spacing */}
-              </div>
               <h2
                 style={{ marginBottom: 24, fontSize: 24, fontWeight: "bold" }}
               >

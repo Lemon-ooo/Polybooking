@@ -39,9 +39,7 @@
   width: 100%;
   display: flex;
   justify-content: center;
-  margin: 0 auto 30px;
-  position: relative;
-  z-index: 10;
+  margin-top: -20px;
 }
 
 .filter-bar {
@@ -51,7 +49,9 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   display: flex;
   gap: 14px;
-  align-items: center;
+  position: relative;
+  top: -20px;
+  z-index: 10;
 }
 
 /* Range picker */
@@ -452,6 +452,85 @@
   height: 16px;
 }
 
+/* PAYMENT */
+.payment-box {
+  border: 1px solid #ddd;
+  padding: 20px;
+  border-radius: 12px;
+  background: #fff;
+  margin-top: 10px;
+}
+
+.payment-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.payment-header img {
+  width: 28px;
+}
+
+.small-text {
+  font-size: 13px;
+  color: #777;
+}
+
+/* ======================================= */
+/* SUMMARY RIGHT */
+/* ======================================= */
+.summary-title {
+  font-size: 20px;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.summary-section {
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 16px;
+  margin-bottom: 20px;
+}
+
+.night-count {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.date-range {
+  font-size: 14px;
+  color: #666;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  font-size: 15px;
+}
+
+.summary-item.total {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #ccc;
+}
+
+.price {
+  font-weight: 600;
+}
+
+.discount {
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.total-price {
+  font-size: 20px;
+  color: #7f1d1d;
+  font-weight: bold;
+}
+
 /* BOOK BUTTON */
 .book-btn {
   width: 100%;
@@ -460,6 +539,20 @@
   font-size: 16px;
   background: #7f1d1d !important;
   border-color: #7f1d1d !important;
+}
+
+/* ======================================= */
+/* CONTAINER */
+/* ======================================= */
+.booking-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.booking-content-wrapper {
+  margin-bottom: 60px;
 }
 
 /* ======================================= */
@@ -1096,351 +1189,147 @@ textarea::placeholder {
   font-weight: 600;
 }
 
-/* ======================================= */
-/* STEP 2 - CONFIRMATION (REDESIGN) */
-/* ======================================= */
-
-/* Ẩn filter bar ở step 2 */
-.step2-active .filter-container {
-  display: none;
-}
-
-/* Ẩn steps header ở step 2 */
-.step2-active .steps-header {
-  display: none;
-}
-
-/* Confirmation wrapper */
+/* Step 2 - Confirmation sang trọng */
 .confirmation-wrapper {
   max-width: 1200px;
-  margin: 40px auto 150px;
-  padding: 0 20px;
-  animation: fadeIn 0.5s ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.confirmation-header {
-  text-align: center;
-  margin-bottom: 40px;
-  padding-top: 20px;
-}
-
-.confirmation-title {
-  font-family: "Times New Roman", serif;
-  font-size: 3rem;
-  font-weight: 700;
-  color: #1a1a1a;
-  margin-bottom: 10px;
-  letter-spacing: 1px;
-}
-
-.confirmation-subtitle {
-  font-size: 1.1rem;
-  color: #666;
-  max-width: 600px;
   margin: 0 auto;
-  line-height: 1.6;
+  padding: 24px 0;
 }
 
 .confirmation-main {
   display: grid;
   grid-template-columns: 1fr 380px;
-  gap: 40px;
-  align-items: start;
+  gap: 32px;
+  margin-bottom: 100px; /* để chỗ cho footer cố định */
 }
 
-/* Left card - Booking Details */
-.booking-details-card {
-  background: #fff;
-  border-radius: 20px;
-  border: 1px solid #e8e8e8;
-  overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
-  padding: 32px;
-}
-
-.user-info-banner {
-  background: linear-gradient(135deg, #fef7f7, #fff5f5);
-  border-radius: 12px;
-  padding: 20px 24px;
-  margin-bottom: 32px;
-  border-left: 4px solid #7f1d1d;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.user-avatar {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: #7f1d1d;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  font-weight: bold;
-}
-
-.user-details h4 {
-  margin: 0 0 5px 0;
-  font-size: 18px;
-  color: #1a1a1a;
-}
-
-.user-details p {
-  margin: 0;
-  color: #666;
-  font-size: 14px;
-}
-
-.section-title {
-  font-size: 24px;
-  font-weight: 700;
-  color: #1a1a1a;
-  margin-bottom: 24px;
-  padding-bottom: 12px;
-  border-bottom: 2px solid #f0f0f0;
-}
-
-.booking-info-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
-  margin-bottom: 40px;
-}
-
-.info-card {
-  background: #fafafa;
-  border-radius: 12px;
-  padding: 20px;
-  border: 1px solid #f0f0f0;
-  transition: all 0.3s ease;
-}
-
-.info-card:hover {
-  border-color: #7f1d1d;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-}
-
-.info-label {
-  font-size: 13px;
-  color: #666;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.info-value {
-  font-size: 18px;
-  font-weight: 600;
-  color: #1a1a1a;
-}
-
-/* Selected Rooms Section */
-.selected-rooms-section {
-  margin-top: 40px;
-}
-
-.room-card-item {
-  background: #fafafa;
-  border-radius: 16px;
-  padding: 24px;
-  margin-bottom: 20px;
-  border: 1px solid #e8e8e8;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: all 0.3s ease;
-}
-
-.room-card-item:hover {
-  background: #fff;
-  border-color: #7f1d1d;
-  box-shadow: 0 8px 24px rgba(127, 29, 29, 0.08);
-}
-
-.room-info-left {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-}
-
-.room-image-small {
-  width: 100px;
-  height: 80px;
-  border-radius: 10px;
-  object-fit: cover;
-}
-
-.room-details h4 {
-  margin: 0 0 8px 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #1a1a1a;
-}
-
-.room-details p {
-  margin: 0;
-  color: #666;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.room-details .anticon {
-  color: #7f1d1d;
-}
-
-.room-price-right {
-  text-align: right;
-}
-
-.room-price {
-  font-size: 24px;
-  font-weight: 700;
-  color: #7f1d1d;
-  margin-bottom: 8px;
-}
-
-.remove-btn {
-  background: transparent;
-  border: none;
-  color: #dc2626;
-  font-size: 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 10px;
-  border-radius: 6px;
-  transition: all 0.2s;
-}
-
-.remove-btn:hover {
-  background: #fef2f2;
-}
-
-/* Right card - Booking Summary */
+.booking-details-card,
 .summary-card {
-  background: #fff;
-  border-radius: 20px;
-  border: 1px solid #e8e8e8;
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
-  padding: 32px;
-  position: sticky;
-  top: 100px;
 }
 
-.summary-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 30px;
-}
-
+.section-title,
 .summary-title {
-  font-size: 24px;
-  font-weight: 700;
-  color: #1a1a1a;
-  margin: 0;
-}
-
-.summary-badge {
-  background: #7f1d1d;
-  color: white;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
+  font-size: 28px;
   font-weight: 600;
+  color: #1a3e5d;
+  margin-bottom: 24px;
 }
 
-.summary-item {
+.subsection-title {
+  font-size: 20px;
+  margin: 32px 0 16px;
+  color: #1a3e5d;
+}
+
+.booking-info .info-row {
   display: flex;
   justify-content: space-between;
-  padding: 16px 0;
+  padding: 12px 0;
   border-bottom: 1px solid #f0f0f0;
 }
 
-.summary-item:last-child {
-  border-bottom: none;
-}
-
-.summary-label {
+.info-row .label {
   color: #666;
-  font-size: 15px;
-}
-
-.summary-value {
   font-weight: 500;
-  color: #1a1a1a;
-  font-size: 15px;
 }
 
-.summary-total-section {
-  margin-top: 30px;
-  padding-top: 24px;
-  border-top: 2px solid #e8e8e8;
+.info-row .value {
+  font-weight: 600;
+  color: #1a3e5d;
 }
 
-.summary-total-row {
+.selected-rooms-list {
+  background: #fafafa;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.selected-room-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  padding: 16px 0;
+  border-bottom: 1px dashed #e0e0e0;
+}
+
+.selected-room-item:last-child {
+  border-bottom: none;
+}
+
+.room-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: #1a3e5d;
+}
+
+.room-calc {
+  font-size: 13px;
+  color: #888;
+  margin-top: 4px;
+}
+
+.room-total {
+  font-weight: bold;
+  color: #1a3e5d;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.total-section {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 2px solid #1890ff;
+  text-align: right;
 }
 
 .total-label {
-  font-size: 18px;
-  color: #1a1a1a;
-  font-weight: 600;
+  font-size: 20px;
+  color: #666;
 }
 
 .total-amount {
   font-size: 32px;
-  font-weight: 700;
-  color: #7f1d1d;
+  font-weight: bold;
+  color: #1890ff;
 }
 
-.summary-note {
-  background: #fef7f7;
-  border-radius: 10px;
-  padding: 15px;
-  font-size: 13px;
-  color: #666;
-  line-height: 1.5;
-  margin-top: 20px;
-  border-left: 3px solid #7f1d1d;
+/* Summary sidebar */
+.summary-item,
+.summary-room {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  font-size: 15px;
 }
 
-/* Fixed footer */
+.summary-total {
+  font-size: 20px;
+  font-weight: bold;
+  color: #1a3e5d;
+  padding-top: 16px;
+  border-top: 1px solid #eee;
+}
+
+.total-price {
+  color: #1890ff;
+}
+
+/* Footer cố định dưới cùng */
 .fixed-booking-footer {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(255, 255, 255, 0.98);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  border-top: 1px solid #e8e8e8;
-  padding: 20px 40px;
-  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.08);
+  border-top: 1px solid #e0e0e0;
+  padding: 16px 24px;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
   z-index: 1000;
 }
 
@@ -1452,467 +1341,29 @@ textarea::placeholder {
   align-items: center;
 }
 
-.footer-left {
-  display: flex;
-  flex-direction: column;
-}
-
-.back-to-rooms-btn {
-  background: transparent;
-  border: 1px solid #d9d9d9;
-  color: #666;
-  height: 40px;
-  padding: 0 20px;
-  border-radius: 8px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.2s;
-}
-
-.back-to-rooms-btn:hover {
-  border-color: #7f1d1d;
-  color: #7f1d1d;
-  background: #fef7f7;
-}
-
-.footer-right {
-  display: flex;
-  align-items: center;
-  gap: 40px;
-}
-
-.footer-total {
-  text-align: right;
-}
-
 .footer-total-label {
-  font-size: 14px;
+  font-size: 18px;
   color: #666;
-  margin-bottom: 4px;
 }
 
 .footer-total-amount {
   font-size: 28px;
-  font-weight: 700;
-  color: #7f1d1d;
+  font-weight: bold;
+  color: #1890ff;
 }
 
-.confirm-booking-btn-final {
-  background: linear-gradient(135deg, #7f1d1d, #b91c1c);
+.confirm-booking-btn {
+  background: linear-gradient(135deg, #13ce66, #089e46);
   border: none;
   height: 56px;
   padding: 0 48px;
   font-size: 18px;
   font-weight: 600;
   border-radius: 12px;
-  color: white;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  box-shadow: 0 8px 24px rgba(127, 29, 29, 0.3);
-  transition: all 0.3s ease;
-  min-width: 200px;
-  justify-content: center;
+  box-shadow: 0 8px 20px rgba(19, 206, 102, 0.3);
 }
 
-.confirm-booking-btn-final:hover {
-  background: linear-gradient(135deg, #b91c1c, #dc2626);
+.confirm-booking-btn:hover {
+  background: linear-gradient(135deg, #0fb357, #078a3b);
   transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(127, 29, 29, 0.4);
-}
-
-.confirm-booking-btn-final:active {
-  transform: translateY(0);
-}
-
-.confirm-booking-btn-final:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-/* Responsive */
-@media (max-width: 1024px) {
-  .confirmation-main {
-    grid-template-columns: 1fr;
-    gap: 30px;
-  }
-
-  .summary-card {
-    position: static;
-  }
-
-  .booking-info-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .confirmation-title {
-    font-size: 2rem;
-  }
-
-  .fixed-booking-footer {
-    padding: 15px 20px;
-  }
-
-  .footer-content {
-    flex-direction: column;
-    gap: 15px;
-    align-items: stretch;
-  }
-
-  .footer-right {
-    justify-content: space-between;
-  }
-
-  .confirm-booking-btn-final {
-    padding: 0 24px;
-    min-width: auto;
-  }
-}
-/* ======================================= */
-/* CONFIRM BOOKING FLOATING BAR */
-/* ======================================= */
-.confirm-booking-fixed-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-top: 1px solid #e5e5e5;
-  padding: 16px 24px;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transform: translateY(0);
-  transition: transform 0.3s ease;
-}
-
-.confirm-booking-fixed-bar.hidden {
-  transform: translateY(100%);
-}
-
-.booking-summary-left {
-  display: flex;
-  flex-direction: column;
-}
-
-.booking-summary-label {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 4px;
-}
-
-.booking-summary-details {
-  font-size: 14px;
-  color: #333;
-}
-
-.booking-summary-details strong {
-  color: #7f1d1d;
-}
-
-.booking-summary-right {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.booking-total {
-  text-align: right;
-}
-
-.booking-total-label {
-  font-size: 14px;
-  color: #666;
-}
-
-.booking-total-amount {
-  font-size: 24px;
-  font-weight: 700;
-  color: #7f1d1d;
-}
-
-.confirm-fixed-btn {
-  background: linear-gradient(135deg, #7f1d1d, #b91c1c) !important;
-  border: none !important;
-  border-radius: 10px !important;
-  padding: 0 32px !important;
-  height: 48px !important;
-  font-size: 16px !important;
-  font-weight: 600 !important;
-  box-shadow: 0 4px 12px rgba(127, 29, 29, 0.3) !important;
-  min-width: 180px;
-}
-
-.confirm-fixed-btn:hover {
-  background: linear-gradient(135deg, #b91c1c, #dc2626) !important;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(127, 29, 29, 0.4) !important;
-}
-
-/* Thêm padding bottom cho container chính để tránh bị che */
-.booking-container {
-  padding-bottom: 120px; /* Để chừa chỗ cho fixed bar */
-}
-/* ======================================= */
-/* BUTTON COLOR UPDATE: CHỈ CÁC NÚT SANG MÀU NÂU */
-/* ======================================= */
-
-/* Nút trong Popup chọn khách */
-.done {
-  background: #a0522d !important; /* Nâu đỏ Sienna */
-  color: #fff !important;
-}
-
-.done:hover {
-  background: #8b4513 !important; /* Nâu đỏ đậm hơn */
-}
-
-/* Nút trong Room Actions */
-.room-btn {
-  background: #a0522d !important; /* Nâu đỏ Sienna */
-  color: #fff !important;
-  border: none !important;
-}
-
-.room-btn:hover {
-  background: #8b4513 !important; /* Nâu đỏ đậm hơn */
-}
-
-/* Nút Detail trong Room Card */
-.detail-btn {
-  background: #f9f3e9 !important; /* Nền nâu nhạt */
-  border: 1px solid #d2b48c !important; /* Border nâu */
-  color: #8b7355 !important; /* Text nâu đậm */
-}
-
-.detail-btn:hover {
-  background: #e6d5b8 !important; /* Nền nâu sáng hơn */
-  border-color: #a0522d !important; /* Border nâu đỏ */
-  color: #a0522d !important; /* Text nâu đỏ */
-}
-
-/* Nút Add Room (Step 1) */
-.add-room-btn {
-  background: linear-gradient(
-    135deg,
-    #d2b48c,
-    #a0522d
-  ) !important; /* Gradient nâu */
-  border: none !important;
-  color: white !important;
-}
-
-.add-room-btn:hover {
-  background: linear-gradient(
-    135deg,
-    #a0522d,
-    #8b4513
-  ) !important; /* Gradient nâu đậm */
-}
-
-/* Nút Confirm Booking (Floating Bar - Step 1) */
-.confirm-fixed-btn {
-  background: linear-gradient(
-    135deg,
-    #d2b48c,
-    #a0522d
-  ) !important; /* Gradient nâu */
-  border: none !important;
-  color: white !important;
-  box-shadow: 0 4px 12px rgba(160, 82, 45, 0.3) !important; /* Shadow nâu */
-}
-
-.confirm-fixed-btn:hover {
-  background: linear-gradient(
-    135deg,
-    #a0522d,
-    #8b4513
-  ) !important; /* Gradient nâu đậm */
-  box-shadow: 0 6px 16px rgba(160, 82, 45, 0.4) !important; /* Shadow nâu đậm */
-}
-
-/* Nút Confirm Booking (Step 2 - Footer) */
-.confirm-booking-btn-final {
-  background: linear-gradient(
-    135deg,
-    #d2b48c,
-    #a0522d
-  ) !important; /* Gradient nâu */
-  border: none !important;
-  color: white !important;
-  box-shadow: 0 8px 24px rgba(160, 82, 45, 0.3) !important; /* Shadow nâu */
-}
-
-.confirm-booking-btn-final:hover {
-  background: linear-gradient(
-    135deg,
-    #a0522d,
-    #8b4513
-  ) !important; /* Gradient nâu đậm */
-  box-shadow: 0 12px 28px rgba(160, 82, 45, 0.4) !important; /* Shadow nâu đậm */
-}
-
-.confirm-booking-btn-final:disabled {
-  background: #d2b48c !important; /* Nâu nhạt khi disabled */
-  opacity: 0.6;
-}
-
-/* Nút Back to Rooms (Step 2) */
-.back-to-rooms-btn {
-  border: 1px solid #d2b48c !important; /* Border nâu */
-  color: #8b7355 !important; /* Text nâu đậm */
-}
-
-.back-to-rooms-btn:hover {
-  border-color: #a0522d !important; /* Border nâu đỏ */
-  color: #a0522d !important; /* Text nâu đỏ */
-  background: #f9f3e9 !important; /* Nền nâu nhạt */
-}
-
-/* Nút Remove trong Step 2 */
-.remove-btn {
-  color: #a0522d !important; /* Text nâu đỏ */
-}
-
-.remove-btn:hover {
-  color: #8b4513 !important; /* Text nâu đỏ đậm */
-  background: #f9f3e9 !important; /* Nền nâu nhạt */
-}
-
-/* Nút trong Modal Payment (QR Code) - Thêm vào phần modal */
-.payment-back-btn {
-  border-color: #d2b48c !important;
-  color: #8b7355 !important;
-}
-
-.payment-back-btn:hover {
-  border-color: #a0522d !important;
-  color: #a0522d !important;
-  background: #f9f3e9 !important;
-}
-
-/* Nút Try Again trong Modal Payment Failed */
-.ant-btn-primary[type="button"]:not([class*="ant-btn-default"]) {
-  background: linear-gradient(135deg, #d2b48c, #a0522d) !important;
-  border-color: #a0522d !important;
-}
-
-.ant-btn-primary[type="button"]:not([class*="ant-btn-default"]):hover {
-  background: linear-gradient(135deg, #a0522d, #8b4513) !important;
-  border-color: #8b4513 !important;
-}
-
-/* Nút Go to Homepage trong Modal */
-.ant-btn-default:not([class*="ant-btn-primary"]) {
-  border-color: #d2b48c !important;
-  color: #8b7355 !important;
-}
-
-.ant-btn-default:not([class*="ant-btn-primary"]):hover {
-  border-color: #a0522d !important;
-  color: #a0522d !important;
-}
-
-/* Nút trong Quantity Controls (Step 1) */
-.quantity-controls .ant-btn {
-  border-color: #d2b48c !important;
-  color: #8b7355 !important;
-}
-
-.quantity-controls .ant-btn:hover {
-  border-color: #a0522d !important;
-  color: #a0522d !important;
-}
-
-.quantity-controls .ant-btn[type="primary"] {
-  background: #a0522d !important;
-  border-color: #a0522d !important;
-  color: white !important;
-}
-
-.quantity-controls .ant-btn[type="primary"]:hover {
-  background: #8b4513 !important;
-  border-color: #8b4513 !important;
-}
-
-.quantity-controls .ant-btn[class*="ant-btn-dangerous"] {
-  background: #dc2626 !important; /* Giữ màu đỏ cho nút xóa */
-  border-color: #dc2626 !important;
-}
-
-/* Nút trong Steps Header */
-.steps-btn.back,
-.steps-btn.next {
-  background: #f9f3e9 !important; /* Nền nâu nhạt */
-  border: 1px solid #d2b48c !important; /* Border nâu */
-  color: #8b7355 !important; /* Text nâu đậm */
-}
-
-.steps-btn.back:hover,
-.steps-btn.next:hover {
-  background: #e6d5b8 !important; /* Nền nâu sáng */
-  border-color: #a0522d !important; /* Border nâu đỏ */
-  color: #a0522d !important; /* Text nâu đỏ */
-}
-
-/* Nút Book trong phần Step 3 */
-.book-btn {
-  background: linear-gradient(135deg, #d2b48c, #a0522d) !important;
-  border-color: #a0522d !important;
-}
-
-.book-btn:hover {
-  background: linear-gradient(135deg, #a0522d, #8b4513) !important;
-  border-color: #8b4513 !important;
-}
-
-/* Nút trong Addon Cards */
-.addon-btn {
-  background: #a0522d !important;
-  color: white !important;
-}
-
-.addon-btn:hover {
-  background: #8b4513 !important;
-}
-
-.addon-selected {
-  background: #d2b48c !important;
-  color: white !important;
-}
-
-.addon-selected:hover {
-  background: #a0522d !important;
-}
-
-/* Nút Select Room trong Modal */
-.select-room-btn {
-  background: linear-gradient(135deg, #d2b48c, #a0522d) !important;
-  border: none !important;
-  color: white !important;
-}
-
-.select-room-btn:hover {
-  background: linear-gradient(135deg, #a0522d, #8b4513) !important;
-}
-
-/* Nút trong Payment Methods */
-.pay-btn {
-  background: linear-gradient(135deg, #d2b48c, #a0522d) !important;
-  border: none !important;
-  color: white !important;
-}
-
-.pay-btn:hover {
-  background: linear-gradient(135deg, #a0522d, #8b4513) !important;
 }

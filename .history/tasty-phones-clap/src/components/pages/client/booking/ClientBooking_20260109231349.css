@@ -1703,62 +1703,38 @@ textarea::placeholder {
 
 /* Nút Add Room (Step 1) */
 .add-room-btn {
-  background: linear-gradient(
-    135deg,
-    #d2b48c,
-    #a0522d
-  ) !important; /* Gradient nâu */
+  background: linear-gradient(135deg, #d2b48c, #a0522d) !important; /* Gradient nâu */
   border: none !important;
   color: white !important;
 }
 
 .add-room-btn:hover {
-  background: linear-gradient(
-    135deg,
-    #a0522d,
-    #8b4513
-  ) !important; /* Gradient nâu đậm */
+  background: linear-gradient(135deg, #a0522d, #8b4513) !important; /* Gradient nâu đậm */
 }
 
 /* Nút Confirm Booking (Floating Bar - Step 1) */
 .confirm-fixed-btn {
-  background: linear-gradient(
-    135deg,
-    #d2b48c,
-    #a0522d
-  ) !important; /* Gradient nâu */
+  background: linear-gradient(135deg, #d2b48c, #a0522d) !important; /* Gradient nâu */
   border: none !important;
   color: white !important;
   box-shadow: 0 4px 12px rgba(160, 82, 45, 0.3) !important; /* Shadow nâu */
 }
 
 .confirm-fixed-btn:hover {
-  background: linear-gradient(
-    135deg,
-    #a0522d,
-    #8b4513
-  ) !important; /* Gradient nâu đậm */
+  background: linear-gradient(135deg, #a0522d, #8b4513) !important; /* Gradient nâu đậm */
   box-shadow: 0 6px 16px rgba(160, 82, 45, 0.4) !important; /* Shadow nâu đậm */
 }
 
 /* Nút Confirm Booking (Step 2 - Footer) */
 .confirm-booking-btn-final {
-  background: linear-gradient(
-    135deg,
-    #d2b48c,
-    #a0522d
-  ) !important; /* Gradient nâu */
+  background: linear-gradient(135deg, #d2b48c, #a0522d) !important; /* Gradient nâu */
   border: none !important;
   color: white !important;
   box-shadow: 0 8px 24px rgba(160, 82, 45, 0.3) !important; /* Shadow nâu */
 }
 
 .confirm-booking-btn-final:hover {
-  background: linear-gradient(
-    135deg,
-    #a0522d,
-    #8b4513
-  ) !important; /* Gradient nâu đậm */
+  background: linear-gradient(135deg, #a0522d, #8b4513) !important; /* Gradient nâu đậm */
   box-shadow: 0 12px 28px rgba(160, 82, 45, 0.4) !important; /* Shadow nâu đậm */
 }
 
