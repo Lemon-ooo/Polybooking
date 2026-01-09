@@ -1686,7 +1686,7 @@ textarea::placeholder {
   border: 1px solid #d2b48c !important; /* Border nâu */
   color: #8b7355 !important; /* Text nâu đậm */
 }
-  
+
 .detail-btn:hover {
   background: #e6d5b8 !important; /* Nền nâu sáng hơn */
   border-color: #a0522d !important; /* Border nâu đỏ */

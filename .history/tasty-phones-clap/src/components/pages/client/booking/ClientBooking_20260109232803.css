@@ -1668,6 +1668,14 @@ textarea::placeholder {
 /* ======================================= */
 
 /* Nút trong Popup chọn khách */
+.done {
+  background: #a0522d !important; /* Nâu đỏ Sienna */
+  color: #fff !important;
+}
+
+.done:hover {
+  background: #8b4513 !important; /* Nâu đỏ đậm hơn */
+}
 
 /* Nút trong Room Actions */
 .room-btn {

@@ -116,6 +116,8 @@ export default function App() {
             <Route path="bookings" element={<ClientBooking />} />
             <Route path="my-bookings" element={<MyBookings />} />
             <Route path="my-bookings/:id" element={<BookingDetail />} />
+
+            <Route path="payment-result" element={<PaymentResult />} />
           </Route>
 
           {/* --------------------------------------------- */}
