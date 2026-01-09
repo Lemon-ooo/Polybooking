@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\ServiceInvoice;
 
 class ServiceCharge extends Model
 {
@@ -29,4 +30,16 @@ class ServiceCharge extends Model
     {
         return $this->belongsTo(Service::class, 'service_id', 'service_id');
     }
+
+    public function booking()
+{
+    return $this->hasOneThrough(
+        Booking::class,
+        ServiceInvoice::class,
+        'id',              // service_invoices.id
+        'id',              // bookings.id
+        'service_invoice_id',
+        'booking_id'
+    );
+}
 }
