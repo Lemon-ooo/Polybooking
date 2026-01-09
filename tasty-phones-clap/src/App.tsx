@@ -24,6 +24,10 @@ import ClientServices from "./components/pages/client/services/ClientServices";
 import ServicesDetail from "./components/pages/client/services/ServicesDetail";
 import { ClientGallery } from "./components/pages/client/Gallery";
 import { ClientEvent } from "./components/pages/client/events/ClientEvent";
+<<<<<<< HEAD
+=======
+
+>>>>>>> minhnguyet2
 import { ClientAbout } from "./components/pages/client/about";
 import ClientBooking from "./components/pages/client/booking/ClientBooking";
 import { ProfileClient } from "./components/pages/client/profile";
@@ -64,8 +68,12 @@ import EventEdit from "./components/pages/admin/event/edit";
 import { ClientEventDetail } from "./components/pages/client/events/ClientEventDetail";
 import { RoomTypeCreate } from "./components/pages/admin/room-types/create";
 import AdminConversations from "./components/pages/admin/conversations/AdminConversations";
+<<<<<<< HEAD
 import PaymentResult from "./components/pages/client/payment/PaymentResult";
 import ClientPayment from "./components/pages/client/payment/ClientPayment";
+=======
+import ClientEventDetail from "./components/pages/client/events/ClientEventDetail";
+>>>>>>> minhnguyet2
 
 // ======================================================
 // 🚀 APP CHÍNH - ĐÃ SỬA
@@ -81,6 +89,7 @@ export default function App() {
           syncWithLocation: true,
           warnWhenUnsavedChanges: true,
         }}
+<<<<<<< HEAD
       >
         <Routes>
           {/* ============================================= */}
@@ -187,6 +196,8 @@ export default function App() {
           syncWithLocation: true,
           warnWhenUnsavedChanges: true,
         }}
+=======
+>>>>>>> minhnguyet2
         resources={[
           {
             name: "services",

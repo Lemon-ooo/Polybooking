@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { Row, Col, Typography, Card, Spin, Empty } from "antd";
+import { Row, Col, Typography, Card, Spin, Empty, Tag, Space } from "antd";
 import { useNavigate } from "react-router-dom";
+import { CalendarOutlined, ArrowRightOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
 import axiosInstance from "../../../../providers/data/axiosConfig";
 
 import "./ClientEvent.css";
 import "../../../../../src/assets/fonts/fonts.css";
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph, Text } = Typography;
 
-/* =======================
-   EVENT TYPE (API)
-======================= */
 interface EventType {
   id: number;
   title: string;
@@ -25,13 +24,9 @@ const BASE_IMAGE_URL = "http://localhost:8000/storage/";
 
 export const ClientEvent: React.FC = () => {
   const navigate = useNavigate();
-
   const [events, setEvents] = useState<EventType[]>([]);
   const [loading, setLoading] = useState(true);
 
-  /* =======================
-     FETCH EVENTS
-  ======================= */
   useEffect(() => {
     const fetchEvents = async () => {
       try {
@@ -43,7 +38,6 @@ export const ClientEvent: React.FC = () => {
         setLoading(false);
       }
     };
-
     fetchEvents();
   }, []);
 
@@ -55,74 +49,91 @@ export const ClientEvent: React.FC = () => {
   const activeEvents = events.filter((e) => e.is_active === 1);
 
   return (
-    <div className="client-events-container">
+    <div
+      className="client-events-container"
+      style={{ backgroundColor: "#f9fbfd", minHeight: "100vh" }}
+    >
       {/* ================= HERO ================= */}
-      <div className="events-hero-banner">
-        <div className="hero-overlay" />
+      <div
+        className="events-hero-banner"
+        style={{ height: "400px", position: "relative" }}
+      >
+        <div
+          className="hero-overlay"
+          style={{ background: "rgba(0,0,0,0.4)" }}
+        />
         <div className="hero-content">
-          <h1 className="hero-title">Events & Meetings</h1>
+          <h1
+            className="hero-title"
+            style={{
+              fontSize: "56px",
+              fontFamily: "'Playfair Display', serif",
+            }}
+          >
+            Grand Events
+          </h1>
+          <Text style={{ color: "#fff", fontSize: "18px", opacity: 0.9 }}>
+            Crafting unforgettable moments and professional gatherings
+          </Text>
         </div>
       </div>
 
-      {/* ================= EVENTS ================= */}
-      <section style={{ padding: "40px 56px" }}>
-        <Title
-          level={2}
-          style={{
-            textAlign: "center",
-            fontFamily: "'Playfair Display', serif",
-            fontSize: 38,
-            marginBottom: 8,
-          }}
-        >
-          Special Events
-        </Title>
+      {/* ================= EVENTS SECTION ================= */}
+      <section
+        style={{ maxWidth: "1300px", margin: "0 auto", padding: "80px 24px" }}
+      >
+        <div style={{ textAlign: "center", marginBottom: "60px" }}>
+          <Title
+            level={2}
+            style={{
+              fontFamily: "'Playfair Display', serif",
+              fontSize: 42,
+              marginBottom: 16,
+            }}
+          >
+            Our Special Events
+          </Title>
+          <div
+            style={{
+              width: "60px",
+              height: "3px",
+              background: "#8a6e5b",
+              margin: "0 auto 20px",
+            }}
+          ></div>
+        </div>
 
-        <Paragraph
-          style={{
-            textAlign: "center",
-            marginBottom: 40,
-            fontSize: 15,
-          }}
-        >
-          Professional meetings & memorable experiences.
-        </Paragraph>
-
-        {/* LOADING */}
-        {loading && (
-          <div style={{ textAlign: "center", margin: "80px 0" }}>
-            <Spin size="large" />
+        {loading ? (
+          <div style={{ textAlign: "center", padding: "100px" }}>
+            <Spin size="large" tip="Loading events..." />
           </div>
-        )}
-
-        {/* EMPTY */}
-        {!loading && activeEvents.length === 0 && (
-          <Empty description="No events available" />
-        )}
-
-        {/* LIST */}
-        {!loading && activeEvents.length > 0 && (
-          <Row gutter={[24, 24]} justify="center">
+        ) : activeEvents.length === 0 ? (
+          <Empty description="No events scheduled at the moment" />
+        ) : (
+          <Row gutter={[32, 40]}>
             {activeEvents.map((event) => (
-              <Col xs={24} sm={12} md={8} key={event.id}>
+              <Col xs={24} sm={12} lg={8} key={event.id}>
                 <Card
                   hoverable
                   onClick={() => handleViewDetails(event.id)}
+                  style={{
+                    borderRadius: 20,
+                    overflow: "hidden",
+                    border: "none",
+                    boxShadow: "0 10px 30px rgba(0,0,0,0.07)",
+                    height: "100%", // Quan trọng: Chiều cao card chiếm hết Col
+                  }}
                   bodyStyle={{
                     padding: 0,
-                    height: 320,
                     display: "flex",
                     flexDirection: "column",
-                  }}
-                  style={{
-                    borderRadius: 14,
-                    overflow: "hidden",
-                    boxShadow: "0 8px 22px rgba(0,0,0,0.12)",
-                    cursor: "pointer",
+                    height: "520px", // Cố định tổng chiều cao của Card nội dung
                   }}
                 >
-                  {/* IMAGE */}
-                  <div style={{ height: 180, overflow: "hidden" }}>
+                  {/* 1. IMAGE AREA - FIXED HEIGHT */}
+                  <div
+                    style={{ height: 220, overflow: "hidden", flexShrink: 0 }}
+                  >
                     <img
                       src={`${BASE_IMAGE_URL}${event.banner}`}
                       alt={event.title}
@@ -133,55 +144,95 @@ export const ClientEvent: React.FC = () => {
                       }}
                       onError={(e) => {
                         (e.target as HTMLImageElement).src =
-                          "https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=800";
+                          "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800";
                       }}
                     />
                   </div>
 
-                  {/* CONTENT */}
+                  {/* 2. CONTENT AREA */}
                   <div
                     style={{
-                      padding: 16,
+                      padding: "24px",
                       flex: 1,
                       display: "flex",
                       flexDirection: "column",
-                      justifyContent: "space-between",
                     }}
                   >
-                    <div>
-                      <h3
-                        style={{
-                          fontFamily: "'Playfair Display', serif",
-                          fontSize: 20,
-                          color: "#8a6e5b",
-                          marginBottom: 8,
-                        }}
-                      >
-                        {event.title}
-                      </h3>
+                    {/* Time & Date */}
+                    <Space
+                      style={{
+                        marginBottom: 12,
+                        color: "#8a6e5b",
+                        fontWeight: 600,
+                        fontSize: "13px",
+                      }}
+                    >
+                      <CalendarOutlined />
+                      {dayjs(event.start_date).format("MMM DD")} -{" "}
+                      {dayjs(event.end_date).format("MMM DD, YYYY")}
+                    </Space>
 
-                      <p
+                    {/* Title - Fixed height for 2 lines */}
+                    <Title
+                      level={4}
+                      style={{
+                        fontFamily: "'Playfair Display', serif",
+                        fontSize: 20,
+                        marginBottom: 12,
+                        color: "#1a1a1a",
+                        height: "56px", // Cố định chiều cao cho tiêu đề (khoảng 2 dòng)
+                        overflow: "hidden",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                      }}
+                    >
+                      {event.title}
+                    </Title>
+
+                    {/* Description - Fixed height for 3 lines */}
+                    <div
+                      style={{
+                        height: "66px", // Cố định chiều cao cho mô tả (khoảng 3 dòng)
+                        marginBottom: "20px",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <Paragraph
+                        ellipsis={{ rows: 3 }}
                         style={{
-                          fontSize: 13,
-                          color: "#555",
+                          color: "#666",
+                          fontSize: 14,
                           lineHeight: 1.6,
+                          margin: 0,
                         }}
                       >
                         {event.description}
-                      </p>
+                      </Paragraph>
                     </div>
 
-                    <div style={{ textAlign: "right", marginTop: 12 }}>
-                      <span
+                    {/* Footer Action - Pushed to the bottom */}
+                    <div
+                      style={{
+                        marginTop: "auto",
+                        paddingTop: 20,
+                        borderTop: "1px solid #f0f0f0",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Text
                         style={{
-                          fontSize: 13,
-                          fontWeight: 600,
                           color: "#8a6e5b",
+                          fontWeight: 700,
+                          fontSize: 12,
                           letterSpacing: 1,
                         }}
                       >
-                        VIEW DETAILS →
-                      </span>
+                        VIEW DETAILS
+                      </Text>
+                      <ArrowRightOutlined style={{ color: "#8a6e5b" }} />
                     </div>
                   </div>
                 </Card>
