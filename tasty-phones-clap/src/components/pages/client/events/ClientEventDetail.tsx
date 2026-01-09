@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   Typography,
   Button,
@@ -11,39 +11,62 @@ import {
   Empty,
   Tag,
   Space,
+  Image,
+  Timeline,
 } from "antd";
 import {
   CalendarOutlined,
   ArrowLeftOutlined,
-  ClockCircleOutlined,
   SafetyCertificateOutlined,
   GlobalOutlined,
+  ReadOutlined,
+  FlagOutlined,
+  ThunderboltOutlined,
+  StarOutlined,
+  TeamOutlined,
+  ArrowRightOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import axiosInstance from "../../../../providers/data/axiosConfig";
 
 const { Title, Paragraph, Text } = Typography;
-
 const BASE_IMAGE_URL = "http://localhost:8000/storage/";
 
 const ClientEventDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [event, setEvent] = useState<any>(null);
+  const [relatedEvents, setRelatedEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchEvent = async () => {
+    const fetchData = async () => {
+      setLoading(true);
       try {
-        const res = await axiosInstance.get(`/events/${id}`);
-        setEvent(res.data.data || res.data);
+        // 1. Fetch current event details
+        const eventRes = await axiosInstance.get(`/events/${id}`);
+        const currentEvent = eventRes.data.data || eventRes.data;
+        setEvent(currentEvent);
+
+        // 2. Fetch list for "Discover More"
+        const listRes = await axiosInstance.get("/events");
+        const allEvents = listRes.data.data || listRes.data;
+
+        // Filter out the current event and take the top 3
+        const filtered = allEvents
+          .filter((item: any) => String(item.id) !== String(id))
+          .slice(0, 3);
+
+        setRelatedEvents(filtered);
       } catch (err) {
-        console.error(err);
+        console.error("Error fetching data:", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchEvent();
+
+    fetchData();
+    window.scrollTo(0, 0);
   }, [id]);
 
   if (loading)
@@ -54,33 +77,34 @@ const ClientEventDetail: React.FC = () => {
           justifyContent: "center",
           alignItems: "center",
           height: "100vh",
+          backgroundColor: "#f4f7f6",
         }}
       >
-        <Spin size="large" tip="Đang tải sự kiện..." />
+        <Spin size="large" tip="Loading event details..." />
       </div>
     );
 
   if (!event)
     return (
       <div style={{ padding: 100 }}>
-        <Empty description="Không tìm thấy sự kiện" />
-        <div style={{ textAlign: "center", marginTop: 20 }}>
-          <Button onClick={() => navigate("/client/events")}>
-            Quay lại danh sách
-          </Button>
-        </div>
+        <Empty description="Event not found" />
       </div>
     );
+
+  const isOneDayEvent = dayjs(event.start_date).isSame(
+    dayjs(event.end_date),
+    "day"
+  );
 
   return (
     <div
       style={{
-        backgroundColor: "#f0f2f5",
+        backgroundColor: "#f4f7f6",
         minHeight: "100vh",
-        paddingBottom: "100px",
+        paddingBottom: "80px",
       }}
     >
-      {/* 1. BACKGROUND BANNER */}
+      {/* 1. HERO HEADER */}
       <div
         style={{
           position: "relative",
@@ -95,47 +119,41 @@ const ClientEventDetail: React.FC = () => {
             width: "100%",
             height: "100%",
             objectFit: "cover",
-            filter: "blur(20px) brightness(0.6)",
-            transform: "scale(1.1)",
+            filter: "blur(15px) brightness(0.6)",
           }}
           alt="background"
         />
-
-        {/* NÚT QUAY LẠI - PHONG CÁCH GLASSMORPHISM */}
         <div
           style={{
             position: "absolute",
-            top: "40px",
-            left: "calc(50% - 500px)", // Căn lề theo container content (1000px)
-            zIndex: 10,
+            top: "50px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "100%",
+            maxWidth: "1100px",
             padding: "0 20px",
           }}
         >
           <Button
             icon={<ArrowLeftOutlined />}
-            onClick={() => navigate(-1)}
+            onClick={() => navigate("/client/events")}
             style={{
-              backgroundColor: "rgba(255, 255, 255, 0.25)",
+              backgroundColor: "rgba(255, 255, 255, 0.2)",
               backdropFilter: "blur(10px)",
-              border: "1px solid rgba(255, 255, 255, 0.3)",
+              border: "none",
               color: "#fff",
-              fontWeight: 600,
               borderRadius: "50px",
-              height: "40px",
-              padding: "0 20px",
-              boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
+              fontWeight: 600,
             }}
-            className="btn-back-hover"
           >
-            Back to Event List
+            Back to List
           </Button>
         </div>
       </div>
 
-      {/* 2. MAIN CONTAINER */}
       <div
         style={{
-          maxWidth: "1000px",
+          maxWidth: "1100px",
           margin: "-180px auto 0",
           padding: "0 20px",
           position: "relative",
@@ -145,123 +163,194 @@ const ClientEventDetail: React.FC = () => {
         <Card
           bordered={false}
           style={{
-            borderRadius: "20px",
-            boxShadow: "0 30px 60px rgba(0,0,0,0.12)",
+            borderRadius: "24px",
+            boxShadow: "0 40px 80px rgba(0,0,0,0.1)",
           }}
-          styles={{ body: { padding: "50px 60px" } }}
+          styles={{ body: { padding: "60px" } }}
         >
-          {/* TIÊU ĐỀ */}
-          <div style={{ textAlign: "center", marginBottom: "40px" }}>
-            <Tag
-              color="gold"
-              style={{
-                marginBottom: "16px",
-                borderRadius: "4px",
-                padding: "2px 12px",
-              }}
-            >
-              OFFICIAL EVENT
-            </Tag>
+          {/* TITLE & TAGS */}
+          <div style={{ textAlign: "center", marginBottom: "50px" }}>
+            <Space size="middle" style={{ marginBottom: "20px" }}>
+              <Tag icon={<StarOutlined />} color="gold">
+                FEATURED EVENT
+              </Tag>
+              <Tag icon={<GlobalOutlined />} color="blue">
+                LATEST NEWS
+              </Tag>
+            </Space>
             <Title
               style={{
                 fontSize: "42px",
                 margin: "10px 0",
                 fontFamily: "'Playfair Display', serif",
-                fontWeight: 700,
+                fontWeight: 800,
               }}
             >
               {event.title}
             </Title>
-            <Text
-              type="secondary"
-              style={{ fontSize: "15px", letterSpacing: "0.5px" }}
-            >
-              <GlobalOutlined style={{ marginRight: 8 }} /> Organized by
-              PolyBooking Group
+            <Text type="secondary" style={{ fontSize: "16px" }}>
+              PolyBooking Newsroom • Published on{" "}
+              {dayjs(event.created_at).format("MMMM DD, YYYY")}
             </Text>
           </div>
 
-          {/* ẢNH MINH HỌA TINH TẾ */}
-          <div style={{ textAlign: "center", marginBottom: "50px" }}>
-            <div
-              style={{
-                display: "inline-block",
-                width: "90%",
-                maxWidth: "650px",
-                borderRadius: "15px",
-                overflow: "hidden",
-                boxShadow: "0 15px 35px rgba(0,0,0,0.15)",
-              }}
-            >
-              <img
-                src={`${BASE_IMAGE_URL}${event.banner}`}
-                style={{ width: "100%", height: "auto", display: "block" }}
-                alt="event summary"
-                onError={(e) =>
-                  (e.currentTarget.src =
-                    "https://images.unsplash.com/photo-1492684223066-81342ee5ff30")
-                }
-              />
-            </div>
+          {/* HIGHLIGHTS BAR */}
+          <div
+            style={{
+              backgroundColor: "#fafafa",
+              borderRadius: "16px",
+              padding: "30px",
+              marginBottom: "50px",
+            }}
+          >
+            <Row gutter={[32, 32]} justify="center">
+              <Col xs={24} md={8} style={{ textAlign: "center" }}>
+                <TeamOutlined
+                  style={{
+                    fontSize: "24px",
+                    color: "#1890ff",
+                    marginBottom: "10px",
+                  }}
+                />
+                <Title level={5} style={{ margin: 0 }}>
+                  Grand Scale
+                </Title>
+                <Text type="secondary">Thousands of attendees</Text>
+              </Col>
+              <Col xs={24} md={8} style={{ textAlign: "center" }}>
+                <GlobalOutlined
+                  style={{
+                    fontSize: "24px",
+                    color: "#52c41a",
+                    marginBottom: "10px",
+                  }}
+                />
+                <Title level={5} style={{ margin: 0 }}>
+                  Networking
+                </Title>
+                <Text type="secondary">Global connections</Text>
+              </Col>
+              <Col xs={24} md={8} style={{ textAlign: "center" }}>
+                <ThunderboltOutlined
+                  style={{
+                    fontSize: "24px",
+                    color: "#faad14",
+                    marginBottom: "10px",
+                  }}
+                />
+                <Title level={5} style={{ margin: 0 }}>
+                  Inspiration
+                </Title>
+                <Text type="secondary">Creative and bold sessions</Text>
+              </Col>
+            </Row>
           </div>
 
-          <Divider style={{ marginBottom: "40px" }} />
+          {/* MAIN IMAGE */}
+          <div style={{ textAlign: "center", marginBottom: "60px" }}>
+            <Image
+              src={`${BASE_IMAGE_URL}${event.banner}`}
+              style={{
+                width: "100%",
+                maxWidth: "750px",
+                borderRadius: "20px",
+                boxShadow: "0 15px 45px rgba(0,0,0,0.15)",
+              }}
+              preview={true}
+            />
+          </div>
 
-          {/* CHI TIẾT NỘI DUNG */}
-          <Row gutter={[48, 40]}>
+          <Row gutter={[60, 40]}>
             <Col xs={24} lg={15}>
-              <Title
-                level={4}
-                style={{
-                  fontFamily: "'Playfair Display', serif",
-                  marginBottom: "25px",
-                  fontSize: "26px",
-                  color: "#1a1a1a",
-                }}
-              >
-                Event Overview
-              </Title>
-              <Paragraph
-                style={{
-                  fontSize: "17px",
-                  lineHeight: "2.0",
-                  color: "#4a4a4a",
-                  whiteSpace: "pre-line",
-                  textAlign: "justify",
-                }}
-              >
-                {event.description}
-              </Paragraph>
+              <div style={{ marginBottom: "50px" }}>
+                <Title
+                  level={3}
+                  style={{
+                    fontFamily: "'Playfair Display', serif",
+                    marginBottom: "25px",
+                  }}
+                >
+                  <ReadOutlined
+                    style={{ marginRight: "12px", color: "#8a6e5b" }}
+                  />
+                  Full Story
+                </Title>
+                <Paragraph
+                  style={{
+                    fontSize: "17px",
+                    lineHeight: "2.1",
+                    color: "#333",
+                    whiteSpace: "pre-line",
+                    textAlign: "justify",
+                  }}
+                >
+                  {event.description}
+                </Paragraph>
+              </div>
+
+              <Divider />
+
+              {/* DYNAMIC TIMELINE */}
+              <div style={{ marginTop: "40px" }}>
+                <Title
+                  level={4}
+                  style={{
+                    marginBottom: "30px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                  }}
+                >
+                  <FlagOutlined style={{ color: "#ff4d4f" }} /> Key Milestones
+                </Title>
+                <Timeline
+                  mode="left"
+                  items={[
+                    {
+                      label: dayjs(event.start_date).format("MMM DD, YYYY"),
+                      children: (
+                        <Text strong>
+                          {isOneDayEvent ? "Event Opening" : "Commencement"}
+                        </Text>
+                      ),
+                      color: "blue",
+                    },
+                    {
+                      label: dayjs(event.end_date).format("MMM DD, YYYY"),
+                      children: (
+                        <Text strong>
+                          {isOneDayEvent ? "Event Conclusion" : "Final Day"}
+                        </Text>
+                      ),
+                      color: event.is_active ? "blue" : "gray",
+                    },
+                  ]}
+                />
+              </div>
             </Col>
 
             <Col xs={24} lg={9}>
               <div
                 style={{
-                  backgroundColor: "#fafafa",
+                  backgroundColor: "#fff",
                   padding: "35px",
-                  borderRadius: "18px",
+                  borderRadius: "24px",
                   border: "1px solid #f0f0f0",
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.02)",
+                  position: "sticky",
+                  top: "20px",
                 }}
               >
                 <Title
-                  level={5}
-                  style={{
-                    marginBottom: "25px",
-                    fontSize: "18px",
-                    color: "#1890ff",
-                  }}
+                  level={4}
+                  style={{ marginBottom: "30px", fontSize: "20px" }}
                 >
-                  Schedules & Status
+                  Quick Facts
                 </Title>
-
                 <Space direction="vertical" size={24} style={{ width: "100%" }}>
                   <div style={{ display: "flex", gap: "15px" }}>
                     <CalendarOutlined
-                      style={{
-                        color: "#1890ff",
-                        fontSize: "18px",
-                        marginTop: "4px",
-                      }}
+                      style={{ fontSize: "22px", color: "#1890ff" }}
                     />
                     <div>
                       <Text
@@ -270,50 +359,24 @@ const ClientEventDetail: React.FC = () => {
                           fontSize: "11px",
                           fontWeight: 700,
                           display: "block",
-                          color: "#bfbfbf",
                         }}
                       >
-                        START DATE
+                        TIME PERIOD
                       </Text>
-                      <Text strong style={{ fontSize: "15px" }}>
-                        {dayjs(event.start_date).format("MMMM DD, YYYY")}
+                      <Text strong>
+                        {isOneDayEvent
+                          ? dayjs(event.start_date).format("MMMM DD, YYYY")
+                          : `${dayjs(event.start_date).format(
+                              "MMM DD"
+                            )} - ${dayjs(event.end_date).format(
+                              "MMM DD, YYYY"
+                            )}`}
                       </Text>
                     </div>
                   </div>
-
-                  <div style={{ display: "flex", gap: "15px" }}>
-                    <ClockCircleOutlined
-                      style={{
-                        color: "#faad14",
-                        fontSize: "18px",
-                        marginTop: "4px",
-                      }}
-                    />
-                    <div>
-                      <Text
-                        type="secondary"
-                        style={{
-                          fontSize: "11px",
-                          fontWeight: 700,
-                          display: "block",
-                          color: "#bfbfbf",
-                        }}
-                      >
-                        END DATE
-                      </Text>
-                      <Text strong style={{ fontSize: "15px" }}>
-                        {dayjs(event.end_date).format("MMMM DD, YYYY")}
-                      </Text>
-                    </div>
-                  </div>
-
                   <div style={{ display: "flex", gap: "15px" }}>
                     <SafetyCertificateOutlined
-                      style={{
-                        color: "#52c41a",
-                        fontSize: "18px",
-                        marginTop: "4px",
-                      }}
+                      style={{ fontSize: "22px", color: "#52c41a" }}
                     />
                     <div>
                       <Text
@@ -322,37 +385,100 @@ const ClientEventDetail: React.FC = () => {
                           fontSize: "11px",
                           fontWeight: 700,
                           display: "block",
-                          color: "#bfbfbf",
                         }}
                       >
-                        EVENT STATUS
+                        AVAILABILITY
                       </Text>
-                      <Tag
-                        color={event.is_active ? "green" : "red"}
-                        style={{ margin: "5px 0 0 0", borderRadius: "4px" }}
-                      >
-                        {event.is_active ? "Active Now" : "Closed"}
+                      <Tag color={event.is_active ? "green" : "red"}>
+                        {event.is_active ? "Open Access" : "Archived"}
                       </Tag>
                     </div>
                   </div>
                 </Space>
-
-                <Divider style={{ margin: "30px 0" }} />
-
-                <div
-                  style={{
-                    textAlign: "center",
-                    color: "#bfbfbf",
-                    fontSize: "13px",
-                  }}
-                >
-                  <Text type="secondary italic">
-                    Premium Service by PolyBooking
+                <Divider style={{ margin: "40px 0 20px" }} />
+                <div style={{ textAlign: "center" }}>
+                  <Text type="secondary" italic>
+                    PolyBooking Editorial Team
                   </Text>
                 </div>
               </div>
             </Col>
           </Row>
+
+          {/* DISCOVER MORE SECTION */}
+          {relatedEvents.length > 0 && (
+            <div
+              style={{
+                marginTop: "80px",
+                borderTop: "1px solid #eee",
+                paddingTop: "50px",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "30px",
+                }}
+              >
+                <Title
+                  level={3}
+                  style={{ margin: 0, fontFamily: "'Playfair Display', serif" }}
+                >
+                  Discover More
+                </Title>
+                <Button
+                  type="link"
+                  icon={<ArrowRightOutlined />}
+                  onClick={() => navigate("/client/events")}
+                >
+                  View all
+                </Button>
+              </div>
+              <Row gutter={[24, 24]}>
+                {relatedEvents.map((item) => (
+                  <Col xs={24} md={8} key={item.id}>
+                    <Link to={`/client/events/${item.id}`}>
+                      <Card
+                        hoverable
+                        cover={
+                          <div style={{ height: "180px", overflow: "hidden" }}>
+                            <img
+                              src={`${BASE_IMAGE_URL}${item.banner}`}
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "cover",
+                              }}
+                              alt={item.title}
+                            />
+                          </div>
+                        }
+                        style={{ borderRadius: "12px", overflow: "hidden" }}
+                      >
+                        <Card.Meta
+                          title={
+                            <span style={{ fontSize: "16px", fontWeight: 700 }}>
+                              {item.title}
+                            </span>
+                          }
+                          description={
+                            <div style={{ marginTop: "8px" }}>
+                              <CalendarOutlined
+                                style={{ marginRight: "5px" }}
+                              />
+                              {dayjs(item.start_date).format("MMM DD, YYYY")}
+                            </div>
+                          }
+                        />
+                      </Card>
+                    </Link>
+                  </Col>
+                ))}
+              </Row>
+            </div>
+          )}
         </Card>
       </div>
     </div>
