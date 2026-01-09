@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\{
     DB
 };
 use App\Mail\InvoiceMail;
+use Illuminate\Mail\Mailable;
 
 class InvoiceController extends Controller
 {

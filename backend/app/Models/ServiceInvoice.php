@@ -11,19 +11,16 @@ class ServiceInvoice extends Model
     protected $fillable = [
         'booking_id',
         'total_amount',
+        'status',
     ];
 
-    /**
-     * Booking sở hữu service invoice
-     */
+    // 🔥 GẮN booking
     public function booking()
     {
         return $this->belongsTo(Booking::class, 'booking_id', 'id');
     }
 
-    /**
-     * 🔥 CÁC DỊCH VỤ CHI TIẾT TRONG HÓA ĐƠN
-     */
+    // 🔥 GẮN service charges
     public function charges()
     {
         return $this->hasMany(ServiceCharge::class, 'service_invoice_id', 'id');
