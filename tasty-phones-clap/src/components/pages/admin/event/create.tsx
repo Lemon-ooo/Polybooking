@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Create } from "@refinedev/antd";
 import { Form, Input, DatePicker, Upload, message, Button } from "antd";
-import { UploadOutlined } from "@ant-design/icons";
+import { ArrowLeftOutlined, UploadOutlined } from "@ant-design/icons";
 import { RcFile, UploadFile } from "antd/es/upload/interface";
 import axiosInstance from "../../../../providers/data/axiosConfig";
 import { useNavigate } from "react-router-dom";
@@ -42,7 +42,19 @@ export const EventCreate = () => {
   };
 
   return (
-    <Create title="Thêm sự kiện" footerButtons={() => null}>
+  <Create
+      title="Thêm sự kiện"
+      footerButtons={() => null}
+      // Override nút quay lại mặc định để chắc chắn click được
+      goBack={
+        <Button
+          type="text"
+          icon={<ArrowLeftOutlined />}
+          onClick={() => navigate("/admin/events")}
+          style={{ fontSize: 16 }}
+        />
+      }
+    >
       <Form layout="vertical" onFinish={handleFinish}>
         <Form.Item label="Tiêu đề" name="title" rules={[{ required: true }]}>
           <Input />

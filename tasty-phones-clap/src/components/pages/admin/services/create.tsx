@@ -1,9 +1,9 @@
 // src/components/pages/admin/services/Create.tsx
 import React, { useState } from "react";
 import { Create, useForm } from "@refinedev/antd";
-import { Form, Input, InputNumber, Upload, message } from "antd";
+import { Button, Form, Input, InputNumber, Upload, message } from "antd";
 import { useNavigate } from "react-router-dom";
-import { UploadOutlined } from "@ant-design/icons";
+import { ArrowLeftOutlined, UploadOutlined } from "@ant-design/icons";
 import { RcFile, UploadFile } from "antd/es/upload/interface";
 import axiosInstance from "../../../../providers/data/axiosConfig";
 
@@ -58,7 +58,19 @@ export const ServicesCreate = () => {
   };
 
   return (
-    <Create saveButtonProps={{ ...saveButtonProps, children: "Thêm dịch vụ" }}>
+   <Create
+      title="Thêm dịch vụ"
+      saveButtonProps={{ ...saveButtonProps, children: "Thêm dịch vụ" }}
+      // Đây chính là chìa khóa: override nút quay lại mặc định
+      goBack={
+        <Button
+          type="text"
+          icon={<ArrowLeftOutlined />}
+          onClick={() => navigate("/admin/services")}
+          style={{ fontSize: 16 }}
+        />
+      }
+    >
       <Form {...formProps} onFinish={handleFinish} layout="vertical">
         <Form.Item
           label="Tên dịch vụ"
