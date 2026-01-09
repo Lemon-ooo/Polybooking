@@ -15,12 +15,11 @@
   position: absolute;
   inset: 0;
   background: linear-gradient(135deg, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.75)),
-    url("https://ruedelamourhotel.com/wp-content/uploads/2025/02/2.jpg"); /* BANNER_IMAGE */
+    url("https://ruedelamourhotel.com/wp-content/uploads/2025/02/2.jpg");
   background-size: cover;
   background-position: center 38%;
   background-repeat: no-repeat;
   z-index: 1;
-  /* ĐÃ XÓA animation zoomSlow → ảnh tĩnh hoàn toàn */
 }
 
 .hero-content {
@@ -60,7 +59,7 @@
   color: white;
 }
 
-/* Responsive */
+/* Responsive Banner */
 @media (max-width: 992px) {
   .services-hero-banner {
     height: 550px;
@@ -90,143 +89,118 @@
     font-size: 42px;
     letter-spacing: 2px;
   }
-} /* ===================== SECTION ===================== */
-.services-content-section {
-  padding: 80px 0;
-  background: #ffffff;
-  padding-left: 25px;
-  padding-right: 25px;
 }
 
-/* ===================== IMAGE ===================== */
+/* ====================== MAIN CONTENT SECTION ====================== */
+/* BANNER GIỮ NGUYÊN – KHÔNG ĐỘNG */
+
+/* MAIN CONTENT - RỘNG VÀ THOÁNG HƠN */
+/* BANNER GIỮ NGUYÊN – KHÔNG ĐỘNG */
+
+/* MAIN CONTENT - RỘNG VÀ THOÁNG HƠN */
+.services-content-section {
+  padding: 140px 0;                    /* Tăng padding dọc */
+  background: #f8f5f2;                 /* Màu kem nhạt ấm áp - giống nền các trang khác */
+  max-width: 1600px;                   /* Rất rộng */
+  margin: 0 auto;
+  padding-left: 60px;
+  padding-right: 60px;
+}
+
+@media (max-width: 1400px) {
+  .services-content-section {
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+}
+
+@media (max-width: 992px) {
+  .services-content-section {
+    padding: 100px 30px;
+  }
+}
+
+@media (max-width: 768px) {
+  .services-content-section {
+    padding: 80px 20px;
+  }
+}
+
+/* MAIN IMAGE - LỚN HƠN */
 .services-image-wrapper {
-  width: 100%;
-  height: 100%;
-  border-radius: 24px;
+  border-radius: 48px;
   overflow: hidden;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 50px 120px rgba(0, 0, 0, 0.22);
 }
 
 .services-main-image {
   width: 100%;
-  height: 100%;
+  height: 800px;                       /* Cao hơn */
   object-fit: cover;
-  transition: transform 0.6s ease;
+  transition: transform 14s ease;
 }
 
 .services-image-wrapper:hover .services-main-image {
-  transform: scale(1.05);
+  transform: scale(1.2);
 }
 
-/* ===================== INFO BOX ===================== */
-.services-content-section .services-title {
-  color: #a8765a !important;
-  font-family: "Playfair Display", serif;
+/* GALLERY - RỘNG HƠN */
+.services-gallery {
+  margin-top: 60px;
 }
 
+.services-gallery-item img {
+  height: 220px;                       /* Ảnh gallery lớn hơn */
+  object-fit: cover;
+}
 
-/* Giá (đỏ nổi bật như ảnh) */
+/* TYPOGRAPHY & SPACING */
+.services-title {
+  font-size: 56px !important;
+ color: #a8765a !important;      /* To hơn */
+  line-height: 1.15;
+
+}
+
 .services-price-tag {
-  font-size: 26px;
-  font-weight: 700;
-  color:  #a8765a;
-  border: none;
-  background: transparent;
-  padding: 0;
+  font-size: 36px;
+  color: #a8765a;
 }
 
-/* ===================== DESCRIPTION ===================== */
 .services-subtitle {
-  font-size: 20px !important;
-  font-weight: 600;
-  margin-bottom: 12px;
+  font-size: 32px;
+  margin-bottom: 28px;
 }
 
-.services-description {
-  font-size: 16px;
-  line-height: 1.8;
-  color: #0a0902;
-  max-width: 95%;
+.services-description,
+.services-text {
+  font-size: 18px;
+  line-height: 2;
 }
 
-/* ===================== INFO CARDS ===================== */
+/* INFO CARDS */
 .services-info-card {
-  border-radius: 18px;
-  padding: 24px;
-  border: 1px solid #a79c22;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  transition: all 0.3s ease;
+  padding: 48px;
+  border-radius: 32px;
 }
 
-.services-info-card:hover {
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
-  transform: translateY(-4px);
+/* CONTACT */
+.services-contact-section {
+  padding: 60px;
+  border-radius: 40px;
 }
 
-.services-info-icon {
-  font-size: 26px;
-  color: #938328;
+.services-contact-title {
+  font-size: 30px;
 }
 
-.services-success-icon {
-  font-size: 26px;
-  color: #16a34a;
+.services-contact-text {
+  font-size: 19px;
 }
 
-.services-info-title {
-  font-size: 16px;
-}
-
-.services-info-text {
-  font-size: 15px;
-}
-
-/* ===================== BUTTON ===================== */
-/* ===================== BOOK NOW BUTTON FIX HOVER ===================== */
-.services-content-section .services-book-button {
-  background-color: #a8765a !important;
-  border-color: #a8765a !important;
-  color: #ffffff !important;
-  font-weight: 600;
-  height: 56px;
-  border-radius: 999px;
-  transition: all 0.3s ease;
-}
-
-/* Hover – chỉ đậm lên, KHÔNG trắng */
-.services-content-section .services-book-button:hover,
-.services-content-section .services-book-button:focus {
-  background-color: #8f5f47 !important; /* đậm hơn */
-  border-color: #8f5f47 !important;
-  color: #ffffff !important;
-  box-shadow: 0 14px 36px rgba(168, 118, 90, 0.45);
-  transform: translateY(-2px);
-}
-
-/* Chặn AntD đổi màu khi active */
-.services-content-section .services-book-button:active {
-  background-color: #7a4e3a !important;
-  border-color: #7a4e3a !important;
-  color: #ffffff !important;
-}
-
-
-/* ===================== RESPONSIVE ===================== */
+/* RESPONSIVE FIX */
 @media (max-width: 992px) {
-  .services-title {
-    font-size: 28px !important;
-  }
-
-  .services-price-tag {
-    font-size: 22px;
-  }
-
-  .services-content-section {
-    padding: 50px 16px;
-  }
-}
-.services-info-card {
-  margin: 0 8px;
+  .services-main-image { height: 600px; }
+  .services-gallery-item img { height: 180px; }
+  .services-title { font-size: 46px !important; }
 }
