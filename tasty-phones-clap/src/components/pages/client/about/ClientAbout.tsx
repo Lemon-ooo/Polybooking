@@ -1,6 +1,6 @@
 import React from "react";
 import { Row, Col, Typography } from "antd";
-import { useInView } from "react-intersection-observer"; 
+import { useInView } from "react-intersection-observer";
 import "./ClientAbout.css";
 
 const { Title, Paragraph } = Typography;
@@ -50,18 +50,18 @@ export const ClientAbout: React.FC = () => {
             </Col>
             <Col xs={24} md={12} className="about-text-content animated-item">
               <Title level={2} className="about-title">
-                Sứ Mệnh Của Chúng Tôi
+                Our Mission
               </Title>
 
               <Paragraph>
-                Chúng tôi cam kết mang đến những trải nghiệm dịch vụ xuất sắc,
-                vượt trội hơn cả mong đợi của khách hàng. Sứ mệnh của chúng tôi
-                là tạo ra giá trị bền vững thông qua sự đổi mới, chất lượng và
-                dịch vụ tận tâm.
+                We are committed to delivering exceptional service experiences
+                that surpass customer expectations. Our mission is to create
+                sustainable value through continuous innovation, superior
+                quality, and dedicated, professional service.
               </Paragraph>
               <Paragraph>
-                Chúng tôi tin rằng sự hài lòng của khách hàng là thước đo thành
-                công cuối cùng.
+                We believe that customer satisfaction is the ultimate measure of
+                success.
               </Paragraph>
             </Col>
           </Row>
@@ -77,18 +77,17 @@ export const ClientAbout: React.FC = () => {
             {/* Cột 1: Văn bản */}
             <Col xs={24} md={12} className="about-text-content animated-item">
               <Title level={2} className="about-title">
-                Tầm Nhìn Tương Lai
+                Our Vision
               </Title>
 
               <Paragraph>
-                Trở thành công ty hàng đầu trong lĩnh vực, được công nhận về sự
-                tiên phong, đạo đức kinh doanh và chất lượng dịch vụ toàn diện.
-                Chúng tôi hướng tới việc mở rộng thị trường và thiết lập các
-                tiêu chuẩn mới cho ngành.
+                To become a leading company in the industry, recognized for our
+                pioneering spirit, ethical business practices, and comprehensive
+                service quality. We aim to expand the market and set new
+                standards for the industry.
               </Paragraph>
               <Paragraph>
-                Phát triển một môi trường làm việc sáng tạo và truyền cảm hứng
-                cho toàn bộ đội ngũ.
+                Develop a creative and inspiring work environment for the entire team.
               </Paragraph>
             </Col>
             {/* Cột 2: Ảnh */}
@@ -110,14 +109,14 @@ export const ClientAbout: React.FC = () => {
                   level={2}
                   className="about-title text-center animated-item"
                 >
-                  Đội Ngũ Và Văn Hóa
+                  Our Team and Culture
                 </Title>
 
                 <Paragraph className="text-center max-width-para animated-item">
-                  Đội ngũ của chúng tôi là tài sản quý giá nhất, bao gồm những
-                  chuyên gia giàu kinh nghiệm và đầy nhiệt huyết. Chúng tôi xây
-                  dựng một văn hóa làm việc tôn trọng, hợp tác và không ngừng
-                  học hỏi.
+                  Our team is our most valuable asset, comprising experienced and
+                  passionate professionals. We build a work culture based on
+                  respect, collaboration, and continuous learning.
+                  Develop a creative and inspiring work environment for the entire team.
                 </Paragraph>
                 <div className="about-image-wrapper full-image-wrapper animated-item">
                   <img

@@ -23,7 +23,7 @@ import ClientServices from "./components/pages/client/services/ClientServices";
 import ServicesDetail from "./components/pages/client/services/ServicesDetail";
 import { ClientGallery } from "./components/pages/client/Gallery";
 import { ClientEvent } from "./components/pages/client/events/ClientEvent";
-import { ClientEventDetail } from "./components/pages/client/events/ClientEventDetail";
+
 import { ClientAbout } from "./components/pages/client/about";
 import ClientBooking from "./components/pages/client/booking/ClientBooking";
 import MyBookings from "./components/pages/client/booking/MyBookings";
@@ -63,6 +63,7 @@ import { EventShow } from "./components/pages/admin/event/show";
 import AdminBookingManagement from "./components/pages/admin/bookings";
 import { UserList } from "./components/pages/admin/user/list";
 import AdminConversations from "./components/pages/admin/conversations/AdminConversations";
+import ClientEventDetail from "./components/pages/client/events/ClientEventDetail";
 
 // ======================================================
 // 🚀 APP CHÍNH – FIX HOÀN TOÀN
@@ -78,7 +79,7 @@ export default function App() {
           syncWithLocation: true,
           warnWhenUnsavedChanges: true,
         }}
-         resources={[
+        resources={[
           {
             name: "services",
             list: "/admin/services",
