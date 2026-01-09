@@ -95,7 +95,7 @@ Route::middleware('auth:sanctum')->group(function () {
 // routes/api.php
 
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('admin/bookings',        [AdminBookingController::class, 'index']);
+    Route::get('/bookings',        [AdminBookingController::class, 'index']);
     Route::get('admin/bookings/{id}',   [AdminBookingController::class, 'show']);
 });
 

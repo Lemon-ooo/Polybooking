@@ -38,6 +38,96 @@ class BookingController extends Controller
         ], $httpCode);
     }
 
+    public function index(Request $request)
+{
+    $user = $request->user();
+
+    if (!$user) {
+        return $this->error(
+            'UNAUTHENTICATED',
+            'Bạn chưa đăng nhập',
+            [],
+            401
+        );
+    }
+
+    // ⚠️ Nếu có phân quyền admin thì check ở đây
+    // if (!$user->is_admin) { ... }
+
+    $query = Booking::with([
+        'user:user_id,name,email',
+        'items.roomType'
+    ]);
+
+    /* ================== FILTER ================== */
+
+    // filter theo status
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+
+    // filter theo user
+    if ($request->filled('user_id')) {
+        $query->where('user_id', $request->user_id);
+    }
+
+    // filter theo ngày check-in
+    if ($request->filled('from_date')) {
+        $query->whereDate('check_in', '>=', $request->from_date);
+    }
+
+    if ($request->filled('to_date')) {
+        $query->whereDate('check_out', '<=', $request->to_date);
+    }
+
+    /* ================== SORT ================== */
+    $query->orderByDesc('created_at');
+
+    /* ================== PAGINATE ================== */
+    $perPage = $request->get('per_page', 10);
+
+    $bookings = $query->paginate($perPage);
+
+    /* ================== FORMAT RESPONSE ================== */
+    $bookings->getCollection()->transform(function ($booking) {
+        return [
+            'booking_id'        => $booking->id,
+            'user' => [
+                'user_id' => $booking->user->user_id ?? null,
+                'name'    => $booking->user->name ?? null,
+                'email'   => $booking->user->email ?? null,
+            ],
+            'check_in'          => $booking->check_in,
+            'check_out'         => $booking->check_out,
+            'nights'            => $booking->nights,
+            'subtotal_price'    => $booking->subtotal_price,
+            'voucher_code'      => $booking->voucher_code,
+            'voucher_discount'  => $booking->voucher_discount,
+            'total_price'       => $booking->total_price,
+            'status'            => $booking->status,
+            'created_at'        => $booking->created_at,
+
+            'items' => $booking->items->map(function ($item) {
+                return [
+                    'booking_item_id'  => $item->booking_item_id,
+                    'room_type_id'     => $item->room_type_id,
+                    'room_type_name'   => $item->roomType?->room_type_name,
+                    'quantity'         => $item->quantity,
+                    'number_of_nights' => $item->number_of_nights,
+                    'base_price'       => $item->base_price,
+                    'amount'           => $item->amount,
+                ];
+            }),
+        ];
+    });
+
+    return $this->success(
+        $bookings,
+        'Danh sách booking'
+    );
+}
+
+
     public function store(Request $request)
     {
         if (!$request->user()) {
