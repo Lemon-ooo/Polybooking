@@ -3,6 +3,7 @@ import { Create, useForm, useSelect } from "@refinedev/antd";
 import { Form, Input, InputNumber, Select, Button, message } from "antd";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { ArrowLeftOutlined } from "@ant-design/icons";
 
 export const RoomCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm();
@@ -52,7 +53,19 @@ export const RoomCreate: React.FC = () => {
   };
 
   return (
-    <Create title="Thêm phòng" saveButtonProps={saveButtonProps}>
+     <Create
+      title="Thêm phòng mới"
+      saveButtonProps={{ ...saveButtonProps, children: "Thêm dịch vụ" }}
+      // Đây chính là chìa khóa: override nút quay lại mặc định
+      goBack={
+        <Button
+          type="text"
+          icon={<ArrowLeftOutlined />}
+          onClick={() => navigate("/admin/rooms")}
+          style={{ fontSize: 16 }}
+        />
+      }
+    >
       <Form {...formProps} layout="vertical" onFinish={onFinish}>
         <Form.Item
           label="Số phòng"

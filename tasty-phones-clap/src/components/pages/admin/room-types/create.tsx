@@ -11,7 +11,7 @@ import {
   Checkbox,
   Spin,
 } from "antd";
-import { UploadOutlined } from "@ant-design/icons";
+import { ArrowLeftOutlined, UploadOutlined } from "@ant-design/icons";
 import { RcFile, UploadFile } from "antd/es/upload";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -134,7 +134,19 @@ export const RoomTypeCreate: React.FC = () => {
   };
 
   return (
-    <Create title="Thêm loại phòng" saveButtonProps={saveButtonProps}>
+    <Create
+      title="Thêm loại phòng mới"
+      saveButtonProps={{ ...saveButtonProps, children: "Thêm dịch vụ" }}
+      // Đây chính là chìa khóa: override nút quay lại mặc định
+      goBack={
+        <Button
+          type="text"
+          icon={<ArrowLeftOutlined />}
+          onClick={() => navigate("/admin/room-types")}
+          style={{ fontSize: 16 }}
+        />
+      }
+    >
       <Form {...formProps} layout="vertical" onFinish={onFinish}>
         <Form.Item
           label="Tên loại phòng"

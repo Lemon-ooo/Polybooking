@@ -2,9 +2,9 @@
 
 import React, { useState } from "react";
 import { Create, useForm } from "@refinedev/antd";
-import { Form, Input, Upload, message } from "antd";
+import { Button, Form, Input, Upload, message } from "antd";
 import { useNavigate } from "react-router-dom";
-import { UploadOutlined } from "@ant-design/icons";
+import { ArrowLeftOutlined, UploadOutlined } from "@ant-design/icons";
 import { RcFile, UploadFile } from "antd/es/upload/interface";
 import axiosInstance from "../../../../providers/data/axiosConfig";
 import axios, { AxiosError } from "axios";
@@ -70,7 +70,19 @@ export const GalleryCreate = () => {
   };
 
   return (
-    <Create saveButtonProps={{ ...saveButtonProps, children: "Thêm ảnh" }}>
+   <Create
+      title="Thêm ảnh vào thư viện"
+      saveButtonProps={{ ...saveButtonProps, children: "Thêm ảnh" }}
+      // Override nút quay lại mặc định để chắc chắn click được
+      goBack={
+        <Button
+          type="text"
+          icon={<ArrowLeftOutlined />}
+          onClick={() => navigate("/admin/galleries")}
+          style={{ fontSize: 16 }}
+        />
+      }
+    >
       <Form {...formProps} onFinish={handleFinish} layout="vertical">
         <Form.Item label="Nhóm ảnh" name="gallery_category">
           <Input placeholder="VD: Sự kiện, Dự án, Món ăn..." />
