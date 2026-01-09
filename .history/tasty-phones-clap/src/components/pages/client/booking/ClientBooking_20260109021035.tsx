@@ -172,7 +172,7 @@ export default function ClientBooking() {
   };
 
   // ===============================
-  // CHECK PAYMENT STATUS (CẬP NHẬT THEO STATUS CỦA BẠN)
+  // CHECK PAYMENT STATUS
   // ===============================
   const checkPaymentStatus = async (bId: number) => {
     try {
@@ -183,24 +183,7 @@ export default function ClientBooking() {
 
       const booking = res.data?.data || res.data;
 
-      // Debug: Log để kiểm tra
-      console.log("Payment status check:", {
-        bookingId: bId,
-        status: booking.status,
-        data: booking,
-      });
-
-      // Danh sách các trạng thái được coi là thanh toán thành công
-      // Theo constants của bạn: paid, check_in, check_out
-      const paidStatuses = ["paid", "check_in", "check_out"];
-
-      // Trạng thái hủy
-      const canceledStatuses = ["canceled"];
-
-      // Trạng thái chờ thanh toán
-      const pendingStatus = "pending_payment";
-
-      if (paidStatuses.includes(booking.status)) {
+      if (booking.status === "paid") {
         setPaymentStatus("success");
         message.success("Payment successful! Redirecting to homepage...");
 
@@ -214,41 +197,9 @@ export default function ClientBooking() {
 
         return true;
       }
-
-      // Nếu booking đã bị hủy
-      else if (canceledStatuses.includes(booking.status)) {
-        setPaymentStatus("failed");
-        message.error("Booking has been cancelled");
-        return false;
-      }
-
-      // Nếu vẫn đang chờ thanh toán
-      else if (booking.status === pendingStatus) {
-        return false;
-      }
-
-      // Các trạng thái khác
       return false;
-    } catch (error: any) {
+    } catch (error) {
       console.error("Check payment error:", error);
-
-      // Xử lý lỗi chi tiết
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 401) {
-          message.error("Session expired. Please login again.");
-          setTimeout(() => {
-            window.location.href = "/login";
-          }, 1500);
-        } else if (error.response?.status === 403) {
-          message.error("You don't have permission to view this booking");
-        } else if (error.response?.status === 404) {
-          message.warning("Booking not found");
-        } else if (error.response?.status === 500) {
-          console.warn("Server error when checking payment status");
-          // Không hiển thị message để tránh làm phiền người dùng
-        }
-      }
-
       return false;
     } finally {
       setCheckingPayment(false);
@@ -256,41 +207,16 @@ export default function ClientBooking() {
   };
 
   // ===============================
-  // AUTO CHECK PAYMENT EVERY 3s (CẬP NHẬT VỚI XỬ LÝ LỖI)
+  // AUTO CHECK PAYMENT EVERY 3s
   // ===============================
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-
     if (paymentModalVisible && bookingId && paymentStatus === "pending") {
-      let errorCount = 0;
-      const maxErrors = 5;
-
-      interval = setInterval(async () => {
-        try {
-          await checkPaymentStatus(bookingId);
-          errorCount = 0; // Reset error count on success
-        } catch (error) {
-          errorCount++;
-
-          // Nếu có quá nhiều lỗi, dừng polling
-          if (errorCount >= maxErrors) {
-            console.warn(`Stopped payment polling after ${maxErrors} errors`);
-            clearInterval(interval);
-
-            // Thông báo cho người dùng
-            message.info(
-              "Payment status check paused. " +
-                "Please check your banking app. " +
-                "Your booking will be updated once payment is confirmed."
-            );
-          }
-        }
+      const interval = setInterval(() => {
+        checkPaymentStatus(bookingId);
       }, 3000);
-    }
 
-    return () => {
-      if (interval) clearInterval(interval);
-    };
+      return () => clearInterval(interval);
+    }
   }, [paymentModalVisible, bookingId, paymentStatus]);
 
   // ===============================
@@ -333,17 +259,17 @@ export default function ClientBooking() {
         }
       );
 
-      // Debug: Log response
+      // Debug: Log response để xem cấu trúc
       console.log("Booking Response:", bookingRes.data);
 
-      // Lấy booking ID từ response (theo cấu trúc API của bạn)
       const bId =
-        bookingRes.data?.data?.id ||
         bookingRes.data?.data?.booking_id ||
+        bookingRes.data?.booking_id ||
+        bookingRes.data?.data?.id ||
         bookingRes.data?.id;
 
       if (!bId) {
-        console.error("Full booking response:", bookingRes.data);
+        console.error("Full response:", bookingRes.data);
         throw new Error("Booking ID not found in response");
       }
 
@@ -372,36 +298,9 @@ export default function ClientBooking() {
       setPaymentStatus("pending");
       setPaymentModalVisible(true);
       message.success("Booking created! Please scan QR to pay");
-
-      // Log để debug
-      console.log("Booking created:", {
-        bookingId: bId,
-        paymentUrl: pUrl,
-        totalAmount: calcTotal(),
-      });
     } catch (error: any) {
-      console.error("Booking error:", error);
-
-      let errorMsg = "Booking failed";
-
-      if (axios.isAxiosError(error)) {
-        if (error.response?.data?.message) {
-          errorMsg = error.response.data.message;
-        } else if (error.response?.data?.error?.message) {
-          errorMsg = error.response.data.error.message;
-        } else if (error.message) {
-          errorMsg = error.message;
-        }
-
-        // Hiển thị chi tiết validation errors nếu có
-        if (error.response?.data?.error?.details) {
-          console.error(
-            "Validation errors:",
-            error.response.data.error.details
-          );
-        }
-      }
-
+      const errorMsg =
+        error.response?.data?.message || error.message || "Booking failed";
       message.error(errorMsg);
     } finally {
       setBookingLoading(false);
@@ -428,9 +327,6 @@ export default function ClientBooking() {
           setPaymentModalVisible(false);
           setPaymentStatus("pending");
         },
-        onCancel: () => {
-          // Người dùng chọn tiếp tục thanh toán
-        },
       });
     }
   };
@@ -439,19 +335,15 @@ export default function ClientBooking() {
   // AUTO REDIRECT AFTER SUCCESS
   // ===============================
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-
     if (paymentStatus === "success") {
       // Tự động chuyển hướng sau 5 giây nếu người dùng không tương tác
-      timer = setTimeout(() => {
+      const timer = setTimeout(() => {
         message.info("Auto-redirecting to homepage...");
         window.location.href = "/";
       }, 5000);
-    }
 
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
+      return () => clearTimeout(timer);
+    }
   }, [paymentStatus]);
 
   const getNights = () => {
@@ -469,21 +361,6 @@ export default function ClientBooking() {
 
   const getTotalRooms = () => {
     return selectedRooms.reduce((sum, room) => sum + room.quantity, 0);
-  };
-
-  // ===============================
-  // FORMAT STATUS FOR DISPLAY
-  // ===============================
-  const formatStatus = (status: string) => {
-    const statusMap: Record<string, string> = {
-      pending_payment: "Pending Payment",
-      paid: "Paid",
-      check_in: "Checked In",
-      check_out: "Checked Out",
-      canceled: "Cancelled",
-    };
-
-    return statusMap[status] || status;
   };
 
   // ===============================
@@ -878,11 +755,8 @@ export default function ClientBooking() {
                       loading={bookingLoading}
                       onClick={handleBooking}
                       className="confirm-booking-btn"
-                      disabled={!filters.dates || selectedRooms.length === 0}
                     >
-                      {bookingLoading
-                        ? "Creating Booking..."
-                        : "Confirm Booking"}
+                      Confirm Booking
                     </Button>
                   </div>
                 </div>
@@ -901,7 +775,6 @@ export default function ClientBooking() {
           width={600}
           centered
           maskClosable={false}
-          closable={paymentStatus !== "pending"}
         >
           {paymentStatus === "pending" && (
             <div style={{ textAlign: "center", padding: "20px 0" }}>
@@ -946,17 +819,13 @@ export default function ClientBooking() {
                     {calcTotal().toLocaleString()} ₫
                   </span>
                 </Descriptions.Item>
-                <Descriptions.Item label="Status">
-                  <Badge status="processing" text="Pending Payment" />
-                </Descriptions.Item>
               </Descriptions>
 
               {checkingPayment && (
                 <div style={{ marginTop: 24 }}>
                   <Spin />
                   <p style={{ marginTop: 8, color: "#666" }}>
-                    Checking payment status... (
-                    {new Date().toLocaleTimeString()})
+                    Checking payment status...
                   </p>
                 </div>
               )}
@@ -972,8 +841,8 @@ export default function ClientBooking() {
               </div>
 
               <Alert
-                message="Payment Status Check"
-                description="This window will automatically check payment status every 3 seconds. Keep it open while completing payment."
+                message="Payment will be automatically verified"
+                description="Keep this window open while completing payment"
                 type="warning"
                 showIcon
                 style={{ marginTop: 24 }}
@@ -1014,8 +883,8 @@ export default function ClientBooking() {
             <Result
               status="error"
               icon={<CloseCircleOutlined style={{ color: "#ff4d4f" }} />}
-              title="Payment Failed or Cancelled"
-              subTitle="Your payment could not be processed or booking was cancelled. Please try again or contact support."
+              title="Payment Failed"
+              subTitle="Your payment could not be processed. Please try again."
               extra={[
                 <Button
                   type="primary"
@@ -1023,18 +892,9 @@ export default function ClientBooking() {
                   onClick={() => {
                     setPaymentModalVisible(false);
                     setPaymentStatus("pending");
-                    handleBooking(); // Thử lại booking
                   }}
                 >
                   Try Again
-                </Button>,
-                <Button
-                  key="home"
-                  onClick={() => {
-                    window.location.href = "/";
-                  }}
-                >
-                  Go to Homepage
                 </Button>,
               ]}
             />
