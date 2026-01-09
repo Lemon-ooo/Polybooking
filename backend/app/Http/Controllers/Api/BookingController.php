@@ -149,35 +149,40 @@ class BookingController extends Controller
     }
 
 
-    public function show(Request $request, $id)
-    {
-        $user = auth('sanctum')->user();
+ public function show(Request $request, $id)
+{
+    $user = auth('sanctum')->user();
 
-        if (!$user) {
-            return $this->error(
-                'UNAUTHENTICATED',
-                'Bạn chưa đăng nhập',
-                [],
-                401
-            );
-        }
-
-        $booking = Booking::with('items.roomType')
-            ->where('id', $id)
-            ->where('user_id', $user->user_id)
-            ->first();
-
-        if (!$booking) {
-            return $this->error(
-                'BOOKING_NOT_FOUND',
-                'Không tìm thấy booking hoặc bạn không có quyền',
-                [],
-                404
-            );
-        }
-
-        return $this->success($booking, 'Chi tiết booking');
+    if (!$user) {
+        return $this->error(
+            'UNAUTHENTICATED',
+            'Bạn chưa đăng nhập',
+            [],
+            401
+        );
     }
+
+    $booking = Booking::with('items.roomType')
+        ->where('id', $id)
+        ->when($user->role !== 'admin', function ($query) use ($user) {
+            $query->where('user_id', $user->user_id);
+        })
+        ->first();
+
+    if (!$booking) {
+        return $this->error(
+            'BOOKING_NOT_FOUND',
+            'Không tìm thấy booking hoặc bạn không có quyền',
+            [],
+            404
+        );
+    }
+
+    return $this->success($booking, 'Chi tiết booking');
+}
+
+
+
 
 
     public function myBookings(Request $request)

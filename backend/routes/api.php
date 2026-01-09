@@ -85,19 +85,18 @@ Route::get('/profile', [ProfileController::class, 'show']);
 ========================================================= */
 
 Route::middleware('auth:sanctum')->group(function () {
+
+    Route::get('booking/index',        [AdminBookingController::class, 'index']);
+
     Route::post('/bookings', [BookingController::class, 'store']);
     Route::get('my/bookings',             [BookingController::class, 'myBookings']);
     Route::get('bookings/{id}',           [BookingController::class, 'show']);
     Route::post('bookings/{id}/cancel',   [BookingController::class, 'cancel']);
+
 });
 
 ///////////////////////Booking Admin Show & Index///////////////////////
 // routes/api.php
-
-Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('admin/bookings',        [AdminBookingController::class, 'index']);
-    Route::get('admin/bookings/{id}',   [AdminBookingController::class, 'show']);
-});
 
 
 /* =========================================================

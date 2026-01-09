@@ -13,6 +13,18 @@ class AdminBookingController extends Controller
      */
     public function index(Request $request)
     {
+
+        $user = auth('sanctum')->user();
+
+    if ($user->role !== 'admin') {
+        return response()->json([
+            'success' => false,
+            'error' => [
+                'code' => 'FORBIDDEN',
+                'message' => 'Bạn không có quyền truy cập'
+            ]
+        ], 403);
+    }
         $query = Booking::with([
             'user',
             'bookingItems.roomType'
@@ -39,36 +51,4 @@ class AdminBookingController extends Controller
         ]);
     }
 
-    /**
-     * Chi tiết booking (Admin)
-     */
-    public function show($id)
-    {
-        $booking = Booking::with([
-            'user',
-            'bookingItems.roomType',
-            'voucher',
-            'payments',
-            'damages.damageType',
-            'services'
-        ])->find($id);
-
-        if (!$booking) {
-            return response()->json([
-                'success' => false,
-                'error' => [
-                    'code' => 'BOOKING_NOT_FOUND',
-                    'message' => 'Không tìm thấy booking'
-                ]
-            ], 404);
-        }
-
-        return response()->json([
-            'success' => true,
-            'data' => $booking,
-            'meta' => [
-                'timestamp' => now()
-            ]
-        ]);
-    }
 }

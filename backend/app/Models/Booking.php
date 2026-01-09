@@ -61,6 +61,10 @@ class Booking extends Model
     {
         return $this->hasMany(BookingItem::class, 'booking_id');
     }
+    public function services()
+    {
+        return $this->hasMany(ServiceCharge::class, 'booking_id');
+    }
     public function damages()
     {
         return $this->hasMany(DamageType::class, 'booking_id', 'id');
@@ -76,6 +80,7 @@ class Booking extends Model
     {
         return $this->hasMany(ServiceCharge::class, 'booking_id', 'id');
     }
+
 
     // Phạt / hư hỏng
     public function penaltyCharges()
