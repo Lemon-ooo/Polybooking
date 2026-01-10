@@ -157,19 +157,56 @@ export const RoomTypeCreate: React.FC = () => {
         </Form.Item>
 
         <Form.Item
-          label="Giá cơ bản"
+          label="Giá cơ bản (VNĐ/đêm)"
           name="base_price"
-          rules={[{ required: true }]}
+          rules={[
+            { required: true, message: "Vui lòng nhập giá cơ bản!" },
+            {
+              type: "number",
+              min: 100000,
+              message: "Giá tối thiểu hợp lý là 100.000 VNĐ",
+            }, // Ví dụ min 100k
+            {
+              type: "number",
+              max: 15000000,
+              message: "Giá tối đa hợp lý là 15.000.000 VNĐ",
+            }, // Ví dụ max 15tr
+            {
+              type: "integer",
+              message: "Giá phải là số nguyên (không thập phân)",
+            },
+          ]}
+          tooltip="Giá phòng cơ bản cho 1 đêm (chưa bao gồm thuế/phí dịch vụ). Nên nhập theo mức giá phổ biến của khách sạn."
         >
-          <InputNumber style={{ width: "100%" }} min={0} />
+          <InputNumber
+            style={{ width: "100%" }}
+            min={100000}
+            max={15000000}
+            placeholder="Ví dụ: 1500000"
+          />
         </Form.Item>
 
         <Form.Item
-          label="Số khách tối đa"
+          label="Số khách tối đa (người lớn + trẻ em)"
           name="max_guests"
-          rules={[{ required: true }]}
+          rules={[
+            { required: true, message: "Vui lòng nhập số khách tối đa!" },
+            { type: "number", min: 1, message: "Số khách tối thiểu là 1" },
+            { type: "integer", message: "Số khách phải là số nguyên" },
+            {
+              type: "number",
+              max: 5,
+              message: "Số khách tối đa hợp lý là 5 (cho loại phòng lớn)",
+            },
+          ]}
         >
-          <InputNumber style={{ width: "100%" }} min={1} />
+          <InputNumber
+            style={{ width: "100%" }}
+            min={1}
+            max={5}
+            step={1}
+            placeholder="Ví dụ: 2, 4, 6..."
+          />
         </Form.Item>
 
         <Form.Item label="Mô tả" name="description" rules={[{ min: 10 }]}>

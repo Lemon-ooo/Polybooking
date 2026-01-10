@@ -50,13 +50,18 @@ export default function ServicesEdit() {
           description: service.description || "",
         });
 
-        if (service.image_url) {
+        // load ảnh
+        if (service.service_image) {
           setFileList([
             {
               uid: "-1",
-              name: service.service_image?.split("/").pop() || "image.jpg",
+              name: service.service_image.split("/").pop(),
               status: "done",
-              url: service.image_url,
+              url:
+                service.image_url ||
+                `${import.meta.env.VITE_API_URL}/storage/${
+                  service.service_image
+                }`,
             },
           ]);
         }
@@ -78,8 +83,9 @@ export default function ServicesEdit() {
     formData.append("description", values.description || "");
 
     // Nếu có ảnh mới
+    // submit
     if (fileList[0]?.originFileObj) {
-      formData.append("image", fileList[0].originFileObj as RcFile);
+      formData.append("service_image", fileList[0].originFileObj as RcFile);
     }
 
     formData.append("_method", "PUT");
