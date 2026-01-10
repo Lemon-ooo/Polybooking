@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
+use App\Models\Review;
 
 class Booking extends Model
 {
@@ -107,4 +108,9 @@ class Booking extends Model
     {
         return $this->belongsTo(Voucher::class);
     }
+
+    public function review()
+{
+    return $this->hasOne(Review::class, 'booking_id', 'id');
+}
 }

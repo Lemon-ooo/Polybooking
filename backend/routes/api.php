@@ -1,29 +1,30 @@
 <?php
 
-use App\Http\Controllers\Api\AdminCheckinController;
-use App\Http\Controllers\Api\AdminCheckoutController;
-use App\Http\Controllers\Api\AdminServiceController;
-use App\Http\Controllers\Api\AmenityController;
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\BookingController;
-// use App\Http\Controllers\Api\EventController;
-use App\Http\Controllers\Api\EventController;
-use App\Http\Controllers\Api\GalleryController;
-use App\Http\Controllers\Api\RoomController;
-use App\Http\Controllers\Api\RoomImageController;
-use App\Http\Controllers\Api\RoomTypeController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\ServiceController;
-use App\Http\Controllers\Api\RoomTypeImageController;
-use App\Http\Controllers\Api\ProfileController;
-use App\Http\Controllers\Api\ChatbotController;
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChatController;
-use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\RoomController;
+use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\EventController;
+// use App\Http\Controllers\Api\EventController;
+use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\AmenityController;
+use App\Http\Controllers\Api\BookingController;
+use App\Http\Controllers\Api\ChatbotController;
+use App\Http\Controllers\Api\GalleryController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\PaymentController;
-use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\VoucherController;
+use App\Http\Controllers\Api\RoomTypeController;
+use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\RoomImageController;
 use App\Http\Controllers\Api\AdminBookingController;
+use App\Http\Controllers\Api\AdminCheckinController;
+use App\Http\Controllers\Api\AdminServiceController;
+use App\Http\Controllers\Api\AdminCheckoutController;
+use App\Http\Controllers\Api\RoomTypeImageController;
 
 Route::get('/bookings/my', [BookingController::class, 'myBookings'])->middleware('auth:sanctum');
 
@@ -225,3 +226,13 @@ Route::patch(
     [VoucherController::class, 'toggleStatus']
 )->middleware('auth:sanctum');
 
+
+// Review routes
+Route::middleware('auth:sanctum')->group(function () {
+    Route::apiResource('reviews', ReviewController::class);
+});
+
+Route::get(
+    'room-types/{id}/rating',
+    [RoomTypeController::class, 'rating']
+);
