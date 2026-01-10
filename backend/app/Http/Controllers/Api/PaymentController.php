@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\BookingPaidMail;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,6 +21,7 @@ use App\Models\DamageInvoice;
 use App\Models\Penalty;
 use App\Models\AssignedRoom;
 
+
 /*
 |--------------------------------------------------------------------------
 | PaymentController
@@ -28,6 +31,7 @@ use App\Models\AssignedRoom;
 | 2. Thanh toán CHECK_OUT (service + damage + penalty)
 |--------------------------------------------------------------------------
 */
+
 class PaymentController extends Controller
 {
     /* =========================================================
@@ -137,7 +141,15 @@ class PaymentController extends Controller
 
             /* ===== BOOKING PAYMENT ===== */
             if ($type === 'BOOKING') {
+
                 $booking->update(['status' => 'paid']);
+
+                // load quan hệ để gửi mail
+                $booking->load(['user', 'items.roomType']);
+
+                // gửi mail
+                Mail::to($booking->user->email)
+                    ->send(new BookingPaidMail($booking));
             }
 
             /* ===== CHECKOUT PAYMENT ===== */
@@ -171,7 +183,7 @@ class PaymentController extends Controller
      * ========================================================= */
     private function buildVnpayUrl(string $type, int $bookingId, int $amount)
     {
-        $vnp_HashSecret= config('vnpay.hash_secret');
+        $vnp_HashSecret = config('vnpay.hash_secret');
         $vnp_Url = config('vnpay.url');
         $vnp_Returnurl = config('vnpay.return_url');
 
@@ -189,7 +201,7 @@ class PaymentController extends Controller
             'vnp_Locale'    => 'vn',
             'vnp_ReturnUrl' => $vnp_Returnurl,
             'vnp_IpAddr' => '8.8.8.8',
-            'vnp_CreateDate'=> date('YmdHis'),
+            'vnp_CreateDate' => date('YmdHis'),
         ];
 
         ksort($params);
