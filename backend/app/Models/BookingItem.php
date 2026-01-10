@@ -9,7 +9,8 @@ class BookingItem extends Model
     protected $table = 'booking_items';
 
     protected $primaryKey = 'booking_item_id';
-
+    public $incrementing = true;
+    protected $keyType = 'int';
     protected $fillable = [
         'booking_id',
         'room_type_id',

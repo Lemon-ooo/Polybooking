@@ -252,9 +252,17 @@ class BookingController extends Controller
             );
         }
 
-        $booking = Booking::with('items.roomType')
+        $booking = Booking::with([
+            'items.roomType',
+            'serviceInvoice.charges.service',
+            'damageInvoices.damageType',
+            'penaltyCharges',
+            'payments'                    // thanh toán
+        ])
             ->where('id', $id)
-            ->where('user_id', $user->user_id)
+            ->when($user->role !== 'admin', function ($query) use ($user) {
+                $query->where('user_id', $user->user_id);
+            })
             ->first();
 
         if (!$booking) {
@@ -266,8 +274,41 @@ class BookingController extends Controller
             );
         }
 
-        return $this->success($booking, 'Chi tiết booking');
+        /**
+         * TÍNH TOÁN GIÁ TIỀN – KHÔNG HARD CODE
+         */
+        $roomTotal = collect($booking->items)->sum('amount');
+
+        // Service total: prefer summarized `total_amount` on invoice, fallback to summing charges
+        $serviceTotal = 0;
+        if ($booking->serviceInvoice) {
+            $serviceTotal = $booking->serviceInvoice->total_amount ?? collect($booking->serviceInvoice->charges)->sum('amount');
+        }
+
+        // Damage invoices (amount field)
+        $damageTotal = collect($booking->damageInvoices)->sum('amount');
+
+        // Penalty charges
+        $penaltyTotal = collect($booking->penaltyCharges)->sum('amount');
+
+        $grandTotal = $roomTotal + $serviceTotal + $damageTotal + $penaltyTotal;
+
+        return $this->success([
+            'booking' => $booking,
+
+            'pricing' => [
+                'room_total'    => $roomTotal,
+                'service_total' => $serviceTotal,
+                'damage_total'  => $damageTotal,
+                'penalty_total' => $penaltyTotal,
+                'grand_total'   => $grandTotal,
+            ]
+        ], 'Chi tiết booking');
     }
+
+
+
+
 
 
     public function myBookings(Request $request)

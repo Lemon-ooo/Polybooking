@@ -37,29 +37,29 @@ class InvoiceController extends Controller
         $roomTotal = (int) ($booking->total_price ?? 0);
 
         /* ===== SERVICES (FIXED) ===== */
-$services = ServiceCharge::with('service')
-    ->whereHas('invoice', function ($q) use ($bookingId) {
-        $q->where('booking_id', $bookingId);
-    })
-    ->get()
-    ->map(function ($c) {
-        return [
-            'name'  => $c->service?->service_name ?? 'Service',
-            'qty'   => (int) $c->quantity,
-            'price' => (int) $c->price,
-            'total' => (int) $c->amount,
-        ];
-    })
-    ->values()
-    ->toArray();
+        $services = ServiceCharge::with('service')
+            ->whereHas('invoice', function ($q) use ($bookingId) {
+                $q->where('booking_id', $bookingId);
+            })
+            ->get()
+            ->map(function ($c) {
+                return [
+                    'name'  => $c->service?->service_name ?? 'Service',
+                    'qty'   => (int) $c->quantity,
+                    'price' => (int) $c->price,
+                    'total' => (int) $c->amount,
+                ];
+            })
+            ->values()
+            ->toArray();
 
-$serviceTotal = collect($services)->sum('total');
+        $serviceTotal = collect($services)->sum('total');
 
         /* ===== DAMAGES ===== */
         $damages = DamageInvoice::with('damageType')
             ->where('booking_id', $bookingId)
             ->get()
-            ->map(fn ($d) => [
+            ->map(fn($d) => [
                 'name'  => $d->damageType?->name ?? 'Damage',
                 'price' => (int) $d->amount,
                 'image' => $d->image,
@@ -72,7 +72,7 @@ $serviceTotal = collect($services)->sum('total');
         /* ===== PENALTIES ===== */
         $penalties = Penalty::where('booking_id', $bookingId)
             ->get()
-            ->map(fn ($p) => [
+            ->map(fn($p) => [
                 'days_late' => (int) $p->days_late,
                 'amount'    => (int) $p->amount,
             ])
@@ -85,7 +85,7 @@ $serviceTotal = collect($services)->sum('total');
         $payments = Payment::where('booking_id', $bookingId)
             ->where('status', 'success')
             ->get()
-            ->map(fn ($p) => [
+            ->map(fn($p) => [
                 'method'  => $p->method,
                 'amount'  => (int) $p->amount,
                 'paid_at' => optional($p->paid_at)->format('d/m/Y H:i'),
@@ -100,7 +100,7 @@ $serviceTotal = collect($services)->sum('total');
         $due = max(0, $grandTotal - $paidTotal);
 
         return [
-'invoice_code' => 'INV-' . now()->format('Ymd') . '-' . str_pad($bookingId, 4, '0', STR_PAD_LEFT),
+            'invoice_code' => 'INV-' . now()->format('Ymd') . '-' . str_pad($bookingId, 4, '0', STR_PAD_LEFT),
             'booking_id'   => $booking->id,
 
             'customer' => [
@@ -183,7 +183,7 @@ $serviceTotal = collect($services)->sum('total');
                 'penalty_total' => $invoiceData['summary']['penalty'],
                 'grand_total'   => $invoiceData['summary']['total'],
                 'paid_total'    => $invoiceData['summary']['paid'],
-'due_total'     => $invoiceData['summary']['due'],
+                'due_total'     => $invoiceData['summary']['due'],
 
                 'data'      => $invoiceData,
                 'pdf_path'  => $path,
@@ -206,15 +206,15 @@ $serviceTotal = collect($services)->sum('total');
 
     /** POST /api/admin/bookings/{id}/invoice/send-mail */
     public function sendMail($id)
-{
-    $invoice = Invoice::findOrFail($id);
+    {
+        $invoice = Invoice::findOrFail($id);
 
-    Mail::to($invoice->customer_email)
-        ->send(new InvoiceMail($invoice->data)); // ✅ TRUYỀN ARRAY
+        Mail::to($invoice->customer_email)
+            ->send(new InvoiceMail($invoice->data)); // ✅ TRUYỀN ARRAY
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Invoice sent successfully'
-    ]);
-}
+        return response()->json([
+            'success' => true,
+            'message' => 'Invoice sent successfully'
+        ]);
+    }
 }
