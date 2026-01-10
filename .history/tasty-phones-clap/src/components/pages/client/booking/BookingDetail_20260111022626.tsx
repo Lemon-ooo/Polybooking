@@ -33,8 +33,15 @@ const BookingDetail = () => {
 
   const navigate = useNavigate();
 
+<<<<<<< HEAD
+  const isEditable =
+    booking?.status === "pending" || booking?.status === "confirmed";
+
+  // ================== LOAD BOOKING DETAIL ==================
+=======
   const formatDate = (d: string) => dayjs(d).format("DD/MM/YYYY");
 
+>>>>>>> lamtangthanh
   const fetchDetail = async () => {
     try {
       const res = await axiosInstance.get(`/bookings/${id}`);
@@ -168,8 +175,7 @@ const BookingDetail = () => {
   if (children > 0)
     guestParts.push(`${children} Child${children > 1 ? "ren" : ""}`);
 
-  const guestsDisplay =
-    guestParts.length > 0 ? guestParts.join(" + ") : "0 Guests";
+  const guestsDisplay = guestParts.length > 0 ? guestParts.join(" + ") : "0 Guests";
 
   // ===== NIGHTS (ENGLISH FORMAT) =====
   let nights = booking.nights;
@@ -179,9 +185,7 @@ const BookingDetail = () => {
     nights = co.diff(ci, "day");
   }
   const days = nights + 1;
-  const nightsDisplay = `${nights} Night${nights > 1 ? "s" : ""} / ${days} Day${
-    days > 1 ? "s" : ""
-  }`;
+  const nightsDisplay = `${nights} Night${nights > 1 ? "s" : ""} / ${days} Day${days > 1 ? "s" : ""}`;
 
   const tableData: any[] = [];
 
@@ -291,12 +295,16 @@ const BookingDetail = () => {
               <div>
                 <strong>Total Amount:</strong>
                 <p className="price">
+<<<<<<< HEAD
+                  {Number(booking.booking_total_amount).toLocaleString("vi-VN")}{" "}
+=======
                   {Number(
                     booking.total_amount ||
                       booking.total ||
                       booking.total_price ||
                       0
                   ).toLocaleString("en-US")}{" "}
+>>>>>>> lamtangthanh
                   ₫
                 </p>
               </div>
@@ -315,7 +323,11 @@ const BookingDetail = () => {
               {
                 title: "Total Price",
                 dataIndex: "total",
+<<<<<<< HEAD
+                render: (v) => Number(v).toLocaleString("vi-VN") + " ₫",
+=======
                 render: (v) => Number(v).toLocaleString("en-US") + " ₫",
+>>>>>>> lamtangthanh
               },
             ]}
             style={{ marginTop: 10 }}
@@ -331,7 +343,10 @@ const BookingDetail = () => {
           >
             Total:{" "}
             {Number(
-              booking.total_amount || booking.total || booking.total_price || 0
+              booking.total_amount ||
+                booking.total ||
+                booking.total_price ||
+                0
             ).toLocaleString("en-US")}{" "}
             ₫
           </div>
@@ -384,7 +399,7 @@ const BookingDetail = () => {
               size="large"
               icon={<PlusOutlined />}
               style={{ marginTop: 20 }}
-              disabled={!isEditable}
+              disabled={!isEditable}  
               onClick={handleAddServices}
             >
               Add Selected Services

@@ -12,20 +12,21 @@ export const ForgotPassword: React.FC = () => {
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
-  const onFinish = async (values: any) => {
-    setError("");
-    setMessage("");
-    setLoading(true);
+const onFinish = async (values: any) => {
+  setError("");
+  setMessage("");
+  setLoading(true);
 
-    try {
-      const res = await authProvider.forgotPassword(values.email);
-      setMessage(res.message);
-    } catch (err: any) {
-      setError(err?.message || "Something went wrong. Please try again!");
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    const res = await authProvider.forgotPassword({ email: values.email });
+    setMessage(res.message || "The password reset email has been sent!");
+  } catch (err: any) {
+    setError(err?.message || "Something went wrong. Please try again!");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <Layout className="forgot-layout">
