@@ -4,6 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
+use App\Models\BookingItem;
+use App\Models\BookingService;
+use App\Models\DamageType;
+use App\Models\AssignedRoom;
+use App\Models\ServiceCharge;
+use App\Models\PenaltyCharge;
+use App\Models\Payment;
+use App\Models\Voucher;
+
 
 class Booking extends Model
 {
@@ -61,10 +70,16 @@ class Booking extends Model
     {
         return $this->hasMany(BookingItem::class, 'booking_id');
     }
-    public function services()
-    {
-        return $this->hasMany(ServiceCharge::class, 'booking_id');
-    }
+public function serviceInvoice()
+{
+    return $this->hasOne(ServiceInvoice::class, 'booking_id', 'id');
+}
+
+public function damageInvoices()
+{
+    return $this->hasMany(DamageInvoice::class, 'booking_id', 'id');
+}
+
     public function damages()
     {
         return $this->hasMany(DamageType::class, 'booking_id', 'id');

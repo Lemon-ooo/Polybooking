@@ -149,37 +149,73 @@ class BookingController extends Controller
     }
 
 
- public function show(Request $request, $id)
-{
-    $user = auth('sanctum')->user();
+    public function show(Request $request, $id)
+    {
+        $user = auth('sanctum')->user();
 
-    if (!$user) {
-        return $this->error(
-            'UNAUTHENTICATED',
-            'Bạn chưa đăng nhập',
-            [],
-            401
-        );
+        if (!$user) {
+            return $this->error(
+                'UNAUTHENTICATED',
+                'Bạn chưa đăng nhập',
+                [],
+                401
+            );
+        }
+
+        $booking = Booking::with([
+            'items.roomType',
+            'serviceInvoice.charges.service',
+            'damageInvoices.damageType',
+            'penaltyCharges',
+            'payments'                    // thanh toán
+        ])
+            ->where('id', $id)
+            ->when($user->role !== 'admin', function ($query) use ($user) {
+                $query->where('user_id', $user->user_id);
+            })
+            ->first();
+
+        if (!$booking) {
+            return $this->error(
+                'BOOKING_NOT_FOUND',
+                'Không tìm thấy booking hoặc bạn không có quyền',
+                [],
+                404
+            );
+        }
+
+        /**
+         * TÍNH TOÁN GIÁ TIỀN – KHÔNG HARD CODE
+         */
+        $roomTotal = collect($booking->items)->sum('amount');
+
+        // Service total: prefer summarized `total_amount` on invoice, fallback to summing charges
+        $serviceTotal = 0;
+        if ($booking->serviceInvoice) {
+            $serviceTotal = $booking->serviceInvoice->total_amount ?? collect($booking->serviceInvoice->charges)->sum('amount');
+        }
+
+        // Damage invoices (amount field)
+        $damageTotal = collect($booking->damageInvoices)->sum('amount');
+
+        // Penalty charges
+        $penaltyTotal = collect($booking->penaltyCharges)->sum('amount');
+
+        $grandTotal = $roomTotal + $serviceTotal + $damageTotal + $penaltyTotal;
+
+        return $this->success([
+            'booking' => $booking,
+
+            'pricing' => [
+                'room_total'    => $roomTotal,
+                'service_total' => $serviceTotal,
+                'damage_total'  => $damageTotal,
+                'penalty_total' => $penaltyTotal,
+                'grand_total'   => $grandTotal,
+            ]
+        ], 'Chi tiết booking');
     }
 
-    $booking = Booking::with('items.roomType')
-        ->where('id', $id)
-        ->when($user->role !== 'admin', function ($query) use ($user) {
-            $query->where('user_id', $user->user_id);
-        })
-        ->first();
-
-    if (!$booking) {
-        return $this->error(
-            'BOOKING_NOT_FOUND',
-            'Không tìm thấy booking hoặc bạn không có quyền',
-            [],
-            404
-        );
-    }
-
-    return $this->success($booking, 'Chi tiết booking');
-}
 
 
 
