@@ -48,10 +48,10 @@ export const Footer = () => {
             }}
           >
             <img
-              src="https://scontent.fhan14-4.fna.fbcdn.net/v/t39.30808-6/607513074_1202054532031169_1606756904976277477_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=dNtaGkzknVkQ7kNvwGSOO69&_nc_oc=Adm6Ig-UD9vcXYrhejq6u8rx66xQnamAj4HjNcreOWi9qUkvn6jMPHzFVwAQDapmjqw&_nc_zt=23&_nc_ht=scontent.fhan14-4.fna&_nc_gid=sNYLZAhL1YLXjVA7OTYWHg&oh=00_Afr6kMBtvB1DS9mgutm4eU2KcAwfi9YoyRLgixgiELfdrA&oe=695DADB2"
+              src="https://scontent.fhan2-5.fna.fbcdn.net/v/t39.30808-6/614938782_1207681184801837_6734397932447336754_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=PwzjhptZNhQQ7kNvwGeQTa-&_nc_oc=Adm8HOvPt1WgbZ7Fzqn8Q1x48mXauq8R4IaU5vfi2QlGbiuaXJTBkPK0hYhsPInUlc8&_nc_zt=23&_nc_ht=scontent.fhan2-5.fna&_nc_gid=HN6fcvuhoSxS9qaFJOosFA&oh=00_AfpYlXNmbsbUZ6BcTuLXf0G58zYyvbRm1UPziu3oqvtx3A&oe=69685B30"
               alt="PolyStay Logo"
               style={{
-                height: 80,
+                height: 70,
                 width: 72,
                 objectFit: "cover",
                 borderRadius: 30, // Bo góc đẹp
@@ -80,7 +80,7 @@ export const Footer = () => {
             <Space size={14} style={{ alignItems: "flex-start" }}>
               <EnvironmentOutlined style={{ color: "#C49A6C", fontSize: 18 }} />
               <Text style={{ color: "#e5e5e5", fontSize: 15, lineHeight: 1.6 }}>
-              Building F, Trinh Van Bo Street, Nam Tu Liem District, Hanoi
+                Building F, Trinh Van Bo Street, Nam Tu Liem District, Hanoi
               </Text>
             </Space>
 

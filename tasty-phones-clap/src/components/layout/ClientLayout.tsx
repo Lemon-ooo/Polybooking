@@ -184,7 +184,7 @@ export const ClientLayout: React.FC = () => {
             style={{ flex: "0 0 auto", display: "flex", alignItems: "center" }}
           >
             <img
-              src="https://scontent.fhan20-1.fna.fbcdn.net/v/t39.30808-6/613481706_1207090244860931_1101396727975257282_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=QXTDk8RftdYQ7kNvwEPUwgz&_nc_oc=AdkQ6z8DxmWqoGCruNON0kHsx_sao3YqMPuU1SSMlGTBi8_rcKvp00qgUTxJgaRHWKI&_nc_zt=23&_nc_ht=scontent.fhan20-1.fna&_nc_gid=EXnpJnAP02Ii5yol_ToI7A&oh=00_AfpOtjqzoVnMc55PCiYlRNsH-IMi31ylQSbUrVMQqVXfGg&oe=69672790"
+              src="https://scontent.fhan2-5.fna.fbcdn.net/v/t39.30808-6/614938782_1207681184801837_6734397932447336754_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=PwzjhptZNhQQ7kNvwGeQTa-&_nc_oc=Adm8HOvPt1WgbZ7Fzqn8Q1x48mXauq8R4IaU5vfi2QlGbiuaXJTBkPK0hYhsPInUlc8&_nc_zt=23&_nc_ht=scontent.fhan2-5.fna&_nc_gid=HN6fcvuhoSxS9qaFJOosFA&oh=00_AfpYlXNmbsbUZ6BcTuLXf0G58zYyvbRm1UPziu3oqvtx3A&oe=69685B30"
               alt="Hotel Deluxe"
               style={{
                 height: 76,
