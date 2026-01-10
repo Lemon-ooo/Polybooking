@@ -8,12 +8,15 @@ import {
   HomeOutlined,
   ArrowLeftOutlined,
   PlusOutlined,
+  TeamOutlined,
 } from "@ant-design/icons";
 import axiosInstance from "../../../../providers/data/axiosConfig";
 import { useParams, useNavigate } from "react-router-dom";
+import dayjs from "dayjs";
 
 const statusColors: any = {
   pending: "orange",
+  pending_payment: "orange",
   confirmed: "green",
   cancelled: "red",
   completed: "blue",
@@ -29,9 +32,9 @@ const BookingDetail = () => {
   const [quantities, setQuantities] = useState<Record<number, number>>({});
 
   const navigate = useNavigate();
-  const formatDate = (d: string) => new Date(d).toLocaleDateString("vi-VN");
 
-  // ================== LOAD BOOKING DETAIL ==================
+  const formatDate = (d: string) => dayjs(d).format("DD/MM/YYYY");
+
   const fetchDetail = async () => {
     try {
       const res = await axiosInstance.get(`/bookings/${id}`);
@@ -43,7 +46,6 @@ const BookingDetail = () => {
     }
   };
 
-  // ================== LOAD SERVICES ==================
   const fetchServices = async () => {
     try {
       const res = await axiosInstance.get(`/services`);
@@ -55,7 +57,7 @@ const BookingDetail = () => {
           name: sv.service_name,
           price: Number(sv.service_price),
           description: sv.description,
-          image: sv.image_url, 
+          image: sv.image_url,
         }))
       );
     } catch (error) {
@@ -68,7 +70,6 @@ const BookingDetail = () => {
     fetchServices();
   }, []);
 
-  // ================== SELECT SERVICE ==================
   const toggleService = (sv: any) => {
     const exists = selected.some((s) => s.id === sv.id);
     if (exists) {
@@ -84,7 +85,6 @@ const BookingDetail = () => {
     }
   };
 
-  // ================== SUBMIT ADD SERVICES ==================
   const handleAddServices = async () => {
     if (!selected.length) {
       message.error("Please select at least 1 service.");
@@ -114,51 +114,65 @@ const BookingDetail = () => {
 
   if (!booking)
     return (
-      <p style={{ textAlign: "center", marginTop: 40 }}>
-        Booking not found
-      </p>
+      <p style={{ textAlign: "center", marginTop: 40 }}>Booking not found</p>
     );
 
-  // ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐
-  // ⭐ BUILD TABLE DATA: PHÒNG + DỊCH VỤ
-  // ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐
-  const tableData = [];
+  const rawStatus = booking.status || "unknown";
+  const displayStatus = rawStatus.replace(/_/g, " ").toUpperCase();
 
-  // Rooms
+  // ===== GUESTS (ENGLISH FORMAT) =====
+  const adults = Number(booking.adults || 0);
+  const children = Number(booking.children || 0);
+
+  const guestParts: string[] = [];
+  if (adults > 0) guestParts.push(`${adults} Adult${adults > 1 ? "s" : ""}`);
+  if (children > 0)
+    guestParts.push(`${children} Child${children > 1 ? "ren" : ""}`);
+
+  const guestsDisplay = guestParts.length > 0 ? guestParts.join(" + ") : "0 Guests";
+
+  // ===== NIGHTS (ENGLISH FORMAT) =====
+  let nights = booking.nights;
+  if (!nights) {
+    const ci = dayjs(booking.check_in);
+    const co = dayjs(booking.check_out);
+    nights = co.diff(ci, "day");
+  }
+  const days = nights + 1;
+  const nightsDisplay = `${nights} Night${nights > 1 ? "s" : ""} / ${days} Day${days > 1 ? "s" : ""}`;
+
+  const tableData: any[] = [];
+
   booking.items?.forEach((i: any) => {
     tableData.push({
-      key: `room-${i.item_id}`,
-      name: i.room_type?.room_type_name,
-      quantity: i.quantity,
-      total: Number(i.total_price), // ⭐ FIXED: lấy tổng giá phòng
+      key: `room-${i.booking_item_id}`,
+      name: i.room_type?.room_type_name || "Room",
+      quantity: i.quantity || 1,
+      total: Number(i.amount || i.total_price || 0),
     });
   });
 
-  // Services
   booking.services?.forEach((s: any) => {
     tableData.push({
       key: `service-${s.id}`,
       name: `Service: ${s.service_name}`,
       quantity: s.quantity,
-      total: Number(s.total_price), // ⭐ FIXED
+      total: Number(s.total_price || 0),
     });
   });
 
   return (
     <div>
-      {/* ========== HERO BANNER ========== */}
       <div className="booking-detail-hero">
         <div className="hero-overlay" />
         <div className="hero-content">
           <h1 className="booking-detail-title">Booking Detail</h1>
-          <p className="hero-subtitle">Reservation #{booking.booking_id}</p>
+          <p className="hero-subtitle">Reservation #{booking.id}</p>
         </div>
       </div>
 
-      {/* ========== MAIN CONTENT ========== */}
       <div style={{ padding: "40px 20px", maxWidth: 950, margin: "0 auto" }}>
         <Card className="detail-card">
-          {/* BACK BUTTON */}
           <div
             style={{
               display: "flex",
@@ -174,15 +188,14 @@ const BookingDetail = () => {
             Back to My Bookings
           </div>
 
-          {/* HEADER */}
           <div className="detail-header">
-            <h2>Booking #{booking.booking_id}</h2>
-            <Tag color={statusColors[booking.status] || "default"}>
-              {booking.status.toUpperCase()}
+            <h2>Booking #{booking.id}</h2>
+            <Tag color={statusColors[rawStatus] || "default"}>
+              {displayStatus}
             </Tag>
           </div>
 
-          {/* GRID INFO */}
+          {/* === GUESTS + NIGHTS (ENGLISH) === */}
           <div className="detail-grid">
             <div className="detail-item">
               <HomeOutlined className="icon" />
@@ -196,6 +209,22 @@ const BookingDetail = () => {
                     )
                     .join(", ")}
                 </p>
+              </div>
+            </div>
+
+            <div className="detail-item">
+              <TeamOutlined className="icon" />
+              <div>
+                <strong>Guests:</strong>
+                <p>{guestsDisplay}</p>
+              </div>
+            </div>
+
+            <div className="detail-item">
+              <CalendarOutlined className="icon" />
+              <div>
+                <strong>Nights:</strong>
+                <p>{nightsDisplay}</p>
               </div>
             </div>
 
@@ -220,17 +249,20 @@ const BookingDetail = () => {
               <div>
                 <strong>Total Amount:</strong>
                 <p className="price">
-                  {Number(booking.booking_total_amount).toLocaleString("vi-VN")} ₫
+                  {Number(
+                    booking.total_amount ||
+                      booking.total ||
+                      booking.total_price ||
+                      0
+                  ).toLocaleString("en-US")}{" "}
+                  ₫
                 </p>
               </div>
             </div>
           </div>
 
-          {/* ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐
-              ROOM + SERVICE TOTAL TABLE
-              ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ */}
+          {/* BILLING + SERVICES giữ nguyên */}
           <h3 style={{ marginTop: 30 }}>Billing Details</h3>
-
           <Table
             dataSource={tableData}
             pagination={false}
@@ -241,14 +273,12 @@ const BookingDetail = () => {
               {
                 title: "Total Price",
                 dataIndex: "total",
-                render: (v) =>
-                  Number(v).toLocaleString("vi-VN") + " ₫",
+                render: (v) => Number(v).toLocaleString("en-US") + " ₫",
               },
             ]}
             style={{ marginTop: 10 }}
           />
 
-          {/* ⭐ TOTAL AMOUNT BELOW TABLE ⭐ */}
           <div
             style={{
               marginTop: 20,
@@ -258,10 +288,15 @@ const BookingDetail = () => {
             }}
           >
             Total:{" "}
-            {Number(booking.booking_total_amount).toLocaleString("vi-VN")} ₫
+            {Number(
+              booking.total_amount ||
+                booking.total ||
+                booking.total_price ||
+                0
+            ).toLocaleString("en-US")}{" "}
+            ₫
           </div>
 
-          {/* ================== ADD SERVICES ================== */}
           <h3 style={{ marginTop: 40 }}>Add Extra Services</h3>
 
           <div className="service-grid">
@@ -273,15 +308,12 @@ const BookingDetail = () => {
                   className={`service-card ${active ? "active" : ""}`}
                   onClick={() => toggleService(sv)}
                 >
-                  <img
-                    src={sv.image || "/no-img.png"}
-                    alt={sv.name}
-                  />
+                  <img src={sv.image || "/no-img.png"} alt={sv.name} />
 
                   <h4>{sv.name}</h4>
                   <p>{sv.description}</p>
                   <p className="sv-price">
-                    {sv.price.toLocaleString("vi-VN")} ₫
+                    {sv.price.toLocaleString("en-US")} ₫
                   </p>
 
                   {active && (
@@ -319,7 +351,7 @@ const BookingDetail = () => {
         </Card>
       </div>
 
-      {/* ========== CSS ========== */}
+      {/* CSS giữ nguyên */}
       <style>{`
         .detail-card {
           border-radius: 14px !important;
