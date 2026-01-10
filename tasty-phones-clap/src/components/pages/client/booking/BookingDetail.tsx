@@ -31,6 +31,9 @@ const BookingDetail = () => {
   const navigate = useNavigate();
   const formatDate = (d: string) => new Date(d).toLocaleDateString("vi-VN");
 
+  const isEditable =
+    booking?.status === "pending" || booking?.status === "confirmed";
+
   // ================== LOAD BOOKING DETAIL ==================
   const fetchDetail = async () => {
     try {
@@ -55,7 +58,7 @@ const BookingDetail = () => {
           name: sv.service_name,
           price: Number(sv.service_price),
           description: sv.description,
-          image: sv.image_url, 
+          image: sv.image_url,
         }))
       );
     } catch (error) {
@@ -70,6 +73,18 @@ const BookingDetail = () => {
 
   // ================== SELECT SERVICE ==================
   const toggleService = (sv: any) => {
+    if (!isEditable) {
+      message.warning("This booking cannot be modified.");
+      return;
+    }
+
+    // ✅ VALIDATE: không add trùng service đã có
+    const existed = booking?.services?.some((s: any) => s.service_id === sv.id);
+    if (existed) {
+      message.warning("This service is already added.");
+      return;
+    }
+
     const exists = selected.some((s) => s.id === sv.id);
     if (exists) {
       setSelected((prev) => prev.filter((p) => p.id !== sv.id));
@@ -86,9 +101,31 @@ const BookingDetail = () => {
 
   // ================== SUBMIT ADD SERVICES ==================
   const handleAddServices = async () => {
+    // ✅ VALIDATE: booking tồn tại
+    if (!booking) {
+      message.error("Booking not found.");
+      return;
+    }
+
+    // ✅ VALIDATE: trạng thái booking
+    if (!isEditable) {
+      message.error("This booking cannot be modified.");
+      return;
+    }
     if (!selected.length) {
       message.error("Please select at least 1 service.");
       return;
+    }
+    for (const sv of selected) {
+      const qty = quantities[sv.id];
+      if (!qty || qty < 1) {
+        message.error(`Invalid quantity for service: ${sv.name}`);
+        return;
+      }
+      if (qty > 50) {
+        message.error(`Maximum quantity for ${sv.name} is 50`);
+        return;
+      }
     }
 
     try {
@@ -100,6 +137,11 @@ const BookingDetail = () => {
       await axiosInstance.post(`/bookings/${id}/add-services`, {
         services: payload,
       });
+      // ✅ VALIDATE: backend response
+      if (!res.data || res.data.success === false) {
+        message.error("Server rejected the request.");
+        return;
+      }
 
       message.success("Services added successfully!");
       fetchDetail();
@@ -114,9 +156,7 @@ const BookingDetail = () => {
 
   if (!booking)
     return (
-      <p style={{ textAlign: "center", marginTop: 40 }}>
-        Booking not found
-      </p>
+      <p style={{ textAlign: "center", marginTop: 40 }}>Booking not found</p>
     );
 
   // ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐
@@ -220,7 +260,8 @@ const BookingDetail = () => {
               <div>
                 <strong>Total Amount:</strong>
                 <p className="price">
-                  {Number(booking.booking_total_amount).toLocaleString("vi-VN")} ₫
+                  {Number(booking.booking_total_amount).toLocaleString("vi-VN")}{" "}
+                  ₫
                 </p>
               </div>
             </div>
@@ -241,8 +282,7 @@ const BookingDetail = () => {
               {
                 title: "Total Price",
                 dataIndex: "total",
-                render: (v) =>
-                  Number(v).toLocaleString("vi-VN") + " ₫",
+                render: (v) => Number(v).toLocaleString("vi-VN") + " ₫",
               },
             ]}
             style={{ marginTop: 10 }}
@@ -273,10 +313,7 @@ const BookingDetail = () => {
                   className={`service-card ${active ? "active" : ""}`}
                   onClick={() => toggleService(sv)}
                 >
-                  <img
-                    src={sv.image || "/no-img.png"}
-                    alt={sv.name}
-                  />
+                  <img src={sv.image || "/no-img.png"} alt={sv.name} />
 
                   <h4>{sv.name}</h4>
                   <p>{sv.description}</p>
@@ -289,6 +326,8 @@ const BookingDetail = () => {
                       <span>Qty:</span>
                       <InputNumber
                         min={1}
+                        max={50}
+                        disabled={!isEditable}
                         value={quantities[sv.id]}
                         onClick={(e) => e.stopPropagation()}
                         onChange={(v) =>
@@ -311,6 +350,7 @@ const BookingDetail = () => {
               size="large"
               icon={<PlusOutlined />}
               style={{ marginTop: 20 }}
+              disabled={!isEditable}  
               onClick={handleAddServices}
             >
               Add Selected Services

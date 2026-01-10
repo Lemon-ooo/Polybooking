@@ -72,9 +72,7 @@ export const ClientEvent: React.FC = () => {
           >
             Grand Events
           </h1>
-          <Text style={{ color: "#fff", fontSize: "18px", opacity: 0.9 }}>
-            Crafting unforgettable moments and professional gatherings
-          </Text>
+        
         </div>
       </div>
 

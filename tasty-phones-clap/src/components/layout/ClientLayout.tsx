@@ -184,7 +184,7 @@ export const ClientLayout: React.FC = () => {
             style={{ flex: "0 0 auto", display: "flex", alignItems: "center" }}
           >
             <img
-              src="https://png.pngtree.com/png-clipart/20240911/original/pngtree-3d-beautiful-letter-p-png-image_15989738.png"
+              src="https://scontent.fhan20-1.fna.fbcdn.net/v/t39.30808-6/613481706_1207090244860931_1101396727975257282_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=QXTDk8RftdYQ7kNvwEPUwgz&_nc_oc=AdkQ6z8DxmWqoGCruNON0kHsx_sao3YqMPuU1SSMlGTBi8_rcKvp00qgUTxJgaRHWKI&_nc_zt=23&_nc_ht=scontent.fhan20-1.fna&_nc_gid=EXnpJnAP02Ii5yol_ToI7A&oh=00_AfpOtjqzoVnMc55PCiYlRNsH-IMi31ylQSbUrVMQqVXfGg&oe=69672790"
               alt="Hotel Deluxe"
               style={{
                 height: 76,

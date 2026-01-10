@@ -126,37 +126,93 @@ export default function ClientBooking() {
   // ===============================
   // ADD / UPDATE ROOM
   // ===============================
-  const handleAddRoom = (room: any, quantity: number = 1) => {
-    if (!filters.dates) {
-      message.warning("Please select dates first!");
-      return;
-    }
-    if (!isAuthenticated || !user) {
-      message.warning("Please login to book!");
-      window.location.href = "/login";
-      return;
-    }
+const handleAddRoom = (room: any, quantity: number = 1) => {
+  // 1. Kiểm tra dates
+  if (!filters.dates || !filters.dates[0] || !filters.dates[1]) {
+    message.warning("Vui lòng chọn ngày check-in và check-out trước!");
+    return;
+  }
 
-    if (quantity === 0) {
-      handleRemoveRoom(room.room_type_id);
-      return;
-    }
+  const checkIn = filters.dates[0].startOf("day");
+  const checkOut = filters.dates[1].startOf("day");
+  const today = dayjs().startOf("day");
 
-    const existingIndex = selectedRooms.findIndex(
-      (r) => r.room_type_id === room.room_type_id
+  if (checkIn.isBefore(today)) {
+    message.warning("Ngày check-in không được trong quá khứ!");
+    return;
+  }
+
+  const nights = checkOut.diff(checkIn, "days");
+  if (nights < 1) {
+    message.warning("Ngày check-out phải ít nhất 1 ngày sau check-in!");
+    return;
+  }
+
+  // 2. Kiểm tra đăng nhập
+  if (!isAuthenticated || !token || !userId) {
+    message.warning("Vui lòng đăng nhập để thêm phòng!");
+    setTimeout(() => window.location.href = "/login", 800);
+    return;
+  }
+
+  // 3. Kiểm tra tổng khách
+  const totalGuests = filters.adults + filters.children;
+  if (totalGuests <= 0) {
+    message.warning("Vui lòng chọn ít nhất 1 khách (người lớn hoặc trẻ em)");
+    return;
+  }
+
+  // 4. Validation số khách theo capacity (quan trọng!)
+  const maxCapacity = quantity * room.maxGuests;
+
+  if (totalGuests > maxCapacity) {
+    message.warning(
+      `Với ${quantity} phòng "${room.room_type_name}", tối đa chỉ được ${maxCapacity} khách. ` +
+      `Bạn đang chọn ${totalGuests} khách (người lớn + trẻ em). Vui lòng giảm số khách hoặc tăng số phòng.`
     );
+    return;
+  }
 
-    if (existingIndex >= 0) {
-      const updated = [...selectedRooms];
-      updated[existingIndex] = {
-        ...updated[existingIndex],
-        quantity,
-      };
-      setSelectedRooms(updated);
-    } else {
-      setSelectedRooms([...selectedRooms, { ...room, quantity }]);
-    }
-  };
+  // 5. Kiểm tra quantity hợp lệ
+  if (!Number.isInteger(quantity) || quantity < 0) {
+    console.warn("Số lượng phòng không hợp lệ:", quantity);
+    return;
+  }
+
+  if (quantity === 0) {
+    handleRemoveRoom(room.room_type_id);
+    return;
+  }
+
+  // 6. Kiểm tra số phòng còn trống
+  const maxAvailable = room.available_rooms ?? 10;
+  const currentSelected = selectedRooms.find(r => r.room_type_id === room.room_type_id)?.quantity || 0;
+  const newTotal = currentSelected + (quantity > currentSelected ? quantity - currentSelected : 0);
+
+  if (newTotal > maxAvailable) {
+    message.warning(`Chỉ còn ${maxAvailable} phòng loại này`);
+    return;
+  }
+
+  // 7. Cập nhật state
+  const existingIndex = selectedRooms.findIndex(r => r.room_type_id === room.room_type_id);
+
+  if (existingIndex >= 0) {
+    const updated = [...selectedRooms];
+    updated[existingIndex] = { ...updated[existingIndex], quantity };
+    setSelectedRooms(updated);
+  } else {
+    setSelectedRooms([...selectedRooms, { ...room, quantity }]);
+  }
+
+  // 8. Scroll đến cart
+  setTimeout(() => {
+    document.querySelector(".confirm-booking-fixed-bar")?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest"
+    });
+  }, 100);
+};
 
   // ===============================
   // REMOVE ROOM
@@ -462,6 +518,32 @@ export default function ClientBooking() {
     };
   }, [paymentStatus]);
 
+  useEffect(() => {
+  let timeoutId: NodeJS.Timeout | null = null;
+
+  if (paymentModalVisible && paymentStatus === "pending") {
+    timeoutId = setTimeout(() => {
+      Modal.confirm({
+        title: "Phiên thanh toán hết hạn",
+        content: "Đã quá 10 phút mà chưa thanh toán. Bạn muốn bắt đầu lại?",
+        okText: "Bắt đầu lại",
+        cancelText: "Đóng",
+        onOk: () => {
+          setPaymentModalVisible(false);
+          setBookingId(null);
+          setPaymentUrl("");
+          setPaymentStatus("pending");
+          // Optional: Gọi API hủy booking nếu backend hỗ trợ
+        },
+      });
+    }, 2 * 60 * 1000); // 15 phút
+  }
+
+  return () => {
+    if (timeoutId) clearTimeout(timeoutId);
+  };
+}, [paymentModalVisible, paymentStatus]);
+
   const getNights = () => {
     if (!filters.dates) return 0;
     return filters.dates[1].diff(filters.dates[0], "days");
@@ -703,6 +785,7 @@ export default function ClientBooking() {
                             <strong>{room.price.toLocaleString()} ₫</strong> /
                             night
                           </p>
+                          
                           <div className="room-actions">
                             {room.soldOut ? (
                               <Button disabled block>
@@ -1045,7 +1128,7 @@ export default function ClientBooking() {
                         disabled={
                           bookingLoading ||
                           !filters.dates ||
-                          selectedRooms.length === 0
+                          selectedRooms.length === 0  // thêm điều kiện này
                         }
                       >
                         {bookingLoading ? (
