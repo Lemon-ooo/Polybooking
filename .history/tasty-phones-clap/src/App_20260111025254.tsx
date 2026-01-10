@@ -55,6 +55,7 @@ import { RoomTypeShow } from "./components/pages/admin/room-types/show";
 import { RoomShow } from "./components/pages/admin/rooms/show";
 import { ServicesShow } from "./components/pages/admin/services/show";
 import { AmenitiesShow } from "./components/pages/admin/amenities/show";
+import AdminBookingManagement from "./components/pages/admin/bookings/list";
 import MyBookings from "./components/pages/client/booking/MyBookings";
 import BookingDetail from "./components/pages/client/booking/BookingDetail";
 import GalleryEdit from "./components/pages/admin/Gallery/edit";
@@ -63,8 +64,6 @@ import EventEdit from "./components/pages/admin/event/edit";
 import { RoomTypeCreate } from "./components/pages/admin/room-types/create";
 import AdminConversations from "./components/pages/admin/conversations/AdminConversations";
 import ClientEventDetail from "./components/pages/client/events/ClientEventDetail";
-import BookingList from "./components/pages/admin/bookings/list";
-import BookingShow from "./components/pages/admin/bookings/show";
 
 // ======================================================
 // 🚀 APP CHÍNH - ĐÃ SỬA
@@ -132,6 +131,7 @@ export default function App() {
           >
             <Route index element={<AdminDashboard />} />
             <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="bookings" element={<AdminBookingManagement />} />
             <Route path="conversations" element={<AdminConversations />} />{" "}
             {/* 👈 CHAT */}
             {/* Rooms */}
@@ -158,10 +158,10 @@ export default function App() {
             <Route path="services/edit/:id" element={<ServicesEdit />} />
             <Route path="services/show/:id" element={<ServicesShow />} />
             {/* Bookings */}
-            <Route path="bookings" element={<BookingList />} />
+            <Route path="bookings" element={<ServiceList />} />
             <Route path="services/create" element={<ServicesCreate />} />
             <Route path="services/edit/:id" element={<ServicesEdit />} />
-            <Route path="bookings/show/:id" element={<BookingShow />} />
+            <Route path="services/show/:id" element={<ServicesShow />} />
             {/* Events */}
             <Route path="events" element={<EventList />} />
             <Route path="events/create" element={<EventCreate />} />

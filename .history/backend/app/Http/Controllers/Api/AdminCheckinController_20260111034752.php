@@ -16,12 +16,13 @@ class AdminCheckinController extends Controller
 {
     /**
      * POST /api/admin/bookings/{booking_id}/checkin
+     * Check-in + nhập thông tin guest + gán phòng
      */
     public function checkin(Request $request, $bookingId)
     {
         /* ================= AUTH (ADMIN) ================= */
         $user = $request->user();
-        if (!$user || $user->role !== 'admin') {
+        if (!$user || !$user->role=='admin') {
             return $this->error(
                 'FORBIDDEN',
                 'Bạn không có quyền thực hiện thao tác này',
@@ -33,6 +34,7 @@ class AdminCheckinController extends Controller
         try {
             $validated = $request->validate([
                 'room_id' => 'required|exists:rooms,room_id',
+
                 'guests' => 'required|array|min:1',
                 'guests.*.name' => 'required|string|max:255',
                 'guests.*.age'  => 'required|integer|min:0',
@@ -60,10 +62,10 @@ class AdminCheckinController extends Controller
 
         /* ================= CHECK ROOM COUNT ================= */
         $requiredRooms = $booking->items->sum('quantity');
-        if ($requiredRooms !== 1) {
+        if ($requiredRooms < 1) {
             return $this->error(
                 'ROOM_COUNT_MISMATCH',
-                'Booking này phải đặt đúng 1 phòng'
+                'Booking này không phải đặt 1 phòng'
             );
         }
 
@@ -91,7 +93,7 @@ class AdminCheckinController extends Controller
 
             /* ================= SAVE GUESTS ================= */
             foreach ($validated['guests'] as $guest) {
-                BookingGuest::create([
+                \App\Models\BookingGuest::create([
                     'booking_id' => $booking->id,
                     'name'       => $guest['name'],
                     'age'        => $guest['age'],
@@ -100,7 +102,7 @@ class AdminCheckinController extends Controller
             }
 
             /* ================= UPDATE ROOM + BOOKING ================= */
-            $room->update(['room_status' => 'occupied']);
+            $room->update(['room_status' => 'đang sử dụng']);
             $booking->update(['status' => Booking::STATUS_CHECK_IN]);
 
             DB::commit();
@@ -120,6 +122,7 @@ class AdminCheckinController extends Controller
             );
         }
     }
+
 
     /* ================= HELPERS ================= */
 
