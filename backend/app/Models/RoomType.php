@@ -93,4 +93,30 @@ class RoomType extends Model
     {
         return (float) $this->base_price;
     }
+
+  public function reviews()
+{
+    return $this->hasMany(\App\Models\Review::class, 'room_type_id', 'room_type_id');
+}
+
+/**
+ * ⭐ Điểm trung bình (chỉ review hiện)
+ */
+public function avgRating()
+{
+    return $this->reviews()
+        ->where('is_hidden', false)
+        ->avg('rating');
+}
+
+/**
+ * 🔢 Tổng số review (chỉ review hiện)
+ */
+ public function totalReviews()
+    {
+        return $this->reviews()
+            ->where('is_hidden', 0)
+            ->count();
+    }
+
 }

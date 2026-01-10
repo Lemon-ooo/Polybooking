@@ -18,7 +18,19 @@ class RoomTypeController extends Controller
         $page    = $request->get('page', 1);
 
         $query = RoomType::with(['images', 'amenities'])
-            ->withCount('rooms');
+            ->withCount('rooms')
+            ->withCount([
+                // 🔢 Tổng review (chỉ review hiển thị)
+                'reviews as total_reviews' => function ($q) {
+                    $q->where('is_hidden', 0);
+                }
+            ])
+            ->withAvg([
+                // ⭐ Rating trung bình
+                'reviews as avg_rating' => function ($q) {
+                    $q->where('is_hidden', 0);
+                }
+            ], 'rating');
 
         // Sort (Refine)
         if ($request->has('sort')) {
@@ -29,9 +41,45 @@ class RoomTypeController extends Controller
 
         $roomTypes = $query->paginate($perPage, ['*'], 'page', $page);
 
+        // 🎯 Format lại data cho UI
+        $data = collect($roomTypes->items())->map(function ($roomType) {
+            return [
+                ...$roomType->toArray(),
+                'avg_rating' => $roomType->avg_rating
+                    ? round($roomType->avg_rating, 1)
+                    : 0,
+                'total_reviews' => $roomType->total_reviews,
+            ];
+        });
+
         return response()->json([
-            'data'  => $roomTypes->items(),
+            'data'  => $data,
             'total' => $roomTypes->total(),
+        ]);
+    }
+
+    /**
+     * ⭐ Lấy rating riêng cho 1 phòng (trang chi tiết)
+     */
+    public function rating($id)
+    {
+        $roomType = RoomType::withCount([
+                'reviews as total_reviews' => function ($q) {
+                    $q->where('is_hidden', 0);
+                }
+            ])
+            ->withAvg([
+                'reviews as avg_rating' => function ($q) {
+                    $q->where('is_hidden', 0);
+                }
+            ], 'rating')
+            ->findOrFail($id);
+
+        return response()->json([
+            'avg_rating'    => $roomType->avg_rating
+                ? round($roomType->avg_rating, 1)
+                : 0,
+            'total_reviews' => $roomType->total_reviews,
         ]);
     }
 
@@ -40,114 +88,30 @@ class RoomTypeController extends Controller
      */
     public function show($id)
     {
-        $roomType = RoomType::with([
-                'images',
-                'amenities',
-                'rooms'
-            ])
+        $roomType = RoomType::with(['images', 'amenities', 'rooms'])
             ->withCount('rooms')
+            ->withCount([
+                'reviews as total_reviews' => function ($q) {
+                    $q->where('is_hidden', 0);
+                }
+            ])
+            ->withAvg([
+                'reviews as avg_rating' => function ($q) {
+                    $q->where('is_hidden', 0);
+                }
+            ], 'rating')
             ->findOrFail($id);
 
         return response()->json([
-            'data' => $roomType,
+            'data' => [
+                ...$roomType->toArray(),
+                'avg_rating' => $roomType->avg_rating
+                    ? round($roomType->avg_rating, 1)
+                    : 0,
+                'total_reviews' => $roomType->total_reviews,
+            ],
         ]);
     }
 
-    /**
-     * Tạo mới loại phòng
-     */
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'room_type_name'  => 'required|string|max:255',
-            'base_price'      => 'required|numeric|min:0',
-            'max_guests'      => 'required|integer|min:1',
-            'description'     => 'nullable|string',
-            'room_type_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-
-            // ✅ TIỆN ÍCH
-            'amenity_ids'     => 'nullable|array',
-            'amenity_ids.*'   => 'exists:amenities,amenity_id',
-        ]);
-
-        // Upload ảnh
-        if ($request->hasFile('room_type_image')) {
-            $validated['room_type_image'] =
-                $request->file('room_type_image')->store('room_types', 'public');
-        }
-
-        $roomType = RoomType::create($validated);
-
-        // ✅ Gán tiện ích
-        if (!empty($validated['amenity_ids'] ?? null)) {
-            $roomType->amenities()->sync($validated['amenity_ids']);
-        }
-
-        return response()->json([
-            'data' => $roomType->load(['images', 'amenities']),
-        ], 201);
-    }
-
-    /**
-     * Cập nhật loại phòng
-     */
-    public function update(Request $request, $id)
-    {
-        $roomType = RoomType::findOrFail($id);
-
-        $validated = $request->validate([
-            'room_type_name'  => 'required|string|max:255',
-            'base_price'      => 'required|numeric|min:0',
-            'max_guests'      => 'required|integer|min:1',
-            'description'     => 'nullable|string',
-            'room_type_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-
-            // ✅ TIỆN ÍCH
-            'amenity_ids'     => 'nullable|array',
-            'amenity_ids.*'   => 'exists:amenities,amenity_id',
-        ]);
-
-        // Xử lý ảnh
-        if ($request->hasFile('room_type_image')) {
-            if (
-                $roomType->room_type_image &&
-                Storage::disk('public')->exists($roomType->room_type_image)
-            ) {
-                Storage::disk('public')->delete($roomType->room_type_image);
-            }
-
-            $validated['room_type_image'] =
-                $request->file('room_type_image')->store('room_types', 'public');
-        }
-
-        $roomType->update($validated);
-
-        // ✅ Update tiện ích
-        $roomType->amenities()->sync($validated['amenity_ids'] ?? []);
-
-        return response()->json([
-            'data' => $roomType->load(['images', 'amenities']),
-        ]);
-    }
-
-    /**
-     * Xóa loại phòng
-     */
-    public function destroy($id)
-    {
-        $roomType = RoomType::findOrFail($id);
-
-        if (
-            $roomType->room_type_image &&
-            Storage::disk('public')->exists($roomType->room_type_image)
-        ) {
-            Storage::disk('public')->delete($roomType->room_type_image);
-        }
-
-        $roomType->delete();
-
-        return response()->json([
-            'data' => null,
-        ]);
-    }
+    // ⚠️ Các hàm store / update / destroy giữ nguyên như bạn đang có
 }

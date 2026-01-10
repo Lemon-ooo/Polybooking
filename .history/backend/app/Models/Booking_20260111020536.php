@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
-use App\Models\Review;
+<<<<<<< HEAD
 use App\Models\BookingItem;
 use App\Models\BookingService;
 use App\Models\DamageType;
@@ -14,6 +14,9 @@ use App\Models\PenaltyCharge;
 use App\Models\Payment;
 use App\Models\Voucher;
 
+=======
+use App\Models\Review;
+>>>>>>> minhptph53592
 
 class Booking extends Model
 {
