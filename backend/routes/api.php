@@ -224,3 +224,8 @@ Route::patch(
     [VoucherController::class, 'toggleStatus']
 )->middleware('auth:sanctum');
 
+Route::get(
+    'vouchers/{id}',
+    [VoucherController::class, 'show']
+)->middleware('auth:sanctum');
+
