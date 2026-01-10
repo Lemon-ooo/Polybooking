@@ -46,7 +46,6 @@ export const authProvider = {
 
       message.success("Đăng nhập thành công!");
 
-      // 🚨 QUAN TRỌNG: KHÔNG redirect ở đây
       return { success: true };
     } catch (error: any) {
       message.error(error.message || "Đăng nhập thất bại!");
@@ -159,7 +158,35 @@ export const authProvider = {
     }
   },
 
-  // ====================== 
+  // ======================
+  // FORGOT PASSWORD (NEW)
+  // ======================
+  forgotPassword: async ({ email }: any) => {
+    try {
+      const response = await fetch(`${API_URL}/forgot-password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Không gửi được email reset mật khẩu!");
+      }
+
+      message.success("Email reset mật khẩu đã được gửi!");
+      return { success: true };
+    } catch (error: any) {
+      message.error(error.message || "Lỗi gửi email reset mật khẩu!");
+      return { success: false };
+    }
+  },
+
+  // ======================
   // ON ERROR
   // ======================
   onError: async (error: any) => {
