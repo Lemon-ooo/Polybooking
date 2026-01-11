@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\{
     DB
 };
 use App\Mail\InvoiceMail;
-use Illuminate\Mail\Mailable;
+use Illuminate\Http\Request;
 
 class InvoiceController extends Controller
 {
@@ -27,16 +27,12 @@ class InvoiceController extends Controller
      ====================================================== */
     private function buildInvoiceData(int $bookingId): array
     {
-        $booking = Booking::with('user')->findOrFail($bookingId);
-
-        if ($booking->status !== 'check_out') {
-            abort(400, 'Booking chưa checkout');
-        }
+        $booking = Booking::with(['user', 'items.roomType'])->findOrFail($bookingId);
 
         /* ===== ROOM ===== */
         $roomTotal = (int) ($booking->total_price ?? 0);
 
-        /* ===== SERVICES (FIXED) ===== */
+        /* ===== SERVICES ===== */
         $services = ServiceCharge::with('service')
             ->whereHas('invoice', function ($q) use ($bookingId) {
                 $q->where('booking_id', $bookingId);
@@ -60,7 +56,7 @@ class InvoiceController extends Controller
             ->where('booking_id', $bookingId)
             ->get()
             ->map(fn($d) => [
-                'name'  => $d->damageType?->name ?? 'Damage',
+                'name'  => $d->damageType?->damage_type_name ?? 'Damage',
                 'price' => (int) $d->amount,
                 'image' => $d->image,
             ])
@@ -73,8 +69,8 @@ class InvoiceController extends Controller
         $penalties = Penalty::where('booking_id', $bookingId)
             ->get()
             ->map(fn($p) => [
-                'days_late' => (int) $p->days_late,
-                'amount'    => (int) $p->amount,
+                'reason' => $p->reason ?? 'Penalty',
+                'amount' => (int) $p->amount,
             ])
             ->values()
             ->toArray();
@@ -86,7 +82,7 @@ class InvoiceController extends Controller
             ->where('status', 'success')
             ->get()
             ->map(fn($p) => [
-                'method'  => $p->method,
+                'method'  => $p->payment_method ?? $p->method ?? 'N/A',
                 'amount'  => (int) $p->amount,
                 'paid_at' => optional($p->paid_at)->format('d/m/Y H:i'),
             ])
@@ -102,13 +98,33 @@ class InvoiceController extends Controller
         return [
             'invoice_code' => 'INV-' . now()->format('Ymd') . '-' . str_pad($bookingId, 4, '0', STR_PAD_LEFT),
             'booking_id'   => $booking->id,
-
-            'customer' => [
-                'name'  => $booking->user?->user_name ?? '',
-                'email' => $booking->user?->email ?? '',
+            'booking_data' => [
+                'check_in'  => $booking->check_in ? date('d/m/Y', strtotime($booking->check_in)) : '',
+                'check_out' => $booking->check_out ? date('d/m/Y', strtotime($booking->check_out)) : '',
+                'nights'    => $booking->nights,
+                'adults'    => $booking->adults,
+                'children'  => $booking->children,
+                'status'    => $booking->status,
             ],
 
-            'room' => ['price' => $roomTotal],
+            'customer' => [
+                'name'  => $booking->user?->name ?? $booking->user?->user_name ?? '',
+                'email' => $booking->user?->email ?? '',
+                'phone' => $booking->user?->phone ?? '',
+            ],
+
+            'room' => [
+                'price' => $roomTotal,
+                'items' => $booking->items->map(function($item) {
+                    return [
+                        'room_type' => $item->roomType?->room_type_name ?? 'Room',
+                        'quantity'  => $item->quantity,
+                        'nights'    => $item->number_of_nights,
+                        'price_per_night' => $item->base_price,
+                        'total'     => $item->amount,
+                    ];
+                })->toArray(),
+            ],
 
             'services'  => $services,
             'damages'   => $damages,
@@ -126,48 +142,224 @@ class InvoiceController extends Controller
 
             'payments'  => $payments,
             'issued_at' => now()->format('d/m/Y H:i'),
+            'issued_by' => 'Hotel Management System',
         ];
     }
 
     /* ======================================================
-     | API
+     | API ENDPOINTS
      ====================================================== */
 
-    /** GET /api/admin/bookings/{id}/invoice */
+    /** GET /api/bookings/{id}/invoice */
     public function show($id)
     {
-        return response()->json([
-            'success' => true,
-            'invoice' => $this->buildInvoiceData($id)
-        ]);
-    }
-
-    /** GET /api/admin/bookings/{id}/invoice/pdf */
-    public function pdf($id)
-    {
-        $invoice = $this->buildInvoiceData($id);
-
-        return Pdf::loadView('invoice.pdf', compact('invoice'))
-            ->download('invoice_' . $invoice['invoice_code'] . '.pdf');
-    }
-
-    /** POST /api/admin/bookings/{id}/invoice/store */
-    public function store($id)
-    {
-        if (Invoice::where('booking_id', $id)->exists()) {
+        try {
+            return response()->json([
+                'success' => true,
+                'invoice' => $this->buildInvoiceData($id)
+            ]);
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invoice already exists'
-            ], 409);
+                'message' => $e->getMessage()
+            ], 400);
         }
+    }
 
-        return DB::transaction(function () use ($id) {
+    /** GET /api/bookings/{id}/invoice/pdf */
+    public function pdf($id)
+    {
+        try {
+            $invoice = $this->buildInvoiceData($id);
+            $pdf = Pdf::loadView('invoice.pdf', compact('invoice'));
+            
+            return $pdf->download('invoice_' . $invoice['invoice_code'] . '.pdf');
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    /** POST /api/bookings/{id}/invoice/store-and-send */
+    public function storeAndSend(Request $request, $id)
+    {
+        try {
+            return DB::transaction(function () use ($id, $request) {
+                // Kiểm tra đã có invoice chưa
+                $existingInvoice = Invoice::where('booking_id', $id)->first();
+                
+                if ($existingInvoice) {
+                    // Nếu đã có invoice, chỉ gửi email
+                    $invoiceData = $existingInvoice->data;
+                    
+                    // Gửi email
+                    Mail::to($existingInvoice->customer_email)
+                        ->send(new InvoiceMail($invoiceData));
+                        
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Invoice already exists. Email sent successfully.',
+                        'invoice_id' => $existingInvoice->id,
+                        'invoice_code' => $existingInvoice->invoice_code,
+                        'pdf_url' => url("/api/invoices/{$existingInvoice->id}/pdf"), // Sử dụng url()
+                    ]);
+                }
+                
+                // Tạo invoice mới
+                $invoiceData = $this->buildInvoiceData($id);
+                
+                // Tạo PDF
+                $pdf = Pdf::loadView('invoice.pdf', [
+                    'invoice' => $invoiceData
+                ]);
+                
+                // Lưu PDF
+                $path = 'invoices/invoice_' . $invoiceData['invoice_code'] . '.pdf';
+                Storage::put($path, $pdf->output());
+                
+                // Lưu vào database
+                $invoice = Invoice::create([
+                    'booking_id'     => $invoiceData['booking_id'],
+                    'invoice_code'   => $invoiceData['invoice_code'],
+                    'customer_name'  => $invoiceData['customer']['name'],
+                    'customer_email' => $invoiceData['customer']['email'],
+                    'customer_phone' => $invoiceData['customer']['phone'] ?? null,
+                    
+                    'room_total'    => $invoiceData['summary']['room'],
+                    'service_total' => $invoiceData['summary']['service'],
+                    'damage_total'  => $invoiceData['summary']['damage'],
+                    'penalty_total' => $invoiceData['summary']['penalty'],
+                    'grand_total'   => $invoiceData['summary']['total'],
+                    'paid_total'    => $invoiceData['summary']['paid'],
+                    'due_total'     => $invoiceData['summary']['due'],
+                    
+                    'data'      => $invoiceData,
+                    'pdf_path'  => $path,
+                    'issued_at' => now(),
+                    'issued_by' => $request->user()?->name ?? 'System',
+                ]);
+                
+                // Gửi email
+                Mail::to($invoice->customer_email)
+                    ->send(new InvoiceMail($invoiceData));
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Invoice created and email sent successfully',
+                    'invoice_id' => $invoice->id,
+                    'invoice_code' => $invoice->invoice_code,
+                    'pdf_url' => url("/api/invoices/{$invoice->id}/pdf"), // Sử dụng url()
+                ]);
+            });
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /** GET /api/invoices/{id}/pdf */
+    public function downloadPdf($id)
+    {
+        try {
+            $invoice = Invoice::findOrFail($id);
+            
+            if (!Storage::exists($invoice->pdf_path)) {
+                abort(404, 'PDF file not found');
+            }
+            
+            return Storage::download($invoice->pdf_path, 'invoice_' . $invoice->invoice_code . '.pdf');
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /** GET /api/invoices/{id} */
+    public function getStoredInvoice($id)
+    {
+        try {
+            $invoice = Invoice::findOrFail($id);
+            
+            return response()->json([
+                'success' => true,
+                'invoice' => $invoice
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /** POST /api/bookings/{id}/invoice/send-mail */
+    public function sendMail($id)
+    {
+        try {
+            $invoice = Invoice::where('booking_id', $id)->firstOrFail();
+            
+            Mail::to($invoice->customer_email)
+                ->send(new InvoiceMail($invoice->data));
+                
+            return response()->json([
+                'success' => true,
+                'message' => 'Invoice sent successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /** GET /api/bookings/{id}/invoice/check */
+    public function check($id)
+    {
+        try {
+            $invoice = Invoice::where('booking_id', $id)->first();
+            
+            return response()->json([
+                'exists' => !is_null($invoice),
+                'invoice_code' => $invoice->invoice_code ?? null,
+                'issued_at' => $invoice->issued_at ?? null,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'exists' => false,
+                'message' => 'Error checking invoice'
+            ]);
+        }
+    }
+
+    /** POST /api/bookings/{id}/invoice/store */
+    public function store(Request $request, $id)
+    {
+        try {
+            $existingInvoice = Invoice::where('booking_id', $id)->first();
+            
+            if ($existingInvoice) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invoice already exists'
+                ], 409);
+            }
+
             $invoiceData = $this->buildInvoiceData($id);
-
+            
+            // Tạo PDF
             $pdf = Pdf::loadView('invoice.pdf', [
                 'invoice' => $invoiceData
             ]);
-
+            
+            // Lưu PDF
             $path = 'invoices/invoice_' . $invoiceData['invoice_code'] . '.pdf';
             Storage::put($path, $pdf->output());
 
@@ -176,7 +368,8 @@ class InvoiceController extends Controller
                 'invoice_code'   => $invoiceData['invoice_code'],
                 'customer_name'  => $invoiceData['customer']['name'],
                 'customer_email' => $invoiceData['customer']['email'],
-
+                'customer_phone' => $invoiceData['customer']['phone'] ?? null,
+                
                 'room_total'    => $invoiceData['summary']['room'],
                 'service_total' => $invoiceData['summary']['service'],
                 'damage_total'  => $invoiceData['summary']['damage'],
@@ -184,37 +377,25 @@ class InvoiceController extends Controller
                 'grand_total'   => $invoiceData['summary']['total'],
                 'paid_total'    => $invoiceData['summary']['paid'],
                 'due_total'     => $invoiceData['summary']['due'],
-
+                
                 'data'      => $invoiceData,
                 'pdf_path'  => $path,
                 'issued_at' => now(),
+                'issued_by' => $request->user()?->name ?? 'System',
             ]);
 
             return response()->json([
                 'success' => true,
-                'invoice_id' => $invoice->id
+                'message' => 'Invoice stored successfully',
+                'invoice_id' => $invoice->id,
+                'invoice_code' => $invoice->invoice_code,
             ]);
-        });
-    }
-
-    /** GET /api/invoices/{id}/pdf */
-    public function downloadPdf($id)
-    {
-        $invoice = Invoice::findOrFail($id);
-        return Storage::download($invoice->pdf_path);
-    }
-
-    /** POST /api/admin/bookings/{id}/invoice/send-mail */
-    public function sendMail($id)
-    {
-        $invoice = Invoice::findOrFail($id);
-
-        Mail::to($invoice->customer_email)
-            ->send(new InvoiceMail($invoice->data)); // ✅ TRUYỀN ARRAY
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Invoice sent successfully'
-        ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
