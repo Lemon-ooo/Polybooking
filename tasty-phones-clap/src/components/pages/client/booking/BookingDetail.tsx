@@ -1,7 +1,14 @@
-// src/components/pages/client/bookings/BookingDetail.tsx
-
 import React, { useEffect, useState } from "react";
-import { Card, Spin, Tag, Table, Button, message, InputNumber } from "antd";
+import {
+  Card,
+  Spin,
+  Tag,
+  Table,
+  Button,
+  message,
+  InputNumber,
+  Divider,
+} from "antd";
 import {
   CalendarOutlined,
   DollarCircleOutlined,
@@ -20,11 +27,13 @@ const statusColors: any = {
   confirmed: "green",
   cancelled: "red",
   completed: "blue",
+  check_in: "green",
+  check_out: "blue",
 };
 
 const BookingDetail = () => {
   const { id } = useParams();
-  const [booking, setBooking] = useState<any>(null);
+  const [detail, setDetail] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   const [services, setServices] = useState<any[]>([]);
@@ -38,7 +47,7 @@ const BookingDetail = () => {
   const fetchDetail = async () => {
     try {
       const res = await axiosInstance.get(`/bookings/${id}`);
-      setBooking(res.data.data);
+      setDetail(res.data.data);
     } catch (error) {
       console.error("Error loading booking detail:", error);
     } finally {
@@ -71,58 +80,25 @@ const BookingDetail = () => {
   }, []);
 
   const toggleService = (sv: any) => {
-    if (!isEditable) {
-      message.warning("This booking cannot be modified.");
-      return;
-    }
-
-    // ✅ VALIDATE: không add trùng service đã có
-    const existed = booking?.services?.some((s: any) => s.service_id === sv.id);
-    if (existed) {
-      message.warning("This service is already added.");
-      return;
-    }
-
     const exists = selected.some((s) => s.id === sv.id);
-    if (exists) {
-      setSelected((prev) => prev.filter((p) => p.id !== sv.id));
-      setQuantities((prev) => {
-        const updated = { ...prev };
-        delete updated[sv.id];
-        return updated;
-      });
-    } else {
-      setSelected((prev) => [...prev, sv]);
-      setQuantities((prev) => ({ ...prev, [sv.id]: 1 }));
-    }
+    exists
+      ? setSelected((prev) => prev.filter((p) => p.id !== sv.id))
+      : setSelected((prev) => [...prev, sv]);
+    setQuantities((prev) =>
+      exists
+        ? (() => {
+            const u = { ...prev };
+            delete u[sv.id];
+            return u;
+          })()
+        : { ...prev, [sv.id]: 1 }
+    );
   };
 
   const handleAddServices = async () => {
-    // ✅ VALIDATE: booking tồn tại
-    if (!booking) {
-      message.error("Booking not found.");
-      return;
-    }
-
-    // ✅ VALIDATE: trạng thái booking
-    if (!isEditable) {
-      message.error("This booking cannot be modified.");
-      return;
-    }
     if (!selected.length) {
       message.error("Please select at least 1 service.");
       return;
-    }
-    for (const sv of selected) {
-      const qty = quantities[sv.id];
-      if (!qty || qty < 1) {
-        message.error(`Invalid quantity for service: ${sv.name}`);
-        return;
-      }
-      if (qty > 50) {
-        message.error(`Maximum quantity for ${sv.name} is 50`);
-        return;
-      }
     }
 
     try {
@@ -131,47 +107,45 @@ const BookingDetail = () => {
         quantity: quantities[sv.id] || 1,
       }));
 
-      await axiosInstance.post(`/bookings/${id}/add-services`, {
+      await axiosInstance.post(`/bookings/${id}/services`, {
         services: payload,
       });
-      // ✅ VALIDATE: backend response
-      if (!res.data || res.data.success === false) {
-        message.error("Server rejected the request.");
-        return;
-      }
 
       message.success("Services added successfully!");
       fetchDetail();
+      setSelected([]);
+      setQuantities({});
     } catch (error) {
-      console.error(error);
       message.error("Failed to add services.");
+      console.error(error);
     }
   };
 
   if (loading)
     return <Spin size="large" style={{ marginTop: 50, display: "block" }} />;
 
-  if (!booking)
+  if (!detail)
     return (
       <p style={{ textAlign: "center", marginTop: 40 }}>Booking not found</p>
     );
 
+  const booking = detail.booking;
+  const pricing = detail.pricing || {};
+
   const rawStatus = booking.status || "unknown";
   const displayStatus = rawStatus.replace(/_/g, " ").toUpperCase();
 
-  // ===== GUESTS (ENGLISH FORMAT) =====
-  const adults = Number(booking.adults || 0);
-  const children = Number(booking.children || 0);
-
+  // ===== GUEST =====
+  const adults = booking.adults || 0;
+  const children = booking.children || 0;
   const guestParts: string[] = [];
   if (adults > 0) guestParts.push(`${adults} Adult${adults > 1 ? "s" : ""}`);
   if (children > 0)
     guestParts.push(`${children} Child${children > 1 ? "ren" : ""}`);
-
   const guestsDisplay =
     guestParts.length > 0 ? guestParts.join(" + ") : "0 Guests";
 
-  // ===== NIGHTS (ENGLISH FORMAT) =====
+  // ===== NIGHTS =====
   let nights = booking.nights;
   if (!nights) {
     const ci = dayjs(booking.check_in);
@@ -179,29 +153,50 @@ const BookingDetail = () => {
     nights = co.diff(ci, "day");
   }
   const days = nights + 1;
-  const nightsDisplay = `${nights} Night${nights > 1 ? "s" : ""} / ${days} Day${
-    days > 1 ? "s" : ""
-  }`;
 
-  const tableData: any[] = [];
+  // ===== BILLING SUMMARY (GOM NHÓM) =====
+  const aggregated: Record<string, any> = {};
 
-  booking.items?.forEach((i: any) => {
-    tableData.push({
-      key: `room-${i.booking_item_id}`,
-      name: i.room_type?.room_type_name || "Room",
-      quantity: i.quantity || 1,
-      total: Number(i.amount || i.total_price || 0),
+
+  if (booking.service_invoice?.charges?.length) {
+    booking.service_invoice.charges.forEach((c: any) => {
+      const name = c.service?.service_name || "Service";
+      const key = `svc-${name}`;
+
+      if (!aggregated[key]) {
+        aggregated[key] = {
+          type: "Service",
+          name,
+          qty: 0,
+          price: Number(c.amount) / c.quantity,
+        };
+      }
+
+      aggregated[key].qty += c.quantity;
     });
-  });
+  }
 
-  booking.services?.forEach((s: any) => {
-    tableData.push({
-      key: `service-${s.id}`,
-      name: `Service: ${s.service_name}`,
-      quantity: s.quantity,
-      total: Number(s.total_price || 0),
-    });
-  });
+  const tableData = Object.keys(aggregated).map((k) => ({
+    key: k,
+    type: aggregated[k].type,
+    name: aggregated[k].name,
+    qty: aggregated[k].qty,
+    total: aggregated[k].price * aggregated[k].qty,
+  }));
+const serviceTotal = tableData.reduce((sum, row) => sum + Number(row.total || 0), 0);
+
+  const payments = booking.payments || [];
+  const paid = payments.reduce(
+    (t: number, p: any) => t + Number(p.amount || 0),
+    0
+  );
+
+  const grand = Number(pricing.grand_total || booking.total_price || 0);
+  const remaining = Math.max(grand - paid, 0);
+
+  const canPay =
+    rawStatus === "pending_payment" ||
+    (rawStatus === "confirmed" && remaining > 0);
 
   return (
     <div>
@@ -237,7 +232,6 @@ const BookingDetail = () => {
             </Tag>
           </div>
 
-          {/* === GUESTS + NIGHTS (ENGLISH) === */}
           <div className="detail-grid">
             <div className="detail-item">
               <HomeOutlined className="icon" />
@@ -266,7 +260,10 @@ const BookingDetail = () => {
               <CalendarOutlined className="icon" />
               <div>
                 <strong>Nights:</strong>
-                <p>{nightsDisplay}</p>
+                <p>
+                  {nights} Night{nights > 1 ? "s" : ""} / {days} Day
+                  {days > 1 ? "s" : ""}
+                </p>
               </div>
             </div>
 
@@ -285,59 +282,39 @@ const BookingDetail = () => {
                 <p>{formatDate(booking.check_out)}</p>
               </div>
             </div>
-
-            <div className="detail-item">
-              <DollarCircleOutlined className="icon" />
-              <div>
-                <strong>Total Amount:</strong>
-                <p className="price">
-                  {Number(
-                    booking.total_amount ||
-                      booking.total ||
-                      booking.total_price ||
-                      0
-                  ).toLocaleString("en-US")}{" "}
-                  ₫
-                </p>
-              </div>
-            </div>
           </div>
 
-          {/* BILLING + SERVICES giữ nguyên */}
-          <h3 style={{ marginTop: 30 }}>Billing Details</h3>
+          <h3 style={{ marginTop: 30 }}>Billing Summary</h3>
+
           <Table
             dataSource={tableData}
             pagination={false}
             rowKey="key"
             columns={[
               { title: "Item", dataIndex: "name" },
-              { title: "Quantity", dataIndex: "quantity" },
+              { title: "Quantity", dataIndex: "qty" },
               {
-                title: "Total Price",
+                title: "Total",
                 dataIndex: "total",
-                render: (v) => Number(v).toLocaleString("en-US") + " ₫",
+                render: (v) => Number(v).toLocaleString("vi-VN") + " ₫",
               },
             ]}
             style={{ marginTop: 10 }}
           />
+<Divider />
 
-          <div
-            style={{
-              marginTop: 20,
-              textAlign: "right",
-              fontSize: 18,
-              fontWeight: "bold",
-            }}
-          >
-            Total:{" "}
-            {Number(
-              booking.total_amount || booking.total || booking.total_price || 0
-            ).toLocaleString("en-US")}{" "}
-            ₫
-          </div>
+<div style={{
+  display: "flex",
+  justifyContent: "flex-end",
+  fontSize: 16,
+  fontWeight: 600,
+}}>
+  Tổng dịch vụ: {serviceTotal.toLocaleString("vi-VN")} ₫
+</div>
 
-          <h3 style={{ marginTop: 40 }}>Add Extra Services</h3>
+          <Divider />
 
+          <h3>Add Extra Services</h3>
           <div className="service-grid">
             {services.map((sv) => {
               const active = selected.some((s) => s.id === sv.id);
@@ -348,11 +325,10 @@ const BookingDetail = () => {
                   onClick={() => toggleService(sv)}
                 >
                   <img src={sv.image || "/no-img.png"} alt={sv.name} />
-
                   <h4>{sv.name}</h4>
                   <p>{sv.description}</p>
                   <p className="sv-price">
-                    {sv.price.toLocaleString("en-US")} ₫
+                    {sv.price.toLocaleString("vi-VN")} ₫
                   </p>
 
                   {active && (
@@ -360,8 +336,6 @@ const BookingDetail = () => {
                       <span>Qty:</span>
                       <InputNumber
                         min={1}
-                        max={50}
-                        disabled={!isEditable}
                         value={quantities[sv.id]}
                         onClick={(e) => e.stopPropagation()}
                         onChange={(v) =>
@@ -384,7 +358,6 @@ const BookingDetail = () => {
               size="large"
               icon={<PlusOutlined />}
               style={{ marginTop: 20 }}
-              disabled={!isEditable}
               onClick={handleAddServices}
             >
               Add Selected Services
@@ -399,44 +372,32 @@ const BookingDetail = () => {
           border-radius: 14px !important;
           padding: 18px;
         }
-
         .detail-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
           margin-bottom: 20px;
         }
-
         .detail-grid {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
           gap: 20px;
         }
-
         .detail-item {
           display: flex;
           gap: 12px;
-          align-items: flex-start;
         }
-
         .icon {
           font-size: 22px;
           color: #1890ff;
           margin-top: 4px;
         }
-
-        .price {
-          font-weight: 600;
-          color: #d4380d;
-        }
-
         .service-grid {
           margin-top: 20px;
           display: grid;
           gap: 20px;
           grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
         }
-
         .service-card {
           border: 1px solid #eee;
           border-radius: 10px;
@@ -444,16 +405,13 @@ const BookingDetail = () => {
           cursor: pointer;
           transition: all .2s;
         }
-
         .service-card:hover {
           border-color: #4096ff;
         }
-
         .service-card.active {
           border-color: #1677ff;
           background: #e6f4ff;
         }
-
         .service-card img {
           width: 100%;
           height: 130px;
@@ -461,12 +419,10 @@ const BookingDetail = () => {
           object-fit: cover;
           margin-bottom: 8px;
         }
-
         .sv-price {
           font-weight: 600;
           color: #d4380d;
         }
-
         .quantity-wrapper {
           margin-top: 10px;
           display: flex;

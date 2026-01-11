@@ -56,15 +56,16 @@ const MyBookings = () => {
         return;
       }
 
-      const res = await axiosInstance.get(
-        `/bookings?user_id=${identity.user_id}`
-      );
-      const myBookings = res.data?.data?.data || [];
+      const res = await axiosInstance.get(`/my/bookings`);
+      const myBookings = res.data?.data?.data || res.data?.data || [];
+
       setBookings(myBookings);
     } catch (error: any) {
       console.error("Error fetching bookings:", error);
       if (error.response?.status === 401) {
         message.error("You must login first.");
+      } else if (error.response?.status === 403) {
+        message.error("Forbidden: No permission to view bookings.");
       }
     } finally {
       setLoading(false);
@@ -120,7 +121,7 @@ const MyBookings = () => {
                     <div>
                       <label>Rooms</label>
                       <span>
-                        {booking.booking_items
+                        {booking.items
                           ?.map(
                             (i: any) =>
                               `${i.room_type?.room_type_name} x ${i.quantity}`
