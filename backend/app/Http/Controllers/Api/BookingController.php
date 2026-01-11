@@ -7,7 +7,7 @@ use App\Models\Booking;
 use App\Models\BookingItem;
 use App\Models\RoomType;
 use App\Models\Voucher;
-
+use App\Models\Room;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -148,7 +148,28 @@ class BookingController extends Controller
         if ($validator->fails()) {
             return $this->error('VALIDATION_ERROR', 'Dữ liệu không hợp lệ', $validator->errors(), 422);
         }
+         foreach ($request->room_types as $item) {
 
+        $roomTypeId = $item['room_type_id'];
+        $requestedQuantity = $item['quantity'];
+
+        $availableRooms = Room::where('room_type_id', $roomTypeId)
+            ->where('room_status', 'available')
+            ->count();
+
+        if ($requestedQuantity > $availableRooms) {
+            return $this->error(
+                'ROOM_TYPE_NOT_ENOUGH',
+                'Số lượng phòng trống của loại phòng không đủ để đặt',
+                [
+                    'room_type_id' => $roomTypeId,
+                    'requested'    => $requestedQuantity,
+                    'available'    => $availableRooms,
+                ],
+                422
+            );
+        }
+    }
         $data = $validator->validated();
 
         $checkIn  = Carbon::parse($data['check_in'])->startOfDay();

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Voucher;
+use App\Models\Booking;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -121,15 +122,96 @@ class VoucherController extends Controller
      * ===================================================== */
     public function toggleStatus($id)
     {
+        $user = auth('sanctum')->user();
+
+        if (!$user || $user->role !== 'admin') {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'UNAUTHORIZED',
+                    'message' => 'Bạn không có quyền truy cập',
+                ]
+            ], 401);
+        }
+
         $voucher = Voucher::findOrFail($id);
-        $voucher->status = $voucher->status === 'active'
-            ? 'inactive'
-            : 'active';
+        $voucher->status = $voucher->status === 'active' ? 'inactive' : 'active';
         $voucher->save();
 
         return response()->json([
             'success' => true,
             'data' => $voucher,
+        ]);
+    }
+
+    /* =====================================================
+     * ADMIN - LIST VOUCHERS
+     * ===================================================== */
+    public function index(Request $request)
+    {
+        $user = auth('sanctum')->user();
+
+        if (!$user || $user->role !== 'admin') {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'UNAUTHORIZED',
+                    'message' => 'Bạn không có quyền truy cập',
+                ]
+            ], 401);
+        }
+
+        $vouchers = Voucher::orderByDesc('created_at')
+            ->get()
+            ->map(function ($v) {
+                $v->used_count = \App\Models\Booking::where('voucher_code', $v->code)->count();
+                return $v;
+            });
+
+        return response()->json([
+            'success' => true,
+            'data' => $vouchers,
+        ]);
+    }
+
+    /* =====================================================
+     * ADMIN - SHOW VOUCHER
+     * ===================================================== */
+    public function show(Request $request, $id)
+    {
+        $user = auth('sanctum')->user();
+
+        if (!$user || $user->role !== 'admin') {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'UNAUTHORIZED',
+                    'message' => 'Bạn không có quyền truy cập',
+                ]
+            ], 401);
+        }
+
+        $voucher = Voucher::find($id);
+
+        if (!$voucher) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'VOUCHER_NOT_FOUND',
+                    'message' => 'Không tìm thấy voucher',
+                ]
+            ], 404);
+        }
+
+        // Số lần voucher đã được sử dụng (dựa trên booking.voucher_code)
+        $usedCount = Booking::where('voucher_code', $voucher->code)->count();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'voucher' => $voucher,
+                'used_count' => $usedCount,
+            ]
         ]);
     }
 }
