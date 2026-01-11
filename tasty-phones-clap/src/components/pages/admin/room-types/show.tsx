@@ -144,6 +144,54 @@ export const RoomTypeShow: React.FC = () => {
         </div>
       </div>
 
+      {/* ================= REVIEWS ================= */}
+      <Divider />
+      <div style={{ marginTop: 16 }}>
+        <Text strong>Đánh giá của khách:</Text>
+
+        {/* Nếu có tổng rating */}
+        {roomType.total_reviews > 0 && (
+          <Paragraph style={{ marginTop: 6 }}>
+            ⭐ <strong>{roomType.avg_rating}</strong> / 5.0 —
+            {roomType.total_reviews} đánh giá
+          </Paragraph>
+        )}
+
+        {roomType.reviews && roomType.reviews.length > 0 ? (
+          <div style={{ marginTop: 10 }}>
+            {roomType.reviews.map((rev: any, index: number) => (
+              <Card
+                key={index}
+                size="small"
+                style={{
+                  marginBottom: 12,
+                  background: "#fafafa",
+                  borderRadius: 8,
+                }}
+              >
+                <Space direction="vertical" style={{ width: "100%" }}>
+                  <Text strong>{rev.user?.user_name || "Ẩn danh"}</Text>
+
+                  <Text>⭐ {rev.rating}/5</Text>
+
+                  {rev.comment && <Text>{rev.comment}</Text>}
+
+                  <Text type="secondary" style={{ fontSize: 12 }}>
+                    {new Date(rev.created_at).toLocaleDateString("vi-VN")}
+                  </Text>
+                </Space>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Empty
+            style={{ marginTop: 12 }}
+            description="Chưa có đánh giá"
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+          />
+        )}
+      </div>
+
       {/* ================= BACK BUTTON ================= */}
       <Divider />
       <div style={{ marginTop: 24 }}>

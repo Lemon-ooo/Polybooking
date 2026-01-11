@@ -32,7 +32,6 @@ class RoomType extends Model
 
     public function getTotalRoomsAttribute()
     {
-        // an toàn cho API, không gây vòng lặp
         return $this->rooms()->count();
     }
 
@@ -70,53 +69,31 @@ class RoomType extends Model
     }
 
     /**
-     * ❌ SAI NGHIỆP VỤ – ĐÃ LOẠI BỎ
-     * assigned_rooms KHÔNG gắn trực tiếp với room_type
-     * mà gắn qua rooms → assigned_rooms
+     * ⭐ Quan hệ Review
      */
+    public function reviews()
+{
+    return $this->hasMany(Review::class, 'room_type_id');
+}
+
 
     /**
-     * ❌ SAI NGHIỆP VỤ – ĐÃ LOẠI BỎ
-     * booking KHÔNG có room_type_id trực tiếp
-     * booking → booking_items → room_type
+     * ⭐ Điểm trung bình (chỉ review hiện)
      */
-
-    /* =====================================================
-     * BUSINESS LOGIC
-     * ===================================================== */
-
-    /**
-     * Giá cơ bản / 1 phòng / 1 đêm
-     * ❌ KHÔNG cộng amenities ở đây (amenities không phải lúc nào cũng tính tiền)
-     */
-    public function pricePerNight(): float
+    public function avgRating()
     {
-        return (float) $this->base_price;
+        return $this->reviews()
+            ->where('is_hidden', 0)
+            ->avg('rating');
     }
 
-  public function reviews()
-{
-    return $this->hasMany(\App\Models\Review::class, 'room_type_id', 'room_type_id');
-}
-
-/**
- * ⭐ Điểm trung bình (chỉ review hiện)
- */
-public function avgRating()
-{
-    return $this->reviews()
-        ->where('is_hidden', false)
-        ->avg('rating');
-}
-
-/**
- * 🔢 Tổng số review (chỉ review hiện)
- */
- public function totalReviews()
+    /**
+     * 🔢 Tổng số review (chỉ review hiện)
+     */
+    public function totalReviews()
     {
         return $this->reviews()
             ->where('is_hidden', 0)
             ->count();
     }
-
 }

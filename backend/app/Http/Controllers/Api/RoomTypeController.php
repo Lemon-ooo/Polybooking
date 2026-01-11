@@ -87,31 +87,43 @@ class RoomTypeController extends Controller
      * Chi tiết 1 loại phòng
      */
     public function show($id)
-    {
-        $roomType = RoomType::with(['images', 'amenities', 'rooms'])
-            ->withCount('rooms')
-            ->withCount([
-                'reviews as total_reviews' => function ($q) {
-                    $q->where('is_hidden', 0);
-                }
-            ])
-            ->withAvg([
-                'reviews as avg_rating' => function ($q) {
-                    $q->where('is_hidden', 0);
-                }
-            ], 'rating')
-            ->findOrFail($id);
+{
+    $roomType = RoomType::with([
+            'images',
+            'amenities',
+            'rooms',
 
-        return response()->json([
-            'data' => [
-                ...$roomType->toArray(),
-                'avg_rating' => $roomType->avg_rating
-                    ? round($roomType->avg_rating, 1)
-                    : 0,
-                'total_reviews' => $roomType->total_reviews,
-            ],
-        ]);
-    }
+            // ⭐ Load reviews + user
+            'reviews' => function ($q) {
+                $q->where('is_hidden', 0)
+                    ->orderBy('created_at', 'desc');
+            },
+            'reviews.user'
+        ])
+        ->withCount('rooms')
+        ->withCount([
+            'reviews as total_reviews' => function ($q) {
+                $q->where('is_hidden', 0);
+            }
+        ])
+        ->withAvg([
+            'reviews as avg_rating' => function ($q) {
+                $q->where('is_hidden', 0);
+            }
+        ], 'rating')
+        ->findOrFail($id);
+
+    return response()->json([
+        'data' => [
+            ...$roomType->toArray(),
+            'avg_rating' => $roomType->avg_rating
+                ? round($roomType->avg_rating, 1)
+                : 0,
+            'total_reviews' => $roomType->total_reviews,
+        ]
+    ]);
+}
+
 
     // ⚠️ Các hàm store / update / destroy giữ nguyên như bạn đang có
 }
