@@ -212,12 +212,10 @@ Route::get(
 
 // Review routes
 Route::middleware('auth:sanctum')->group(function () {
-    // Review routes
-    Route::get('/reviews/user-reviews', [ReviewController::class, 'getUserReviews']);
-    Route::get('/reviews/reviewable-bookings', [ReviewController::class, 'getReviewableBookings']);
-    Route::get('/reviews/check-reviewable/{bookingId}', [ReviewController::class, 'checkReviewable']);
-    Route::get('/reviews/room-type/{roomTypeId}', [ReviewController::class, 'getRoomTypeReviews']);
-    
-    // Resource routes
     Route::apiResource('reviews', ReviewController::class);
 });
+
+Route::get(
+    'room-types/{id}/rating',
+    [RoomTypeController::class, 'rating']
+);
