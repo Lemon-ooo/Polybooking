@@ -50,7 +50,7 @@ class AdminCheckoutController extends Controller
     {
         $booking = Booking::findOrFail($id);
 
-        if (!in_array($booking->status, ['check_in', 'in_use'])) {
+        if (!in_array($booking->status, [Booking::STATUS_CHECK_IN, Booking::STATUS_IN_USE])) {
             return response()->json(['success' => false, 'message' => 'Booking không hợp lệ'], 400);
         }
 
@@ -69,8 +69,8 @@ class AdminCheckoutController extends Controller
         ]);
 
         // đảm bảo booking đang in_use
-        if ($booking->status === 'check_in') {
-            $booking->update(['status' => 'in_use']);
+        if ($booking->status === Booking::STATUS_CHECK_IN) {
+            $booking->update(['status' => Booking::STATUS_IN_USE]);
         }
 
         return response()->json(['success' => true, 'message' => 'Đã thêm thiệt hại']);
@@ -84,7 +84,7 @@ class AdminCheckoutController extends Controller
     {
         $booking = Booking::findOrFail($id);
 
-        if (!in_array($booking->status, ['check_in', 'in_use'])) {
+        if (!in_array($booking->status, [Booking::STATUS_CHECK_IN, Booking::STATUS_IN_USE])) {
             return response()->json(['success' => false, 'message' => 'Booking không hợp lệ'], 400);
         }
 
@@ -99,9 +99,9 @@ class AdminCheckoutController extends Controller
             'amount'     => $data['amount']
         ]);
 
-        if ($booking->status === 'check_in') {
-            $booking->update(['status' => 'in_use']);
-        }
+            if ($booking->status === Booking::STATUS_CHECK_IN) {
+                $booking->update(['status' => Booking::STATUS_IN_USE]);
+            }
 
         return response()->json(['success' => true, 'message' => 'Đã thêm penalty']);
     }
@@ -114,7 +114,7 @@ class AdminCheckoutController extends Controller
     {
         $booking = Booking::findOrFail($id);
 
-        if ($booking->status !== 'in_use') {
+        if ($booking->status !== Booking::STATUS_IN_USE) {
             return response()->json(['success' => false, 'message' => 'Chưa sẵn sàng checkout'], 400);
         }
 
@@ -217,11 +217,11 @@ class AdminCheckoutController extends Controller
         DB::transaction(function () use ($booking) {
 
             // đóng booking
-            $booking->update(['status' => 'check_out']);
+            $booking->update(['status' => Booking::STATUS_CHECK_OUT]);
 
             // mở lại phòng
             AssignedRoom::where('booking_id', $booking->id)
-                ->update(['status' => 'checked_out']);
+                ->update(['status' => \App\Models\AssignedRoom::STATUS_CHECKED_OUT]);
 
             // xóa cờ xác nhận
             Cache::forget("checkout_confirmed_{$booking->id}");

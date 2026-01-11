@@ -10,6 +10,13 @@ class AssignedRoom extends Model
 {
     use HasFactory;
 
+    // statuses (match migration)
+    public const STATUS_ASSIGNED = 'assigned';
+    public const STATUS_CHECKED_IN = 'checked_in';
+    public const STATUS_IN_USE = 'in_use';
+    public const STATUS_CHECKOUT_PENDING = 'checkout_pending';
+    public const STATUS_CHECKED_OUT = 'checked_out';
+
     protected $primaryKey = 'assigned_room_id';
     public $incrementing = true;
     protected $keyType = 'int';
@@ -20,7 +27,7 @@ class AssignedRoom extends Model
         'room_type_id',
         'check_in',
         'check_out',
-        'room_status',
+        'status',
         'checked_in_at',
         'checked_out_at'
     ];

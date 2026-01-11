@@ -17,8 +17,8 @@ class AdminController extends Controller // ✅ Extend đúng class
     {
         $stats = [
             'totalRooms' => Room::count(),
-            'availableRooms' => Room::where('status', 'available')->count(),
-            'occupiedRooms' => Room::where('status', 'occupied')->count(),
+            'availableRooms' => Room::where('room_status', Room::STATUS_AVAILABLE)->count(),
+            'occupiedRooms' => Room::where('room_status', Room::STATUS_IN_USE)->count(),
             'totalRoomTypes' => RoomType::count(),
             'totalUsers' => User::count(),
         ];

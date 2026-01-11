@@ -28,6 +28,7 @@ class Booking extends Model
     public const STATUS_PENDING_PAYMENT = 'pending_payment';
     public const STATUS_PAID            = 'paid';
     public const STATUS_CHECK_IN      = 'check_in';
+    public const STATUS_IN_USE       = 'in_use';
     public const STATUS_CHECK_OUT     = 'check_out';
     public const STATUS_CANCELED        = 'canceled';
 
@@ -115,7 +116,12 @@ public function damageInvoices()
 
     public function isCheckedIn(): bool
     {
-        return $this->status === self::STATUS_CHECK_IN;
+        return $this->status === self::STATUS_CHECK_IN || $this->status === self::STATUS_IN_USE;
+    }
+
+    public function isInUse(): bool
+    {
+        return $this->status === self::STATUS_IN_USE;
     }
 
     public function isCheckedOut(): bool

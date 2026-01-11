@@ -116,6 +116,11 @@ Route::post(
     [AdminCheckinController::class, 'checkin']
 )->middleware('auth:sanctum');
 
+Route::post(
+    'bookings/{id}/assign-room',
+    [\App\Http\Controllers\Api\AdminAssignedRoomController::class, 'assign']
+)->middleware('auth:sanctum');
+
 
 /* =========================================================
 | ADMIN – SERVICE (DỊCH VỤ PHÁT SINH)

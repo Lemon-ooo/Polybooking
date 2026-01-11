@@ -40,7 +40,7 @@ class AdminPenaltyController extends Controller
             return $this->error('BOOKING_NOT_FOUND', 'Không tìm thấy booking', 404);
         }
 
-        if ($booking->status !== 'checked_in') {
+        if ($booking->status !== Booking::STATUS_IN_USE) {
             return $this->error(
                 'INVALID_BOOKING_STATUS',
                 'Chỉ ghi nhận phạt khi khách đang lưu trú'

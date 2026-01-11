@@ -33,7 +33,7 @@ class AdminCheckinController extends Controller
         /* ================= VALIDATION ================= */
         try {
             $validated = $request->validate([
-                'room_id' => 'required|exists:rooms,room_id',
+                'room_id' => 'sometimes|nullable|exists:rooms,room_id',
 
                 'guests' => 'required|array|min:1',
                 'guests.*.name' => 'required|string|max:255',
@@ -53,7 +53,7 @@ class AdminCheckinController extends Controller
             );
         }
 
-        if ($booking->status !== 'paid') {
+        if ($booking->status !== Booking::STATUS_PAID) {
             return $this->error(
                 'INVALID_BOOKING_STATUS',
                 'Booking chưa ở trạng thái đã thanh toán'
@@ -71,25 +71,36 @@ class AdminCheckinController extends Controller
 
         DB::beginTransaction();
         try {
-            /* ================= LOCK ROOM ================= */
-            $room = Room::lockForUpdate()
-                ->where('room_id', $validated['room_id'])
-                ->first();
 
-            if (!$room || $room->room_status !== 'available') {
-                throw new \Exception('ROOM_NOT_AVAILABLE');
+            /* ================= FIND OR LOCK ROOM / ASSIGNED ROOM ================= */
+            $assigned = AssignedRoom::where('booking_id', $booking->id)->where('status', AssignedRoom::STATUS_ASSIGNED)->first();
+
+            if ($assigned) {
+                $room = Room::lockForUpdate()->where('room_id', $assigned->room_id)->first();
+                if (!$room) throw new \Exception('ROOM_NOT_FOUND');
+            } else {
+                // fallback: admin provided room_id to assign at checkin time
+                if (empty($validated['room_id'])) {
+                    throw new \Exception('ROOM_NOT_ASSIGNED');
+                }
+
+                $room = Room::lockForUpdate()
+                    ->where('room_id', $validated['room_id'])
+                    ->first();
+
+                if (!$room || $room->room_status !== Room::STATUS_AVAILABLE) {
+                    throw new \Exception('ROOM_NOT_AVAILABLE');
+                }
+
+                $assigned = AssignedRoom::create([
+                    'booking_id'    => $booking->id,
+                    'room_id'       => $room->room_id,
+                    'room_type_id'  => $room->room_type_id,
+                    'check_in'      => $booking->check_in,
+                    'check_out'     => $booking->check_out,
+                    'status'        => AssignedRoom::STATUS_ASSIGNED,
+                ]);
             }
-
-            /* ================= ASSIGN ROOM ================= */
-            AssignedRoom::create([
-                'booking_id'    => $booking->id,
-                'room_id'       => $room->room_id,
-                'room_type_id'  => $room->room_type_id,
-                'check_in'      => $booking->check_in,
-                'check_out'     => $booking->check_out,
-                'status'        => 'check_in',
-                'checked_in_at' => now(),
-            ]);
 
             /* ================= SAVE GUESTS ================= */
             foreach ($validated['guests'] as $guest) {
@@ -101,9 +112,12 @@ class AdminCheckinController extends Controller
                 ]);
             }
 
+            /* ================= MARK ASSIGNED ROOM AS CHECKED IN ================= */
+            $assigned->update(['status' => AssignedRoom::STATUS_CHECKED_IN, 'checked_in_at' => now()]);
+
             /* ================= UPDATE ROOM + BOOKING ================= */
-            $room->update(['room_status' => 'đang sử dụng']);
-            $booking->update(['status' => Booking::STATUS_CHECK_IN]);
+            $room->update(['room_status' => Room::STATUS_IN_USE]);
+            $booking->update(['status' => Booking::STATUS_IN_USE]);
 
             DB::commit();
 
@@ -111,7 +125,7 @@ class AdminCheckinController extends Controller
                 'booking_id' => $booking->id,
                 'room_id'    => $room->room_id,
                 'guests'     => count($validated['guests']),
-                'status'     => 'checked_in'
+                'status'     => AssignedRoom::STATUS_CHECKED_IN
             ]);
         } catch (\Exception $e) {
             DB::rollBack();

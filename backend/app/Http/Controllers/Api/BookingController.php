@@ -64,7 +64,7 @@ class BookingController extends Controller
         $requestedQuantity = $item['quantity'];
 
         $availableRooms = Room::where('room_type_id', $roomTypeId)
-            ->where('room_status', 'available')
+            ->where('room_status', Room::STATUS_AVAILABLE)
             ->count();
 
         if ($requestedQuantity > $availableRooms) {

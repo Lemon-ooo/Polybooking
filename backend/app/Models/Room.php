@@ -8,6 +8,12 @@ class Room extends Model
 {
     protected $table = 'rooms';
 
+    // Room status values (standardized)
+    public const STATUS_AVAILABLE = 'available';
+    public const STATUS_IN_USE   = 'in_use';
+    public const STATUS_BOOKED   = 'booked';
+    public const STATUS_MAINTENANCE = 'maintenance';
+
     /**
      * ⚠️ QUAN TRỌNG: PK không phải id
      */
@@ -45,7 +51,7 @@ class Room extends Model
      */
     public function isAvailable(): bool
     {
-        return $this->room_status === 'available';
-        // nếu DB dùng 'available' thì đổi lại cho khớp
+        return $this->room_status === self::STATUS_AVAILABLE;
+        // use constant for status to keep strings standardized
     }
 }

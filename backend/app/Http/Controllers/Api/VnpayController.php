@@ -27,9 +27,10 @@ class VnpayController extends Controller
         [$bookingId] = explode('_', $inputData['vnp_TxnRef']);
         $booking = Booking::findOrFail($bookingId);
 
+
         if ($inputData['vnp_ResponseCode'] === '00') {
             $booking->update([
-                'status' => 'paid',
+                'status' => Booking::STATUS_PAID,
                 'paid_at' => now(),
                 'payment_method' => 'vnpay',
             ]);
