@@ -129,28 +129,7 @@ class RoomTypeController extends Controller
             'data' => $roomType->load(['images', 'amenities']),
         ]);
     }
-    /**
-     * Lấy rating của 1 room_type
-     */
-    public function rating($id)
-    {
-        $roomType = RoomType::withCount([
-                'reviews as total_reviews' => function ($q) {
-                    $q->where('is_hidden', 0);
-                }
-            ])
-            ->withAvg([
-                'reviews as avg_rating' => function ($q) {
-                    $q->where('is_hidden', 0);
-                }
-            ], 'rating')
-            ->findOrFail($id);
 
-        return response()->json([
-            'avg_rating'    => $roomType->avg_rating ? round($roomType->avg_rating, 1) : 0,
-            'total_reviews' => $roomType->total_reviews,
-        ]);
-    }
     /**
      * Xóa loại phòng
      */
