@@ -154,8 +154,9 @@ interface InvoiceStatus {
 }
 
 interface PenaltyFormData {
-  days_late: number;
+  days_late?: number;
   amount: number;
+  note: string;
 }
 
 // ============================================
@@ -200,12 +201,12 @@ export default function BookingShow() {
   // Thêm state cho modal phạt
   const [penaltyModalVisible, setPenaltyModalVisible] = useState(false);
   const [penaltyLoading, setPenaltyLoading] = useState(false);
+  const [form] = Form.useForm();
 
-  // State cho form phạt - CHỈ CẦN days_late và amount
-  const [penaltyForm, setPenaltyForm] = useState<PenaltyFormData>({
-    days_late: 2,
-    amount: 100000,
-  });
+  // State cho danh sách phạt
+  const [penalties, setPenalties] = useState<PenaltyFormData[]>([
+    { days_late: 2, amount: 100000, note: "" },
+  ]);
 
   // ============================================
   // FORMATTING FUNCTIONS
@@ -346,31 +347,40 @@ export default function BookingShow() {
   const showPenaltyModal = () => {
     if (!booking) return;
 
-    // CHỈ HIỂN THỊ NÚT, KHÔNG VALIDATE Ở FRONTEND
-    // Vì API sẽ validate và trả về lỗi nếu không hợp lệ
+    // Chỉ cho phép khi booking đang ở trạng thái checked_in hoặc check_out
+    const allowedStatuses = ["checked_in", "check_out", "completed"];
+    if (!allowedStatuses.includes(booking.status)) {
+      message.warning(
+        "Chỉ có thể ghi nhận phạt khi khách đang lưu trú hoặc đã trả phòng"
+      );
+      return;
+    }
+
     setPenaltyModalVisible(true);
+    // Reset form
+    setPenalties([{ days_late: 1, amount: 100000, note: "" }]);
+    form.resetFields();
   };
 
-  // Handle form changes
-  const handleFormChange = (field: keyof PenaltyFormData, value: any) => {
-    setPenaltyForm({
-      ...penaltyForm,
-      [field]: value,
-    });
+  // Handle penalty form changes
+  const handlePenaltyChange = (
+    index: number,
+    field: keyof PenaltyFormData,
+    value: any
+  ) => {
+    const newPenalties = [...penalties];
+    newPenalties[index][field] = value;
+    setPenalties(newPenalties);
   };
 
-  // Submit penalties - SỬ DỤNG API USER
+  // Submit penalties
+  // Trong handleAddPenalties, thêm log chi tiết:
   const handleAddPenalties = async () => {
     if (!booking || !id) return;
 
     // Validate
-    if (!penaltyForm.amount || penaltyForm.amount <= 0) {
+    if (!penalties[0]?.amount || penalties[0].amount <= 0) {
       message.error("Vui lòng nhập số tiền phạt");
-      return;
-    }
-
-    if (!penaltyForm.days_late || penaltyForm.days_late <= 0) {
-      message.error("Vui lòng nhập số ngày trễ");
       return;
     }
 
@@ -379,20 +389,22 @@ export default function BookingShow() {
       const authStr = localStorage.getItem("auth");
       const token = authStr ? JSON.parse(authStr).token : null;
 
-      // GỌI API USER - chỉ cần days_late và amount
+      // Debug thông tin gửi đi
       const payload = {
-        days_late: penaltyForm.days_late,
-        amount: penaltyForm.amount,
+        days_late: penalties[0].days_late || 1,
+        amount: penalties[0].amount,
+        note: penalties[0].note || null,
       };
 
       console.log(
-        "📤 Sending to USER API:",
+        "📤 Sending penalty request to:",
         `${API_URL}/api/bookings/${id}/penalties`
       );
       console.log("📦 Payload:", payload);
+      console.log("🔑 Token exists:", !!token);
 
       const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/penalties`, // API USER
+        `${API_URL}/api/bookings/${id}/penalties`,
         payload,
         {
           headers: {
@@ -405,18 +417,38 @@ export default function BookingShow() {
       console.log("✅ Penalty API Response:", response.data);
 
       if (response.data.success) {
-        message.success("Ghi nhận phạt thành công!");
+        message.success(response.data.message || "Ghi nhận phạt thành công!");
         setPenaltyModalVisible(false);
         fetchBookingDetails(); // Refresh data
-        // Reset form
-        setPenaltyForm({ days_late: 2, amount: 100000 });
       } else {
+        console.error("❌ Penalty API Error:", response.data);
         message.error(response.data.message || "Có lỗi xảy ra");
       }
     } catch (error: any) {
       console.error("❌ Error adding penalties:", error);
 
-      if (error.response?.data?.message) {
+      // Debug chi tiết lỗi
+      if (error.response) {
+        console.error("📛 Response error:", {
+          status: error.response.status,
+          data: error.response.data,
+          headers: error.response.headers,
+        });
+      } else if (error.request) {
+        console.error("📛 No response received:", error.request);
+      } else {
+        console.error("📛 Request setup error:", error.message);
+      }
+
+      if (error.response?.status === 403) {
+        message.error("Bạn không có quyền thực hiện hành động này");
+      } else if (error.response?.status === 400) {
+        message.error(
+          error.response?.data?.message || "Không thể ghi nhận phạt"
+        );
+      } else if (error.response?.data?.error) {
+        message.error(error.response.data.error.message || "Có lỗi xảy ra");
+      } else if (error.response?.data?.message) {
         message.error(error.response.data.message);
       } else {
         message.error("Không thể ghi nhận phạt");
@@ -721,8 +753,10 @@ export default function BookingShow() {
   const canCreateInvoice =
     booking.status === "check_out" || booking.status === "completed";
 
-  // LUÔN HIỂN THỊ NÚT, VALIDATION SẼ DO API XỬ LÝ
-  const canAddPenalties = true;
+  // Check if can add penalties (when checked_in, check_out, or completed)
+  const canAddPenalties = ["check_in", "check_out", "completed"].includes(
+    booking.status
+  );
 
   return (
     <div
@@ -1746,10 +1780,10 @@ export default function BookingShow() {
             bodyStyle={{ padding: "16px" }}
           >
             <Space direction="vertical" style={{ width: "100%" }}>
-              {/* Add Penalty Button - LUÔN HIỂN THỊ */}
+              {/* Add Penalty Button */}
               <Button
                 type="primary"
-                danger
+                danger={canAddPenalties}
                 block
                 size="large"
                 onClick={showPenaltyModal}
@@ -1757,11 +1791,12 @@ export default function BookingShow() {
                 style={{
                   height: "48px",
                   fontSize: "16px",
-                  background: "#ff4d4f",
-                  borderColor: "#ff4d4f",
+                  background: canAddPenalties ? "#ff4d4f" : "#d9d9d9",
+                  borderColor: canAddPenalties ? "#ff4d4f" : "#d9d9d9",
                 }}
+                disabled={!canAddPenalties}
               >
-                Thêm Phạt
+                {canAddPenalties ? "Thêm Phạt" : "Không thể thêm phạt"}
               </Button>
 
               {/* Invoice Dropdown */}
@@ -1879,7 +1914,7 @@ export default function BookingShow() {
         </Col>
       </Row>
 
-      {/* PENALTY MODAL - ĐƠN GIẢN CHỈ CẦN days_late và amount */}
+      {/* PENALTY MODAL */}
       <Modal
         title={
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -1892,7 +1927,7 @@ export default function BookingShow() {
         onOk={handleAddPenalties}
         okText="Ghi nhận"
         cancelText="Hủy"
-        width={500}
+        width={600}
         okButtonProps={{
           type: "primary",
           danger: true,
@@ -1916,9 +1951,15 @@ export default function BookingShow() {
                   {booking?.user?.email})
                 </p>
                 <p>
-                  <strong>API được sử dụng:</strong> User API (days_late +
-                  amount)
+                  <strong>Trạng thái hiện tại:</strong> {status.text}
                 </p>
+                <Alert
+                  message="Lưu ý"
+                  description="Chỉ có thể ghi nhận phạt khi khách đang lưu trú hoặc đã trả phòng"
+                  type="warning"
+                  showIcon
+                  style={{ marginTop: 12 }}
+                />
               </div>
             }
             type="info"
@@ -1934,8 +1975,10 @@ export default function BookingShow() {
               <InputNumber
                 style={{ width: "100%" }}
                 placeholder="Số ngày trễ check-out"
-                value={penaltyForm.days_late}
-                onChange={(value) => handleFormChange("days_late", value || 1)}
+                value={penalties[0]?.days_late || 1}
+                onChange={(value) =>
+                  handlePenaltyChange(0, "days_late", value || 1)
+                }
                 min={1}
                 max={30}
                 disabled={penaltyLoading}
@@ -1951,8 +1994,10 @@ export default function BookingShow() {
               <InputNumber
                 style={{ width: "100%" }}
                 placeholder="Nhập số tiền phạt"
-                value={penaltyForm.amount}
-                onChange={(value) => handleFormChange("amount", value || 0)}
+                value={penalties[0]?.amount || 100000}
+                onChange={(value) =>
+                  handlePenaltyChange(0, "amount", value || 0)
+                }
                 formatter={(value) =>
                   `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -1964,15 +2009,46 @@ export default function BookingShow() {
                 Ví dụ: 100.000 VND
               </div>
             </Col>
+            <Col span={24} style={{ marginTop: 16 }}>
+              <div style={{ marginBottom: 8 }}>
+                <strong>Lý do phạt (tùy chọn)</strong>
+              </div>
+              <Input.TextArea
+                placeholder="Nhập lý do phạt (ví dụ: Trễ check-out 2 ngày, làm hư hỏng tài sản...)"
+                value={penalties[0]?.note || ""}
+                onChange={(e) => handlePenaltyChange(0, "note", e.target.value)}
+                rows={3}
+                disabled={penaltyLoading}
+              />
+            </Col>
           </Row>
 
-          <Alert
-            message="Lưu ý"
-            description="API sẽ tự động validate và trả về lỗi nếu booking không hợp lệ"
-            type="warning"
-            showIcon
-            style={{ marginTop: 16 }}
-          />
+          <Divider style={{ margin: "16px 0" }} />
+
+          <div
+            style={{
+              background: "#fff7e6",
+              padding: "12px",
+              borderRadius: "6px",
+            }}
+          >
+            <div
+              style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}
+            >
+              <InfoCircleOutlined style={{ color: "#fa8c16", marginTop: 2 }} />
+              <div>
+                <strong>Hướng dẫn:</strong>
+                <ul style={{ margin: "8px 0 0 20px", padding: 0 }}>
+                  <li>
+                    Số ngày trễ: Thời gian khách trễ check-out so với hạn định
+                  </li>
+                  <li>Số tiền phạt: Tổng số tiền phải đóng do trễ check-out</li>
+                  <li>Phạt sẽ được cộng vào tổng thanh toán của booking</li>
+                  <li>Khách hàng sẽ nhận được thông báo về khoản phạt</li>
+                </ul>
+              </div>
+            </div>
+          </div>
         </div>
       </Modal>
 
