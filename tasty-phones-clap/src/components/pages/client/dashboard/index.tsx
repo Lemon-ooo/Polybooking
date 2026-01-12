@@ -43,11 +43,12 @@ interface ItemType {
 
 interface TestimonialType {
   id: number;
-  name: string;
-  address: string;
   rating: number;
-  review: string;
-  image: string;
+  comment: string;
+  user: {
+    user_name: string;
+    avatar_url: string | null;
+  } | null;
 }
 
 export const ClientDashboard: React.FC = () => {
@@ -119,16 +120,18 @@ export const ClientDashboard: React.FC = () => {
       setLoading(true);
       setIsLoading(true);
 
-      const [roomsRes, servicesRes, amenitiesRes] = await Promise.all([
-        axiosInstance.get("/room-types"),
-        axiosInstance.get("/services"),
-        axiosInstance.get("/amenities"),
-      ]);
+      const [roomsRes, servicesRes, amenitiesRes, reviewsRes] =
+        await Promise.all([
+          axiosInstance.get("/room-types"),
+          axiosInstance.get("/services"),
+          axiosInstance.get("/amenities"),
+          axiosInstance.get("/reviews"), // <-- THÊM
+        ]);
 
       setRooms(roomsRes.data.data || []);
       setServices(servicesRes.data.data || []);
       setAmenities(amenitiesRes.data.data || []);
-
+      setTestimonials(reviewsRes.data.data || []);
       const mockPlaces: ItemType[] = [
         {
           id: 1,
@@ -155,36 +158,7 @@ export const ClientDashboard: React.FC = () => {
         },
       ];
 
-      const mockTestimonials: TestimonialType[] = [
-        {
-          id: 1,
-          name: "Nguyen Van A",
-          address: "Hanoi",
-          rating: 5,
-          review:
-            "The room was beautiful and clean, and the staff were very attentive!",
-          image: "https://randomuser.me/api/portraits/men/75.jpg",
-        },
-        {
-          id: 2,
-          name: "Tran Thi B",
-          address: "Ho Chi Minh City",
-          rating: 4,
-          review: "Excellent service — I will definitely come back.",
-          image: "https://randomuser.me/api/portraits/women/65.jpg",
-        },
-        {
-          id: 3,
-          name: "Pham Minh C",
-          address: "Da Nang",
-          rating: 5,
-          review: "Wonderful experience, great value for money!",
-          image: "https://randomuser.me/api/portraits/men/20.jpg",
-        },
-      ];
-
       setPlaces(mockPlaces);
-      setTestimonials(mockTestimonials);
     } catch (err) {
       console.error(err);
       message.error("Unable to load data from server!");
@@ -1028,23 +1002,41 @@ export const ClientDashboard: React.FC = () => {
                     }}
                   >
                     <Space direction="vertical" align="center">
+                      {/* AVATAR */}
                       <img
-                        src={item.image}
-                        alt={item.name}
+                        src={
+                          item.user?.avatar
+                            ? `http://localhost:8000/storage/${
+                                item.user.avatar
+                              }?t=${Date.now()}`
+                            : `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                item.user?.user_name || "Guest"
+                              )}&background=0D8ABC&color=fff`
+                        }
+                        alt={item.user?.user_name}
                         style={{
                           width: 64,
                           height: 64,
                           borderRadius: "50%",
                           objectFit: "cover",
+                          border: "2px solid rgba(255,255,255,0.2)",
                         }}
                       />
-                      <Title level={5} style={{ color: "white" }}>
-                        {item.name}
+
+                      {/* NAME */}
+                      <Title
+                        level={5}
+                        style={{ color: "white", marginBottom: 0 }}
+                      >
+                        {item.user?.user_name || "Guest"}
                       </Title>
-                      <Text style={{ color: "#e0e0e0" }}>{item.address}</Text>
-                      <Rate disabled defaultValue={item.rating} />
+
+                      {/* RATING */}
+                      <Rate disabled value={item.rating} />
+
+                      {/* COMMENT */}
                       <Paragraph style={{ color: "#ddd" }}>
-                        "{item.review}"
+                        "{item.comment || item.review}"
                       </Paragraph>
                     </Space>
                   </Card>
