@@ -18,6 +18,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useInView } from "react-intersection-observer"; // <-- Đã thêm
 import clsx from "clsx"; // <-- Đã thêm
+import { ReviewModal } from "./ReviewModal";
 import axiosInstance from "../../../../providers/data/axiosConfig";
 import "../../../../assets/fonts/fonts.css";
 
@@ -99,7 +100,7 @@ export const ClientDashboard: React.FC = () => {
     triggerOnce: true,
     threshold: 0.1,
   });
-
+  const [showReviewModal, setShowReviewModal] = useState(false);
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();

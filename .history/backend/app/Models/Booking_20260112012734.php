@@ -15,7 +15,6 @@ use App\Models\Payment;
 use App\Models\Voucher;
 
 
-
 class Booking extends Model
 {
     protected $table = 'bookings';
@@ -72,6 +71,10 @@ class Booking extends Model
     {
         return $this->hasMany(BookingItem::class, 'booking_id');
     }
+    public function review()
+{
+    return $this->hasOne(Review::class, 'booking_id', 'id');
+}
 public function serviceInvoice()
 {
     return $this->hasOne(ServiceInvoice::class, 'booking_id', 'id');

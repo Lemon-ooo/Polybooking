@@ -139,42 +139,7 @@ class ReviewController extends Controller
             'data' => $review,
         ]);
     }
-    /**
- * LẤY DANH SÁCH BOOKING CẦN ĐÁNH GIÁ
- * Frontend gọi API này khi user vào trang chủ
- */
-public function getPendingReviews()
-{
-    $user = Auth::user();
 
-    // Lấy tất cả booking đã checkout nhưng chưa có review
-    $pendingBookings = Booking::with([
-        'items.roomType:id,type_name,image', // Lấy thông tin loại phòng
-    ])
-        ->where('user_id', $user->user_id)
-        ->where('status', Booking::STATUS_CHECK_OUT)
-        ->whereDoesntHave('review') // ✅ Chưa có review
-        ->orderBy('check_out', 'desc')
-        ->get()
-        ->map(function ($booking) {
-            // Lấy room_type_id từ booking item đầu tiên
-            $firstItem = $booking->items->first();
-            
-            return [
-                'booking_id' => $booking->id,
-                'check_in' => $booking->check_in,
-                'check_out' => $booking->check_out,
-                'room_type_id' => $firstItem?->room_type_id,
-                'room_type_name' => $firstItem?->roomType?->type_name,
-                'room_type_image' => $firstItem?->roomType?->image,
-            ];
-        });
-
-    return response()->json([
-        'data' => $pendingBookings,
-        'total' => $pendingBookings->count(),
-    ]);
-}
     /**
      * DELETE – Refine useDelete
      */

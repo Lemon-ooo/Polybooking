@@ -24,7 +24,7 @@ class BookingItem extends Model
         return $this->belongsTo(
             RoomType::class,
             'room_type_id',
-            'room_type_id'
+            'id'
         );
     }
     

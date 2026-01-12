@@ -27,5 +27,4 @@ class BookingItem extends Model
             'room_type_id'
         );
     }
-    
 }

@@ -18,6 +18,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useInView } from "react-intersection-observer"; // <-- Đã thêm
 import clsx from "clsx"; // <-- Đã thêm
+import { ReviewModal } from "./ReviewModal";
 import axiosInstance from "../../../../providers/data/axiosConfig";
 import "../../../../assets/fonts/fonts.css";
 
@@ -99,7 +100,35 @@ export const ClientDashboard: React.FC = () => {
     triggerOnce: true,
     threshold: 0.1,
   });
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  useEffect(() => {
+    const checkPendingReviews = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(
+          "http://localhost:8000/api/reviews/pending",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const data = await response.json();
 
+        if (data.data && data.data.length > 0) {
+          setTimeout(() => {
+            setShowReviewModal(true);
+          }, 2000);
+        }
+      } catch (error) {
+        console.error("Error checking pending reviews:", error);
+      }
+    };
+
+    if (!loading) {
+      checkPendingReviews();
+    }
+  }, [loading]);
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
@@ -1054,6 +1083,11 @@ export const ClientDashboard: React.FC = () => {
           </Row>
         </div>
       </div>
+      <ReviewModal
+        visible={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        onSuccess={() => setShowReviewModal(false)}
+      />
     </>
   );
 };
