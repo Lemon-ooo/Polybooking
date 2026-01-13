@@ -1007,29 +1007,33 @@ export default function BookingShow() {
         }
       }
 
-      if (response && response.data.success) {
-        message.success("Check-in thành công!");
-        setCheckedInGuests(
-          payload.guests.map((g: any) => ({
-            name: g.name,
-            age: g.age,
-          }))
-        );
-        setCheckinModalVisible(false);
-        setCheckinForm({
-          guests: [{ name: "", age: 18 }],
-          room_id: null,
-        });
+    if (response && response.data.success) {
+  message.success("Check-in thành công!");
 
-        // Refresh booking details
-        await fetchBookingDetails();
+  // ✅ LƯU DANH SÁCH KHÁCH ĐÃ CHECK-IN
+  setCheckedInGuests(
+    payload.guests.map((g: any) => ({
+      name: g.name,
+      age: g.age,
+    }))
+  );
 
-        // Show success notification
-        notification.success({
-          message: "Check-in thành công",
-          description: `Booking #${displayBookingId} đã được check-in thành công.`,
-          placement: "topRight",
-        });
+  setCheckinModalVisible(false);
+
+  // Reset form để lần sau dùng
+  setCheckinForm({
+    guests: [{ name: "", age: 18 }],
+    room_id: null,
+  });
+
+  // Refresh booking (phòng, trạng thái...)
+  await fetchBookingDetails();
+
+  notification.success({
+    message: "Check-in thành công",
+    description: `Booking #${displayBookingId} đã được check-in thành công.`,
+    placement: "topRight",
+  });
       } else {
         const errorMessage =
           error?.response?.data?.message ||
@@ -3144,98 +3148,28 @@ export default function BookingShow() {
         ============================================ */}
         <Col xs={24} lg={8}>
           {/* CUSTOMER INFO */}
-          <Card
-            title={
-              <span style={{ fontWeight: "600", fontSize: "16px" }}>
-                <UserOutlined
-                  style={{ marginRight: "8px", color: "#1890ff" }}
-                />
-                Thông tin Khách hàng
-              </span>
-            }
-            style={{
-              marginBottom: "24px",
-              borderRadius: "12px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-            }}
-          >
-            {booking.user ? (
-              <div>
-                <div style={{ marginBottom: 16 }}>
-                  <div
-                    style={{
-                      fontSize: "18px",
-                      fontWeight: "600",
-                      marginBottom: 4,
-                    }}
-                  >
-                    {booking.user.name}
-                  </div>
-                  <div style={{ color: "#666", marginBottom: 8 }}>
-                    <MailOutlined style={{ marginRight: 8 }} />
-                    {booking.user.email}
-                  </div>
-                  {booking.user.phone && (
-                    <div style={{ color: "#666" }}>
-                      <PhoneOutlined style={{ marginRight: 8 }} />
-                      {booking.user.phone}
-                    </div>
-                  )}
-                </div>
+         <Card title="Thông tin Khách lưu trú">
+  {checkedInGuests.length > 0 ? (
+    checkedInGuests.map((guest, index) => (
+      <div
+        key={index}
+        style={{
+          padding: "8px 0",
+          borderBottom: "1px dashed #eee",
+        }}
+      >
+        <strong>Khách {index + 1}</strong>
+        <div>Tên: {guest.name || "Chưa nhập"}</div>
+        <div>Tuổi: {guest.age}</div>
+      </div>
+    ))
+  ) : (
+    <div style={{ color: "#999", textAlign: "center" }}>
+      Chưa có khách check-in
+    </div>
+  )}
+</Card>
 
-                {/* Hiển thị thông tin khách đã check-in */}
-                {checkedInGuests.length > 0 && (
-                  <>
-                    <Divider style={{ margin: "12px 0" }} />
-                    <div>
-                      <div style={{ fontWeight: "600", marginBottom: 8 }}>
-                        <CheckCircleOutlined
-                          style={{ marginRight: 6, color: "#52c41a" }}
-                        />
-                        Khách đã check-in:
-                      </div>
-                      {checkedInGuests.map((guest, index) => (
-                        <div
-                          key={index}
-                          style={{
-                            padding: "8px 0",
-                            borderBottom: "1px dashed #eee",
-                          }}
-                        >
-                          <div style={{ fontWeight: "500" }}>
-                            Khách {index + 1}:
-                          </div>
-                          <div style={{ marginLeft: 12 }}>
-                            <div>
-                              <strong>Tên:</strong> {guest.name || "Chưa nhập"}
-                            </div>
-                            <div>
-                              <strong>Tuổi:</strong> {guest.age}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-
-                <Divider style={{ margin: "12px 0" }} />
-                <div style={{ fontSize: "12px", color: "#999" }}>
-                  User ID: {booking.user.user_id}
-                </div>
-              </div>
-            ) : (
-              <div
-                style={{
-                  color: "#999",
-                  textAlign: "center",
-                  padding: "20px 0",
-                }}
-              >
-                Không có thông tin khách hàng
-              </div>
-            )}
-          </Card>
 
           {/* PAYMENT SUMMARY */}
           <Card

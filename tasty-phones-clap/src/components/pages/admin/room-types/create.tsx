@@ -136,7 +136,10 @@ export const RoomTypeCreate: React.FC = () => {
   return (
     <Create
       title="Thêm loại phòng mới"
-      saveButtonProps={{ ...saveButtonProps, children: "Thêm dịch vụ" }}
+      saveButtonProps={{
+        ...saveButtonProps,
+        children: "Thêm loại phòng mới",
+      }}
       // Đây chính là chìa khóa: override nút quay lại mặc định
       goBack={
         <Button
