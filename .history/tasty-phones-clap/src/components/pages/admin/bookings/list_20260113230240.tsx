@@ -7,10 +7,14 @@ import {
   Tag,
   Space,
   message,
-  Badge,
+  Spin,
+  Descriptions,
   Select,
   Input,
   DatePicker,
+  Tooltip,
+  Badge,
+  Popconfirm,
   Dropdown,
   Menu,
 } from "antd";
@@ -33,7 +37,7 @@ const { Option } = Select;
 const API_URL = "http://localhost:8000";
 
 interface Booking {
-  id: number;
+  id: number; // CHỈNH: API trả về 'id' chứ không phải 'booking_id'
   user: {
     user_id: number;
     user_name: string;
@@ -48,28 +52,17 @@ interface Booking {
   total_price: number;
   status: string;
   created_at: string;
-  items: BookingItem[];
+  items: BookingItem[]; // ← Đổi tên để khớp
 }
 
 interface BookingItem {
   booking_item_id: number;
   room_type_id: number;
-  room_type_name: string;
+  room_type_name: string; // ← Khớp với API
   quantity: number;
   number_of_nights: number;
   base_price: number;
   amount: number;
-}
-
-interface ApiResponse {
-  success: boolean;
-  data: {
-    data: Booking[];
-    current_page: number;
-    per_page: number;
-    total: number;
-  };
-  meta?: any;
 }
 
 export default function BookingList() {
@@ -100,6 +93,7 @@ export default function BookingList() {
         per_page: pageSize,
       };
 
+      // Thêm filters
       if (filters.status) {
         params.status = filters.status;
       }
@@ -117,52 +111,57 @@ export default function BookingList() {
         ? JSON.parse(localStorage.getItem("auth")!).token
         : null;
 
-      const response = await axios.get<ApiResponse>(`${API_URL}/api/bookings`, {
+      const response = await axios.get(`${API_URL}/api/bookings`, {
         params,
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
 
       console.log("Bookings API Response:", response.data);
 
-      const responseData = response.data.data;
+      // Xử lý response theo cấu trúc mới
+      const responseData = response.data?.data;
 
-      // FIX: Đảm bảo dataSource luôn là mảng
-      let bookingsData: Booking[] = [];
-      let totalItems = 0;
-      let currentPage = 1;
-      let perPage = pageSize;
-
-      if (responseData?.data && Array.isArray(responseData.data)) {
+      if (responseData && responseData.data) {
         // Paginated response
-        bookingsData = responseData.data;
-        totalItems = responseData.total || responseData.data.length;
-        currentPage = responseData.current_page || page;
-        perPage = responseData.per_page || pageSize;
-      } else if (responseData && Array.isArray(responseData)) {
+        setBookings(responseData.data);
+        setPagination({
+          current: responseData.current_page || 1,
+          pageSize: responseData.per_page || 10,
+          total: responseData.total || 0,
+        });
+      } else if (Array.isArray(responseData)) {
         // Array response (non-paginated)
-        bookingsData = responseData;
-        totalItems = responseData.length;
-      } else if (response.data && Array.isArray(response.data)) {
-        // Fallback direct array
-        bookingsData = response.data as Booking[];
-        totalItems = response.data.length;
+        setBookings(responseData);
+        setPagination({
+          current: 1,
+          pageSize: responseData.length,
+          total: responseData.length,
+        });
+      } else if (Array.isArray(response.data)) {
+        // Fallback
+        setBookings(response.data);
+        setPagination({
+          current: 1,
+          pageSize: response.data.length,
+          total: response.data.length,
+        });
+      } else if (responseData && responseData.bookings) {
+        // Trường hợp API trả về { data: { bookings: [...] } }
+        setBookings(responseData.bookings);
+        setPagination({
+          current: 1,
+          pageSize: responseData.bookings.length,
+          total: responseData.bookings.length,
+        });
       } else {
-        bookingsData = [];
+        setBookings([]);
         message.warning("Không có dữ liệu booking");
       }
-
-      setBookings(bookingsData);
-      setPagination({
-        current: currentPage,
-        pageSize: perPage,
-        total: totalItems,
-      });
     } catch (error: any) {
       console.error("Error fetching bookings:", error);
       message.error(
         error.response?.data?.message || "Lỗi khi tải danh sách booking"
       );
-      setBookings([]); // FIX: Đặt mảng rỗng nếu có lỗi
     } finally {
       setLoading(false);
     }
@@ -195,13 +194,15 @@ export default function BookingList() {
   // ===============================
   // HANDLE TABLE CHANGE
   // ===============================
-  const handleTableChange = (newPagination: any) => {
-    fetchBookings(newPagination.current, newPagination.pageSize);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleTableChange = (pagination: any) => {
+    fetchBookings(pagination.current, pagination.pageSize);
   };
 
   // ===============================
   // HANDLE FILTER CHANGE
   // ===============================
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleFilterChange = (key: string, value: any) => {
     setFilters((prev) => ({
       ...prev,
@@ -244,7 +245,7 @@ export default function BookingList() {
   const columns = [
     {
       title: "Mã Booking",
-      dataIndex: "id",
+      dataIndex: "id", // CHỈNH: đổi từ 'booking_id' thành 'id'
       key: "id",
       width: 100,
       fixed: "left" as const,
@@ -386,7 +387,9 @@ export default function BookingList() {
         <Space>
           <Button
             type="link"
-            onClick={() => navigate(`/admin/bookings/show/${record.id}`)}
+            onClick={
+              () => navigate(`/admin/bookings/show/${record.id}`) // CHỈNH: đổi từ record.booking_id thành record.id
+            }
           >
             Xem chi tiết
           </Button>
@@ -445,8 +448,9 @@ export default function BookingList() {
     try {
       switch (action) {
         case "payment":
+          // Gọi API xác nhận thanh toán
           await axios.put(
-            `${API_URL}/api/bookings/${booking.id}/confirm-payment`,
+            `${API_URL}/api/bookings/${booking.id}/confirm-payment`, // CHỈNH: đổi từ booking.booking_id thành booking.id
             { paid_amount: booking.total_price },
             { headers: { Authorization: `Bearer ${token}` } }
           );
@@ -457,13 +461,13 @@ export default function BookingList() {
         case "cancel":
           Modal.confirm({
             title: "Xác nhận hủy booking",
-            content: `Bạn có chắc muốn hủy booking #${booking.id}?`,
+            content: `Bạn có chắc muốn hủy booking #${booking.id}?`, // CHỈNH: đổi từ booking.booking_id thành booking.id
             okText: "Hủy booking",
             okType: "danger",
             cancelText: "Thoát",
             onOk: async () => {
               await axios.put(
-                `${API_URL}/api/bookings/${booking.id}/cancel`,
+                `${API_URL}/api/bookings/${booking.id}/cancel`, // CHỈNH: đổi từ booking.booking_id thành booking.id
                 {},
                 { headers: { Authorization: `Bearer ${token}` } }
               );
@@ -474,8 +478,9 @@ export default function BookingList() {
           break;
 
         case "send_email":
+          // Gửi email xác nhận
           await axios.post(
-            `${API_URL}/api/bookings/${booking.id}/send-confirmation`,
+            `${API_URL}/api/bookings/${booking.id}/send-confirmation`, // CHỈNH: đổi từ booking.booking_id thành booking.id
             {},
             { headers: { Authorization: `Bearer ${token}` } }
           );
@@ -621,8 +626,8 @@ export default function BookingList() {
         {/* Bookings Table */}
         <Table
           columns={columns}
-          dataSource={bookings} // FIX: Đảm bảo bookings luôn là mảng
-          rowKey="id"
+          dataSource={bookings}
+          rowKey="id" // CHỈNH: đổi từ 'booking_id' thành 'id'
           loading={loading}
           scroll={{ x: 1500 }}
           pagination={{
@@ -644,7 +649,8 @@ export default function BookingList() {
         title={
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <EyeOutlined />
-            <span>Chi tiết Booking #{selectedBooking?.id}</span>
+            <span>Chi tiết Booking #{selectedBooking?.id}</span>{" "}
+            {/* CHỈNH: đổi từ selectedBooking?.booking_id */}
           </div>
         }
         open={detailModalVisible}
@@ -678,7 +684,8 @@ export default function BookingList() {
             >
               <Descriptions.Item label="Mã Booking" span={2}>
                 <strong style={{ color: "#1890ff", fontSize: "16px" }}>
-                  #{selectedBooking.id}
+                  #{selectedBooking.id}{" "}
+                  {/* CHỈNH: đổi từ selectedBooking.booking_id */}
                 </strong>
               </Descriptions.Item>
 
@@ -699,7 +706,7 @@ export default function BookingList() {
                   <UserOutlined />
                   <div>
                     <div style={{ fontWeight: 500 }}>
-                      {selectedBooking.user?.user_name || "Không có tên"}
+                      {selectedBooking.user?.name}
                     </div>
                     <div style={{ fontSize: "12px", color: "#666" }}>
                       {selectedBooking.user?.email}
@@ -734,7 +741,7 @@ export default function BookingList() {
               style={{ marginBottom: "16px" }}
             >
               <Table
-                dataSource={selectedBooking.items || []}
+                dataSource={selectedBooking.items}
                 rowKey="booking_item_id"
                 pagination={false}
                 size="small"
