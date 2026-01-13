@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\ChatbotController;
 use App\Http\Controllers\Api\GalleryController;
 use App\Http\Controllers\Api\InvoiceController;
+use App\Http\Controllers\Api\LoyaltyController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ServiceController;
@@ -22,6 +23,7 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\RoomImageController;
 use App\Http\Controllers\Api\AdminBookingController;
 use App\Http\Controllers\Api\AdminCheckinController;
+use App\Http\Controllers\Api\AdminLoyaltyController;
 use App\Http\Controllers\Api\AdminServiceController;
 use App\Http\Controllers\Api\AdminCheckoutController;
 use App\Http\Controllers\Api\RoomTypeImageController;
@@ -245,3 +247,15 @@ Route::get(
     'room-types/{id}/rating',
     [RoomTypeController::class, 'rating']
 );
+
+
+// Loyalty routes
+Route::middleware('auth:sanctum')->get(
+    '/me/loyalty',
+    [LoyaltyController::class, 'me']
+);
+
+    Route::get('/loyalty/users', [AdminLoyaltyController::class, 'index']);
+    Route::get('/loyalty/users/{user_id}', [AdminLoyaltyController::class, 'show']);
+    Route::post('/loyalty/users/{user_id}/points', [AdminLoyaltyController::class, 'adjustPoints']);
+    Route::post('/loyalty/users/{user_id}/reset', [AdminLoyaltyController::class, 'reset']);

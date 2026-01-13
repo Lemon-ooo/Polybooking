@@ -25,4 +25,14 @@ class Voucher extends Model
 
         return max(0, $price - $this->discount_amount);
     }
+
+    public function users()
+{
+    return $this->belongsToMany(
+        User::class,
+        'voucher_user',
+        'voucher_id',
+        'user_id'
+    );
+}
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Voucher;
 use App\Models\Booking;
 use Illuminate\Http\Request;
+use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 
 class VoucherController extends Controller
@@ -63,10 +64,13 @@ class VoucherController extends Controller
      * ===================================================== */
     public function validateVoucher(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'code'  => 'required|string|exists:vouchers,code',
-            'price' => 'required|integer|min:0',
-        ]);
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'code'  => 'required|string',
+                'price' => 'required|integer|min:0',
+            ]
+        );
 
         if ($validator->fails()) {
             return response()->json([
@@ -78,14 +82,34 @@ class VoucherController extends Controller
             ], 422);
         }
 
-        $voucher = Voucher::where('code', $request->code)->first();
+        /** @var User|null $user */
+        $user = auth('sanctum')->user();
 
-        if (!$voucher->isValid()) {
+        /* ===============================
+     * 1️⃣ ƯU TIÊN VOUCHER RIÊNG
+     * =============================== */
+        $voucher = null;
+
+        if ($user) {
+            $voucher = $user->vouchers()
+                ->where('code', $request->code)
+                ->wherePivot('is_used', false)
+                ->first();
+        }
+
+        /* ===============================
+     * 2️⃣ VOUCHER CHUNG
+     * =============================== */
+        if (!$voucher) {
+            $voucher = Voucher::where('code', $request->code)->first();
+        }
+
+        if (!$voucher || !$voucher->isValid()) {
             return response()->json([
                 'success' => false,
                 'error' => [
                     'code' => 'VOUCHER_INVALID',
-                    'message' => 'Voucher không hợp lệ hoặc đã hết hạn',
+                    'message' => 'Voucher không hợp lệ hoặc không thuộc về bạn',
                 ]
             ], 400);
         }
