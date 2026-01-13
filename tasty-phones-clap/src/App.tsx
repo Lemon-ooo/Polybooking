@@ -70,6 +70,7 @@ import DamageCreate from "./components/pages/admin/damages/create";
 import DamageEdit from "./components/pages/admin/damages/edit";
 import DamageShow from "./components/pages/admin/damages/show";
 import VoucherPage from "./components/pages/admin/vouchers/VoucherPage";
+import RevenuePage from "./components/pages/admin/revenue";
 
 // ======================================================
 // 🚀 APP CHÍNH - ĐÃ SỬA
@@ -182,6 +183,9 @@ export default function App() {
             <Route path="damages/edit/:id" element={<DamageEdit />} />
             <Route path="damages/show/:id" element={<DamageShow />} />
             <Route path="vouchers" element={<VoucherPage />} />
+            {/* revenue */}
+            <Route path="revenue" element={<RevenuePage />} />
+
           </Route>
 
           {/* --------------------------------------------- */}

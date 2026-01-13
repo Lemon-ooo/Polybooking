@@ -14,11 +14,12 @@ export interface Room extends BaseRecord {
   amenities: Amenity[];
 }
 export enum RoomStatus {
-  AVAILABLE = "trống",
-  OCCUPIED = "đang sử dụng",
-  BOOKED = "occupied",
+  AVAILABLE = "available",
+  BOOKED = "booked",
+  IN_USE = "in_use",
   MAINTENANCE = "maintenance",
 }
+
 export interface RoomType {
   id: number;
   name: string;
@@ -75,12 +76,12 @@ export interface UpdateRoomRequest extends Partial<CreateRoomRequest> {}
 
 // Room status options
 export const ROOM_STATUSES = [
-  { label: "Trống", value: "trống", color: "green" },
-  { label: "Đang sử dụng", value: "đang sử dụng", color: "blue" },
-  { label: "Available", value: "available", color: "green" },
-  { label: "Bảo trì", value: "maintenance", color: "orange" },
-  { label: "Đã đặt", value: "occupied", color: "red" },
+  { label: "Trống", value: "available", color: "green" },
+  { label: "Đã đặt", value: "booked", color: "orange" },
+  { label: "Đang sử dụng", value: "in_use", color: "blue" },
+  { label: "Bảo trì", value: "maintenance", color: "red" },
 ] as const;
+
 
 // Utility functions
 export const getRoomStatusColor = (status: string): string => {
