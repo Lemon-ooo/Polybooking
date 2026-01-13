@@ -24,6 +24,7 @@ import {
   InputNumber,
   Select,
   Upload,
+  List,
 } from "antd";
 import {
   HomeOutlined,
@@ -42,14 +43,17 @@ import {
   DownloadOutlined,
   SendOutlined,
   EyeOutlined,
+  MoreOutlined,
   CheckCircleOutlined,
   InfoCircleOutlined,
+  PlusOutlined,
   WarningOutlined,
   UploadOutlined,
   PictureOutlined,
   KeyOutlined,
   CheckOutlined,
-  ApartmentOutlined,
+  CloseOutlined,
+  DoorOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
@@ -296,7 +300,7 @@ export default function BookingShow() {
   };
 
   // ============================================
-  // FETCH BOOKING DETAILS
+  // FETCH BOOKING DETAILS - CẬP NHẬT ĐỂ LẤY PHÒNG ĐÃ GẮN
   // ============================================
   const fetchBookingDetails = async () => {
     if (!id) {
@@ -373,16 +377,8 @@ export default function BookingShow() {
       setBooking(bookingData);
       setPricing(pricingData);
 
-      // Lấy room_type_id từ booking items
-      const roomTypeId = bookingData.items[0]?.room_type_id;
-      const bookingId = bookingData.id || bookingData.booking_id;
-
-      // Fetch assigned rooms nếu có API
-      if (bookingId) {
-        await fetchAssignedRooms(bookingId, roomTypeId, token);
-      } else {
-        setAssignedRooms([]);
-      }
+      // Fetch assigned rooms - THỬ NHIỀU ENDPOINT
+      await fetchAssignedRooms(bookingData.id || bookingData.booking_id, token);
 
       // Check invoice status
       await checkInvoiceStatus(bookingData.id || bookingData.booking_id, token);
@@ -407,100 +403,18 @@ export default function BookingShow() {
     }
   };
 
-  // ============================================
-  // ASSIGNED ROOMS FUNCTIONS
-  // ============================================
-
-  // Fetch assigned rooms - SỬA LẠI
+  // Fetch assigned rooms
   const fetchAssignedRooms = async (
     bookingId: number,
-    roomTypeId: number | undefined,
     token: string | null
   ) => {
     try {
-      console.log(`Fetching assigned rooms for booking ${bookingId}`);
-
-      // Chỉ thử endpoint chính
-      const endpoint = `${API_URL}/api/bookings/${bookingId}/assigned-rooms`;
-
-      try {
-        const response = await axios.get(endpoint, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
-
-        console.log(`Assigned rooms API response:`, response.data);
-
-        if (response.data.success) {
-          let rooms = response.data.data || [];
-
-          // Filter theo room_type_id nếu có
-          if (roomTypeId && rooms.length > 0) {
-            rooms = rooms.filter(
-              (room: any) => room.room_type_id === roomTypeId
-            );
-          }
-
-          setAssignedRooms(rooms);
-          console.log(`Found ${rooms.length} assigned rooms`);
-        } else {
-          console.log("No assigned rooms data from API");
-          setAssignedRooms([]);
-        }
-      } catch (apiError: any) {
-        console.log(`API endpoint not available: ${apiError.message}`);
-
-        // Nếu API không có, check nếu booking response có sẵn assigned rooms
-        if (booking?.assignedRooms && Array.isArray(booking.assignedRooms)) {
-          let rooms = booking.assignedRooms;
-          if (roomTypeId) {
-            rooms = rooms.filter(
-              (room: any) => room.room_type_id === roomTypeId
-            );
-          }
-          setAssignedRooms(rooms);
-          console.log(`Using ${rooms.length} assigned rooms from booking data`);
-        } else {
-          setAssignedRooms([]);
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching assigned rooms:", error);
-      setAssignedRooms([]);
-    }
-  };
-
-  // Fetch available rooms - SỬA LẠI
-  const fetchAvailableRooms = async () => {
-    if (!booking) return;
-
-    setRoomSearchLoading(true);
-    try {
-      const authStr = localStorage.getItem("auth");
-      const token = authStr ? JSON.parse(authStr).token : null;
-
-      // Lấy room_type_id từ booking items
-      const roomTypeId = booking.items[0]?.room_type_id;
-      if (!roomTypeId) {
-        message.error("Không tìm thấy loại phòng trong booking");
-        return;
-      }
-
-      const roomTypeName = booking.items[0]?.room_type_name || "Không xác định";
-
-      console.log(
-        "🔍 Fetching available rooms for type:",
-        roomTypeId,
-        roomTypeName
-      );
-
-      // Thử endpoint chính
+      // Thử nhiều endpoint
       const endpoints = [
-        `${API_URL}/api/admin/rooms/available?room_type_id=${roomTypeId}&check_in=${booking.check_in}&check_out=${booking.check_out}`,
-        `${API_URL}/api/rooms/available?room_type_id=${roomTypeId}&check_in=${booking.check_in}&check_out=${booking.check_out}`,
-        `${API_URL}/api/rooms?room_type_id=${roomTypeId}&status=available`,
+        `${API_URL}/api/bookings/${bookingId}/assigned-rooms`,
+        `${API_URL}/api/bookings/${bookingId}/rooms`,
+        `${API_URL}/api/assigned-rooms?booking_id=${bookingId}`,
       ];
-
-      let rooms: Room[] = [];
 
       for (const endpoint of endpoints) {
         try {
@@ -508,141 +422,30 @@ export default function BookingShow() {
             headers: token ? { Authorization: `Bearer ${token}` } : {},
           });
 
-          console.log(`Endpoint ${endpoint} response:`, response.data);
+          console.log(`Trying endpoint: ${endpoint}`, response.data);
 
           if (response.data.success && response.data.data) {
-            rooms = response.data.data || [];
-            break;
+            setAssignedRooms(response.data.data);
+            return;
           } else if (Array.isArray(response.data)) {
-            rooms = response.data;
-            break;
-          } else if (response.data.rooms) {
-            rooms = response.data.rooms;
-            break;
+            setAssignedRooms(response.data);
+            return;
+          } else if (response.data.assignedRooms) {
+            setAssignedRooms(response.data.assignedRooms);
+            return;
           }
         } catch (error) {
           console.log(`Endpoint ${endpoint} failed`);
         }
       }
 
-      // Filter theo room_type_id (đảm bảo đúng loại phòng)
-      rooms = rooms.filter((room: any) => room.room_type_id === roomTypeId);
-
-      // Nếu không tìm thấy phòng trống
-      if (rooms.length === 0) {
-        message.warning(
-          `Không tìm thấy phòng ${roomTypeName} trống trong khoảng thời gian này`
-        );
-      }
-
-      setAvailableRooms(rooms);
-      console.log(
-        `Found ${rooms.length} available rooms of type ${roomTypeName}`
-      );
-    } catch (error: any) {
-      console.error("Error fetching available rooms:", error);
-      message.error("Lỗi khi tải danh sách phòng");
-      setAvailableRooms([]);
-    } finally {
-      setRoomSearchLoading(false);
+      // Nếu không tìm thấy, đặt mảng rỗng
+      setAssignedRooms([]);
+    } catch (error) {
+      console.error("Error fetching assigned rooms:", error);
+      setAssignedRooms([]);
     }
   };
-
-  // Handle assign room - SỬA LẠI
-  const handleAssignRoom = async () => {
-    if (!booking || !id || !selectedRoomId) {
-      message.error("Vui lòng chọn phòng");
-      return;
-    }
-
-    setAssignRoomLoading(true);
-    try {
-      const authStr = localStorage.getItem("auth");
-      const token = authStr ? JSON.parse(authStr).token : null;
-
-      const payload = {
-        room_id: selectedRoomId,
-      };
-
-      console.log("📤 Assigning room:", payload);
-
-      const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/assign-room`,
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      console.log("✅ Assign room response:", response.data);
-
-      if (response.data.success) {
-        message.success("Gắn phòng thành công!");
-        setAssignRoomModalVisible(false);
-
-        // Thêm phòng vừa gắn vào danh sách assigned rooms
-        const newAssignedRoom = response.data.data?.assigned_room || {
-          id: Date.now(), // ID tạm thời
-          booking_id: booking.id,
-          room_id: selectedRoomId,
-          room_number:
-            availableRooms.find((r) => r.room_id === selectedRoomId)
-              ?.room_number || "N/A",
-          room_type_id: booking.items[0]?.room_type_id,
-          room_type_name: booking.items[0]?.room_type_name,
-          check_in: booking.check_in,
-          check_out: booking.check_out,
-          status: "assigned",
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
-
-        setAssignedRooms((prev) => [...prev, newAssignedRoom]);
-        setSelectedRoomId(null);
-
-        // Refresh booking details để có dữ liệu mới nhất
-        setTimeout(() => {
-          fetchBookingDetails();
-        }, 500);
-      } else {
-        message.error(response.data.error?.message || "Có lỗi xảy ra");
-      }
-    } catch (error: any) {
-      console.error("❌ Error assigning room:", error);
-
-      if (error.response?.data?.error?.message) {
-        message.error(error.response.data.error.message);
-      } else if (error.response?.status === 403) {
-        message.error("Bạn không có quyền thực hiện thao tác này");
-      } else if (error.response?.status === 404) {
-        message.error("Không tìm thấy booking hoặc phòng");
-      } else if (error.response?.status === 422) {
-        message.error("Dữ liệu không hợp lệ");
-      } else {
-        message.error("Không thể gắn phòng. Vui lòng thử lại.");
-      }
-    } finally {
-      setAssignRoomLoading(false);
-    }
-  };
-
-  // Open assign room modal
-  const showAssignRoomModal = async () => {
-    if (!booking) return;
-
-    setSelectedRoomId(null);
-    setAssignRoomModalVisible(true);
-
-    // Fetch available rooms cùng loại với booking
-    await fetchAvailableRooms();
-  };
-
-  // ============================================
-  // CÁC HÀM KHÁC (GIỮ NGUYÊN)
-  // ============================================
 
   // Check invoice status
   const checkInvoiceStatus = async (
@@ -746,6 +549,101 @@ export default function BookingShow() {
     setPenaltyModalVisible(true);
   };
 
+  // Open assign room modal
+  const showAssignRoomModal = async () => {
+    if (!booking) return;
+
+    setSelectedRoomId(null);
+    setAssignRoomModalVisible(true);
+
+    // Fetch available rooms cùng loại với booking
+    await fetchAvailableRooms();
+  };
+
+  // Fetch available rooms cùng loại với booking
+  const fetchAvailableRooms = async () => {
+    if (!booking) return;
+
+    setRoomSearchLoading(true);
+    try {
+      const authStr = localStorage.getItem("auth");
+      const token = authStr ? JSON.parse(authStr).token : null;
+
+      // Lấy room_type_id từ booking items
+      const roomTypeId = booking.items[0]?.room_type_id;
+      if (!roomTypeId) {
+        message.error("Không tìm thấy loại phòng trong booking");
+        return;
+      }
+
+      // Lấy room_type_name để hiển thị
+      const roomTypeName = booking.items[0]?.room_type_name || "Không xác định";
+
+      console.log(
+        "🔍 Fetching available rooms for type:",
+        roomTypeId,
+        roomTypeName
+      );
+
+      // Thử nhiều endpoint để lấy phòng trống
+      const endpoints = [
+        `${API_URL}/api/rooms/available?room_type_id=${roomTypeId}&check_in=${booking.check_in}&check_out=${booking.check_out}`,
+        `${API_URL}/api/rooms?room_type_id=${roomTypeId}&status=available`,
+        `${API_URL}/api/admin/rooms/available?room_type_id=${roomTypeId}`,
+      ];
+
+      let rooms: Room[] = [];
+
+      for (const endpoint of endpoints) {
+        try {
+          const response = await axios.get(endpoint, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          });
+
+          console.log(`Endpoint ${endpoint} response:`, response.data);
+
+          if (response.data.success) {
+            rooms = response.data.data || [];
+            // Thêm room_type_name vào mỗi phòng
+            rooms = rooms.map((room) => ({
+              ...room,
+              room_type_name: roomTypeName,
+            }));
+            break;
+          } else if (Array.isArray(response.data)) {
+            rooms = response.data.map((room: any) => ({
+              ...room,
+              room_type_name: roomTypeName,
+            }));
+            break;
+          } else if (response.data.rooms) {
+            rooms = response.data.rooms.map((room: any) => ({
+              ...room,
+              room_type_name: roomTypeName,
+            }));
+            break;
+          }
+        } catch (error) {
+          console.log(`Endpoint ${endpoint} failed`);
+        }
+      }
+
+      setAvailableRooms(rooms);
+
+      if (rooms.length === 0) {
+        message.warning(
+          `Không tìm thấy phòng ${roomTypeName} trống trong khoảng thời gian này`
+        );
+      }
+    } catch (error: any) {
+      console.error("Error fetching available rooms:", error);
+      message.error("Lỗi khi tải danh sách phòng");
+      setAvailableRooms([]);
+    } finally {
+      setRoomSearchLoading(false);
+    }
+  };
+
   // Handle form changes
   const handlePenaltyFormChange = (
     field: keyof PenaltyFormData,
@@ -762,6 +660,67 @@ export default function BookingShow() {
       ...damageForm,
       [field]: value,
     });
+  };
+
+  // Handle assign room
+  const handleAssignRoom = async () => {
+    if (!booking || !id || !selectedRoomId) {
+      message.error("Vui lòng chọn phòng");
+      return;
+    }
+
+    setAssignRoomLoading(true);
+    try {
+      const authStr = localStorage.getItem("auth");
+      const token = authStr ? JSON.parse(authStr).token : null;
+
+      const payload = {
+        room_id: selectedRoomId,
+      };
+
+      console.log("📤 Assigning room:", payload);
+
+      const response = await axios.post(
+        `${API_URL}/api/bookings/${id}/assign-room`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("✅ Assign room response:", response.data);
+
+      if (response.data.success) {
+        message.success("Gắn phòng thành công!");
+        setAssignRoomModalVisible(false);
+
+        // Refresh data
+        await fetchBookingDetails();
+
+        setSelectedRoomId(null);
+      } else {
+        message.error(response.data.error?.message || "Có lỗi xảy ra");
+      }
+    } catch (error: any) {
+      console.error("❌ Error assigning room:", error);
+
+      if (error.response?.data?.error?.message) {
+        message.error(error.response.data.error.message);
+      } else if (error.response?.status === 403) {
+        message.error("Bạn không có quyền thực hiện thao tác này");
+      } else if (error.response?.status === 404) {
+        message.error("Không tìm thấy booking hoặc phòng");
+      } else if (error.response?.status === 422) {
+        message.error("Dữ liệu không hợp lệ");
+      } else {
+        message.error("Không thể gắn phòng");
+      }
+    } finally {
+      setAssignRoomLoading(false);
+    }
   };
 
   // Handle image upload
@@ -1384,7 +1343,7 @@ export default function BookingShow() {
                     }}
                   >
                     <KeyOutlined style={{ marginRight: 6 }} />
-                    Đã gắn {assignedRooms.length} phòng {roomTypeName}
+                    Đã gắn {assignedRooms.length} phòng
                   </Tag>
                 </div>
               )}
@@ -1466,32 +1425,18 @@ export default function BookingShow() {
             <Card
               title={
                 <span style={{ fontWeight: "600", fontSize: "16px" }}>
-                  <ApartmentOutlined
+                  <DoorOutlined
                     style={{ marginRight: "8px", color: "#1890ff" }}
                   />
                   Phòng Đã Gắn ({assignedRooms.length})
-                  <Tag
-                    color="blue"
-                    style={{ marginLeft: "8px", fontSize: "12px" }}
-                  >
-                    {roomTypeName}
-                  </Tag>
                 </span>
               }
               style={{
                 marginBottom: "24px",
                 borderRadius: "12px",
                 boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-                border: "1px solid #1890ff",
               }}
             >
-              <Alert
-                message={`Đã gắn ${assignedRooms.length} phòng ${roomTypeName} cho booking này`}
-                type="success"
-                showIcon
-                style={{ marginBottom: 16 }}
-              />
-
               <Row gutter={[16, 16]}>
                 {assignedRooms.map((room) => {
                   const roomStatus = roomStatusConfig[room.status] || {
@@ -1516,7 +1461,7 @@ export default function BookingShow() {
                               height: "70px",
                               borderRadius: "50%",
                               background:
-                                "linear-gradient(135deg, #1890ff 0%, #52c41a 100%)",
+                                "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
@@ -1584,12 +1529,6 @@ export default function BookingShow() {
                     style={{ marginRight: "8px", color: "#ff4d4f" }}
                   />
                   Trạng thái Gắn phòng
-                  <Tag
-                    color="red"
-                    style={{ marginLeft: "8px", fontSize: "12px" }}
-                  >
-                    {roomTypeName}
-                  </Tag>
                 </span>
               }
               style={{
@@ -1615,11 +1554,11 @@ export default function BookingShow() {
                     color: "#ff4d4f",
                   }}
                 >
-                  Chưa gắn phòng {roomTypeName}
+                  Chưa gắn phòng
                 </div>
                 <div style={{ color: "#666", marginBottom: "16px" }}>
-                  Booking này chưa được gắn phòng. Vui lòng gắn phòng{" "}
-                  {roomTypeName} để khách có thể check-in.
+                  Booking này chưa được gắn phòng. Vui lòng gắn phòng để khách
+                  có thể check-in.
                 </div>
                 <Button
                   type="primary"
@@ -1627,7 +1566,7 @@ export default function BookingShow() {
                   onClick={showAssignRoomModal}
                   style={{ background: "#ff4d4f", borderColor: "#ff4d4f" }}
                 >
-                  Gắn phòng {roomTypeName}
+                  Gắn phòng ngay
                 </Button>
               </div>
             </Card>
@@ -1692,8 +1631,7 @@ export default function BookingShow() {
                   <div style={{ color: "#666" }}>
                     {assignedRooms
                       .map((room) => `Phòng ${room.room_number}`)
-                      .join(", ")}{" "}
-                    ({roomTypeName})
+                      .join(", ")}
                   </div>
                 </Timeline.Item>
               )}
@@ -1879,23 +1817,6 @@ export default function BookingShow() {
                         </div>
                       )}
                     </div>
-                  </Descriptions.Item>
-
-                  <Descriptions.Item label="Loại phòng" span={1}>
-                    <div style={{ fontWeight: "600", color: "#1890ff" }}>
-                      {roomTypeName}
-                    </div>
-                  </Descriptions.Item>
-
-                  <Descriptions.Item label="Số lượng phòng" span={1}>
-                    <Badge
-                      count={booking.items[0]?.quantity || 1}
-                      style={{
-                        backgroundColor: "#1890ff",
-                        fontSize: "16px",
-                        padding: "4px 8px",
-                      }}
-                    />
                   </Descriptions.Item>
 
                   {booking.voucher_code && (
@@ -2588,7 +2509,7 @@ export default function BookingShow() {
                     borderColor: "#1890ff",
                   }}
                 >
-                  Gắn phòng {roomTypeName}
+                  Gắn phòng
                 </Button>
               ) : hasAssignedRooms ? (
                 <Button
@@ -2596,7 +2517,7 @@ export default function BookingShow() {
                   block
                   size="large"
                   onClick={showAssignRoomModal}
-                  icon={<ApartmentOutlined />}
+                  icon={<DoorOutlined />}
                   style={{
                     height: "48px",
                     fontSize: "16px",
@@ -2605,7 +2526,7 @@ export default function BookingShow() {
                     booking.status !== "paid" && booking.status !== "confirmed"
                   }
                 >
-                  Đã gắn {assignedRooms.length} phòng {roomTypeName}
+                  Đã gắn {assignedRooms.length} phòng
                 </Button>
               ) : null}
 
@@ -3014,9 +2935,6 @@ export default function BookingShow() {
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <KeyOutlined style={{ color: "#1890ff" }} />
             <span>Gắn phòng cho Booking #{displayBookingId}</span>
-            <Tag color="blue" style={{ marginLeft: "auto" }}>
-              {roomTypeName}
-            </Tag>
           </div>
         }
         open={assignRoomModalVisible}
@@ -3024,7 +2942,7 @@ export default function BookingShow() {
         onOk={handleAssignRoom}
         okText="Gắn phòng"
         cancelText="Hủy"
-        width={700}
+        width={600}
         okButtonProps={{
           type: "primary",
           loading: assignRoomLoading,
@@ -3039,31 +2957,9 @@ export default function BookingShow() {
             message="Thông tin booking"
             description={
               <div>
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <div>
-                      <strong>Loại phòng đặt:</strong>
-                    </div>
-                    <div
-                      style={{
-                        fontSize: "16px",
-                        color: "#1890ff",
-                        fontWeight: "600",
-                      }}
-                    >
-                      {roomTypeName}
-                    </div>
-                  </Col>
-                  <Col span={12}>
-                    <div>
-                      <strong>Số lượng:</strong>
-                    </div>
-                    <div style={{ fontSize: "16px", fontWeight: "600" }}>
-                      {booking?.items[0]?.quantity || 1} phòng
-                    </div>
-                  </Col>
-                </Row>
-                <Divider style={{ margin: "12px 0" }} />
+                <p>
+                  <strong>Loại phòng đặt:</strong> {roomTypeName}
+                </p>
                 <p>
                   <strong>Thời gian:</strong>{" "}
                   {formatDate(booking?.check_in || "")} -{" "}
@@ -3082,7 +2978,7 @@ export default function BookingShow() {
             <div style={{ textAlign: "center", padding: "40px 0" }}>
               <Spin size="large" />
               <div style={{ marginTop: 16, color: "#666" }}>
-                Đang tải danh sách phòng {roomTypeName}...
+                Đang tải danh sách phòng...
               </div>
             </div>
           ) : availableRooms.length > 0 ? (
@@ -3189,7 +3085,7 @@ export default function BookingShow() {
                   description={`Phòng ${
                     availableRooms.find((r) => r.room_id === selectedRoomId)
                       ?.room_number
-                  } ({roomTypeName}) sẽ được gắn cho booking này.`}
+                  } sẽ được gắn cho booking này.`}
                   type="success"
                   showIcon
                   style={{ marginTop: 16 }}
@@ -3198,16 +3094,15 @@ export default function BookingShow() {
             </div>
           ) : (
             <div style={{ textAlign: "center", padding: "40px 0" }}>
-              <ApartmentOutlined
+              <DoorOutlined
                 style={{ fontSize: "48px", color: "#d9d9d9", marginBottom: 16 }}
               />
               <div style={{ fontSize: "16px", color: "#999", marginBottom: 8 }}>
-                Không có phòng {roomTypeName} trống
+                Không có phòng trống
               </div>
               <div style={{ fontSize: "14px", color: "#666" }}>
                 Hiện không có phòng {roomTypeName} nào trống trong khoảng thời
-                gian {formatDate(booking?.check_in || "")} -{" "}
-                {formatDate(booking?.check_out || "")}.
+                gian này.
               </div>
             </div>
           )}
