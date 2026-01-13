@@ -21,8 +21,8 @@ return new class extends Migration
             // Khóa ngoại tới room_types.room_type_id
             $table->unsignedBigInteger('room_type_id');
 
-            // Trạng thái phòng: available, booked, maintenance,...
-            $table->enum('room_status', ['available', 'đang sử dụng', 'sửa chữa'])->default('available');
+            // Trạng thái phòng: available, booked, in_use, maintenance
+            $table->enum('room_status', ['available', 'booked', 'in_use', 'maintenance'])->default('available');
 
             // Mô tả
             $table->text('description')->nullable();

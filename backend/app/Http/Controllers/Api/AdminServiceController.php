@@ -22,10 +22,10 @@ class AdminServiceController extends Controller
         $booking = Booking::findOrFail($bookingId);
 
         // 2. Kiểm tra trạng thái booking
-        if ($booking->status !== Booking::STATUS_CHECK_IN) {
+        if ($booking->status !== Booking::STATUS_IN_USE) {
             return response()->json([
                 'success' => false,
-                'message' => 'Booking chưa check-in, không thể thêm dịch vụ'
+                'message' => 'Booking chưa in_use, không thể thêm dịch vụ'
             ], 400);
         }
 

@@ -141,6 +141,7 @@ class PaymentController extends Controller
 
             /* ===== BOOKING PAYMENT ===== */
             if ($type === 'BOOKING') {
+<<<<<<< HEAD
 
                 $booking->update(['status' => 'paid']);
 
@@ -150,6 +151,9 @@ class PaymentController extends Controller
                 // gửi mail
                 Mail::to($booking->user->email)
                     ->send(new BookingPaidMail($booking));
+=======
+                $booking->update(['status' => Booking::STATUS_PAID]);
+>>>>>>> clone
             }
 
             /* ===== CHECKOUT PAYMENT ===== */
@@ -161,11 +165,11 @@ class PaymentController extends Controller
                 }
 
                 // đóng booking
-                $booking->update(['status' => 'check_out']);
+                $booking->update(['status' => Booking::STATUS_CHECK_OUT]);
 
-                // mở lại phòng
+                // mark assigned rooms as checked out
                 AssignedRoom::where('booking_id', $booking->id)
-                    ->update(['status' => 'available']);
+                    ->update(['status' => \App\Models\AssignedRoom::STATUS_CHECKED_OUT]);
 
                 Cache::forget("checkout_confirmed_{$booking->id}");
             }
