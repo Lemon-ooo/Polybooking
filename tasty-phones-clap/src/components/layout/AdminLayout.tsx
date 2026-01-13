@@ -26,6 +26,7 @@ import {
   FolderOpenOutlined,
   ToolOutlined,
   CustomerServiceOutlined,
+  TagOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import { useGetIdentity, useLogout } from "@refinedev/core";
@@ -76,8 +77,8 @@ export const AdminLayout: React.FC = () => {
     { key: "events", icon: <ScheduleOutlined />, label: "Sự kiện" },
     { key: "services", icon: <CustomerServiceOutlined />, label: "Dịch vụ" },
     {
-      key: "comment",
-      icon: <CustomerServiceOutlined />,
+      key: "vouchers",
+      icon: <TagOutlined />,
       label: "Vourcher",
     },
     { key: "bookings", icon: <BookOutlined />, label: "Đặt Phòng" },

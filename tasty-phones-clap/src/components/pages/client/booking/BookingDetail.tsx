@@ -8,6 +8,7 @@ import {
   message,
   InputNumber,
   Divider,
+  Typography,
 } from "antd";
 import {
   CalendarOutlined,
@@ -20,6 +21,9 @@ import {
 import axiosInstance from "../../../../providers/data/axiosConfig";
 import { useParams, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
+import ReviewForm from "../reviews/ReviewForm"; // Đường dẫn của bạn
+
+const { Title } = Typography;
 
 const statusColors: any = {
   pending: "orange",
@@ -29,6 +33,7 @@ const statusColors: any = {
   completed: "blue",
   check_in: "green",
   check_out: "blue",
+  paid: "cyan", // Thêm nếu cần
 };
 
 const BookingDetail = () => {
@@ -50,6 +55,7 @@ const BookingDetail = () => {
       setDetail(res.data.data);
     } catch (error) {
       console.error("Error loading booking detail:", error);
+      message.error("Không thể tải thông tin booking");
     } finally {
       setLoading(false);
     }
@@ -77,7 +83,7 @@ const BookingDetail = () => {
   useEffect(() => {
     fetchDetail();
     fetchServices();
-  }, []);
+  }, [id]);
 
   const toggleService = (sv: any) => {
     const exists = selected.some((s) => s.id === sv.id);
@@ -135,7 +141,7 @@ const BookingDetail = () => {
   const rawStatus = booking.status || "unknown";
   const displayStatus = rawStatus.replace(/_/g, " ").toUpperCase();
 
-  // ===== GUEST =====
+  // Guest display
   const adults = booking.adults || 0;
   const children = booking.children || 0;
   const guestParts: string[] = [];
@@ -145,7 +151,7 @@ const BookingDetail = () => {
   const guestsDisplay =
     guestParts.length > 0 ? guestParts.join(" + ") : "0 Guests";
 
-  // ===== NIGHTS =====
+  // Nights
   let nights = booking.nights;
   if (!nights) {
     const ci = dayjs(booking.check_in);
@@ -154,10 +160,8 @@ const BookingDetail = () => {
   }
   const days = nights + 1;
 
-  // ===== BILLING SUMMARY (GOM NHÓM) =====
+  // Billing Summary
   const aggregated: Record<string, any> = {};
-
-
   if (booking.service_invoice?.charges?.length) {
     booking.service_invoice.charges.forEach((c: any) => {
       const name = c.service?.service_name || "Service";
@@ -171,7 +175,6 @@ const BookingDetail = () => {
           price: Number(c.amount) / c.quantity,
         };
       }
-
       aggregated[key].qty += c.quantity;
     });
   }
@@ -183,7 +186,11 @@ const BookingDetail = () => {
     qty: aggregated[k].qty,
     total: aggregated[k].price * aggregated[k].qty,
   }));
-const serviceTotal = tableData.reduce((sum, row) => sum + Number(row.total || 0), 0);
+
+  const serviceTotal = tableData.reduce(
+    (sum, row) => sum + Number(row.total || 0),
+    0
+  );
 
   const payments = booking.payments || [];
   const paid = payments.reduce(
@@ -285,7 +292,6 @@ const serviceTotal = tableData.reduce((sum, row) => sum + Number(row.total || 0)
           </div>
 
           <h3 style={{ marginTop: 30 }}>Billing Summary</h3>
-
           <Table
             dataSource={tableData}
             pagination={false}
@@ -301,16 +307,18 @@ const serviceTotal = tableData.reduce((sum, row) => sum + Number(row.total || 0)
             ]}
             style={{ marginTop: 10 }}
           />
-<Divider />
 
-<div style={{
-  display: "flex",
-  justifyContent: "flex-end",
-  fontSize: 16,
-  fontWeight: 600,
-}}>
-  Tổng dịch vụ: {serviceTotal.toLocaleString("vi-VN")} ₫
-</div>
+          <Divider />
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              fontSize: 16,
+              fontWeight: 600,
+            }}
+          >
+            Tổng dịch vụ: {serviceTotal.toLocaleString("vi-VN")} ₫
+          </div>
 
           <Divider />
 
@@ -363,72 +371,86 @@ const serviceTotal = tableData.reduce((sum, row) => sum + Number(row.total || 0)
               Add Selected Services
             </Button>
           )}
+
+          {/* ==================== PHẦN ĐÁNH GIÁ ==================== */}
+          {[
+            "check_out",
+            "checked_out",
+            "completed",
+            "paid",
+            "finish",
+            "finished",
+            "done",
+          ].includes(rawStatus.toLowerCase()) && (
+            <div style={{ marginTop: 48 }}>
+              <Divider />
+              <Title level={3}>Rate your experience</Title>
+
+              <div
+                style={{
+                  marginTop: 24,
+                  padding: 24,
+                  background: "#f9f9f9",
+                  borderRadius: 12,
+                  border: "1px solid #e8e8e8",
+                }}
+              >
+                <Title level={4}>What would you like to share about this booking?</Title>
+                <p style={{ color: "#555", marginBottom: 24 }}>
+                 Reviews help other customers make easier choices. Thank you!
+                </p>
+
+                <ReviewForm
+                  bookingId={booking.id}
+                  onSuccess={() => {
+                    message.success(
+                      "Thank you! Your review has been successfully submitted."
+                    );
+                    fetchDetail(); // Reload để cập nhật (nếu sau này thêm danh sách review)
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Thông báo nếu chưa check-out */}
+          {![
+            "check_out",
+            "checked_out",
+            "completed",
+            "paid",
+            "finish",
+            "finished",
+            "done",
+          ].includes(rawStatus.toLowerCase()) && (
+            <div
+              style={{
+                marginTop: 48,
+                textAlign: "center",
+                color: "#888",
+                fontStyle: "italic",
+              }}
+            >
+             You can only submit a review after you have completed checkout.
+            </div>
+          )}
         </Card>
       </div>
 
       {/* CSS giữ nguyên */}
       <style>{`
-        .detail-card {
-          border-radius: 14px !important;
-          padding: 18px;
-        }
-        .detail-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 20px;
-        }
-        .detail-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 20px;
-        }
-        .detail-item {
-          display: flex;
-          gap: 12px;
-        }
-        .icon {
-          font-size: 22px;
-          color: #1890ff;
-          margin-top: 4px;
-        }
-        .service-grid {
-          margin-top: 20px;
-          display: grid;
-          gap: 20px;
-          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        }
-        .service-card {
-          border: 1px solid #eee;
-          border-radius: 10px;
-          padding: 12px;
-          cursor: pointer;
-          transition: all .2s;
-        }
-        .service-card:hover {
-          border-color: #4096ff;
-        }
-        .service-card.active {
-          border-color: #1677ff;
-          background: #e6f4ff;
-        }
-        .service-card img {
-          width: 100%;
-          height: 130px;
-          border-radius: 8px;
-          object-fit: cover;
-          margin-bottom: 8px;
-        }
-        .sv-price {
-          font-weight: 600;
-          color: #d4380d;
-        }
-        .quantity-wrapper {
-          margin-top: 10px;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
+        .detail-card { border-radius: 14px !important; padding: 18px; }
+        .detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .detail-item { display: flex; gap: 12px; }
+        .icon { font-size: 22px; color: #1890ff; margin-top: 4px; }
+        .service-grid { margin-top: 20px; display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+        .service-card { border: 1px solid #eee; border-radius: 10px; padding: 12px; cursor: pointer; transition: all .2s; }
+        .service-card:hover { border-color: #4096ff; }
+        .service-card.active { border-color: #1677ff; background: #e6f4ff; }
+        .service-card img { width: 100%; height: 130px; border-radius: 8px; object-fit: cover; margin-bottom: 8px; }
+        .sv-price { font-weight: 600; color: #d4380d; }
+        .quantity-wrapper { margin-top: 10px; display: flex; align-items: center; gap: 10px; }
       `}</style>
     </div>
   );

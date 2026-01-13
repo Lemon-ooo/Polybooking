@@ -86,21 +86,21 @@ class ReviewController extends Controller
 
         if (!$booking) {
             return response()->json([
-                'message' => 'Bạn chỉ có thể đánh giá sau khi check-out'
+                'message' => 'You can only leave a review after check-out.'
             ], 403);
         }
 
         // 2️⃣ Booking không có phòng (data lỗi)
         if ($booking->items->isEmpty()) {
             return response()->json([
-                'message' => 'Booking không có phòng để đánh giá'
+                'message' => 'Booking has no rooms available for review.'
             ], 422);
         }
 
         // 3️⃣ Chặn review trùng (1 booking = 1 review)
         if ($booking->review()->exists()) {
             return response()->json([
-                'message' => 'Booking này đã được đánh giá'
+                'message' => 'This booking has been reviewed.'
             ], 409);
         }
 

@@ -217,6 +217,18 @@ Route::get(
     [VoucherController::class, 'show']
 )->middleware('auth:sanctum');
 
+
+Route::put(
+    'vouchers/{id}',
+    [VoucherController::class, 'update']
+)->middleware('auth:sanctum');
+
+Route::delete(
+    'vouchers/{id}',
+    [VoucherController::class, 'destroy']
+)->middleware('auth:sanctum');
+
+
 // Review routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('reviews', ReviewController::class);

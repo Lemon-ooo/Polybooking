@@ -65,6 +65,7 @@ import AdminConversations from "./components/pages/admin/conversations/AdminConv
 import ClientEventDetail from "./components/pages/client/events/ClientEventDetail";
 import BookingList from "./components/pages/admin/bookings/list";
 import BookingShow from "./components/pages/admin/bookings/show";
+import VoucherPage from "./components/pages/admin/vouchers/VoucherPage";
 
 // ======================================================
 // 🚀 APP CHÍNH - ĐÃ SỬA
@@ -171,6 +172,10 @@ export default function App() {
             <Route path="users" element={<UserList />} />
             <Route path="users/create" element={<EventCreate />} />
             <Route path="users/edit/:id" element={<EventEdit />} />
+
+               
+            <Route path="vouchers" element={<VoucherPage />} />
+            
           </Route>
 
           {/* --------------------------------------------- */}
@@ -223,6 +228,13 @@ export default function App() {
             create: "/admin/events/create",
             edit: "/admin/events/edit/:id",
             show: "/admin/events/show/:id",
+          },
+              {
+            name: "vouchers",
+            list: "/admin/vouchers",
+            create: "/admin/vouchers/create",
+            edit: "/admin/vouchers/edit/:id",
+            show: "/admin/vouchers/show/:id",
           },
         ]}
       />
