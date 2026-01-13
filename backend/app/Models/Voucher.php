@@ -35,4 +35,11 @@ class Voucher extends Model
         'user_id'
     );
 }
+
+
+
+public function events()
+{
+    return $this->belongsToMany(Event::class, 'event_voucher');
+}
 }
