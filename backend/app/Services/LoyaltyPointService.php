@@ -6,7 +6,9 @@ use App\Models\User;
 use App\Models\UserPoint;
 use App\Models\MembershipTier;
 use App\Models\Voucher;
+use App\Mail\TierUpMail;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class LoyaltyPointService
 {
@@ -32,26 +34,42 @@ class LoyaltyPointService
             $before = $userPoint->total_points;
             $userPoint->increment('total_points', $points);
 
-            $this->handleTierUpgrade(
-                $user,
-                $before,
-                $userPoint->total_points
-            );
+            $after = $userPoint->total_points;
+
+            $this->handleTierUpgrade($user, $before, $after);
         });
     }
 
     protected function handleTierUpgrade(User $user, int $before, int $after): void
     {
-        $tiers = MembershipTier::orderBy('min_points')->get();
+        // Tier cũ
+        $oldTier = MembershipTier::where('min_points', '<=', $before)
+            ->orderByDesc('min_points')
+            ->first();
 
-        foreach ($tiers as $tier) {
-            if ($before < $tier->min_points && $after >= $tier->min_points) {
-                $this->grantVoucherByTier($user, $tier->name);
-            }
+        // Tier mới (cao nhất đạt được)
+        $newTier = MembershipTier::where('min_points', '<=', $after)
+            ->orderByDesc('min_points')
+            ->first();
+
+        if (!$newTier || ($oldTier && $oldTier->id === $newTier->id)) {
+            return;
         }
+
+        $voucher = $this->grantVoucherByTier($user, $newTier->name);
+
+        // 📧 Gửi mail
+        Mail::to($user->email)->send(
+            new TierUpMail(
+                $user,
+                $newTier,
+                $after,
+                $voucher
+            )
+        );
     }
 
-    protected function grantVoucherByTier(User $user, string $tierName): void
+    protected function grantVoucherByTier(User $user, string $tierName): ?Voucher
     {
         $map = [
             'silver'  => 'SILVER10',
@@ -59,18 +77,20 @@ class LoyaltyPointService
             'diamond' => 'DIAMOND20',
         ];
 
-        if (!isset($map[$tierName])) return;
+        if (!isset($map[$tierName])) return null;
 
         $voucher = Voucher::where('code', $map[$tierName])
             ->where('status', 'active')
             ->first();
 
-        if (!$voucher) return;
+        if (!$voucher) return null;
 
         if ($user->vouchers()->where('voucher_id', $voucher->id)->exists()) {
-            return;
+            return null;
         }
 
         $user->vouchers()->attach($voucher->id);
+
+        return $voucher;
     }
 }
