@@ -500,7 +500,7 @@ export default function BookingShow() {
 
       // Gọi API checkout với phương thức cash
       const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/checkout/pay`,
+        `${API_URL}/api/admin/bookings/${id}/checkout/pay`,
         {
           method: "cash",
         },
@@ -555,7 +555,7 @@ export default function BookingShow() {
       });
 
       const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/checkout/pay`,
+        `${API_URL}/api/admin/bookings/${id}/checkout/pay`,
         {
           method: paymentMethod,
         },
@@ -1663,7 +1663,7 @@ export default function BookingShow() {
       };
 
       const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/checkout/penalty`,
+        `${API_URL}/api/admin/bookings/${id}/checkout/penalty`,
         payload,
         {
           headers: {

@@ -1663,7 +1663,7 @@ export default function BookingShow() {
       };
 
       const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/checkout/penalty`,
+        `${API_URL}/api/admin/bookings/${id}/checkout/penalty`,
         payload,
         {
           headers: {
