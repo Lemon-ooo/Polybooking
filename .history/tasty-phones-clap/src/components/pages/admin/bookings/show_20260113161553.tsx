@@ -400,7 +400,7 @@ export default function BookingShow() {
       const token = authStr ? JSON.parse(authStr).token : null;
 
       const response = await axios.get(
-        `${API_URL}/api/bookings/${id}/checkout/summary`,
+        `${API_URL}/api/admin/bookings/${id}/checkout/summary`,
         {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         }
@@ -1546,7 +1546,7 @@ export default function BookingShow() {
       };
 
       const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/checkout/penalty`,
+        `${API_URL}/api/bookings/${id}/penalty`,
         payload,
         {
           headers: {
