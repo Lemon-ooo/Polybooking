@@ -273,7 +273,7 @@ Route::middleware('auth:sanctum')->get(
 
 
     Route::prefix('revenue')->group(function () {
-        Route::get('/summary', [RevenueController::class, 'summary']);
-        Route::get('/range', [RevenueController::class, 'range']);
-        Route::get('/top-room-types', [RevenueController::class, 'topRoomTypes']);  
+    Route::get('/summary', [RevenueController::class, 'summary']);
+    Route::get('/range', [RevenueController::class, 'range']);
+    Route::get('/top-room-types', [RevenueController::class, 'topRoomTypes']);  
     });
