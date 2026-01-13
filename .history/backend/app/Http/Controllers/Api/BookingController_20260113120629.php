@@ -7,7 +7,7 @@ use App\Models\Booking;
 use App\Models\BookingItem;
 use App\Models\RoomType;
 use App\Models\Voucher;
-use App\Models\Room;
+
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -129,156 +129,114 @@ class BookingController extends Controller
 
 
     public function store(Request $request)
-{
-    if (!$request->user()) {
-        return $this->error('UNAUTHENTICATED', 'Bạn chưa đăng nhập', [], 401);
-    }
+    {
+        if (!$request->user()) {
+            return $this->error('UNAUTHENTICATED', 'Bạn chưa đăng nhập', [], 401);
+        }
 
-    $validator = Validator::make($request->all(), [
-        'check_in'  => 'required|date|after_or_equal:today',
-        'check_out' => 'required|date|after:check_in',
-        'adults'    => 'required|integer|min:1',
-        'children'  => 'nullable|integer|min:0',
-        'voucher_code' => 'nullable|string',
-        'room_types' => 'required|array|min:1',
-        'room_types.*.room_type_id' => 'required|exists:room_types,room_type_id',
-        'room_types.*.quantity'     => 'required|integer|min:1',
-    ]);
+        $validator = Validator::make($request->all(), [
+            'check_in'  => 'required|date|after_or_equal:today',
+            'check_out' => 'required|date|after:check_in',
+            'adults'    => 'required|integer|min:1',
+            'children'  => 'nullable|integer|min:0',
+            'voucher_code' => 'nullable|string|exists:vouchers,code',
+            'room_types' => 'required|array|min:1',
+            'room_types.*.room_type_id' => 'required|exists:room_types,room_type_id',
+            'room_types.*.quantity'     => 'required|integer|min:1',
+        ]);
 
-    if ($validator->fails()) {
-        return $this->error('VALIDATION_ERROR', 'Dữ liệu không hợp lệ', $validator->errors(), 422);
-    }
+        if ($validator->fails()) {
+            return $this->error('VALIDATION_ERROR', 'Dữ liệu không hợp lệ', $validator->errors(), 422);
+        }
 
-    foreach ($request->room_types as $item) {
-        $availableRooms = Room::where('room_type_id', $item['room_type_id'])
-            ->where('room_status', 'available')
-            ->count();
+        $data = $validator->validated();
 
-        if ($item['quantity'] > $availableRooms) {
+        $checkIn  = Carbon::parse($data['check_in'])->startOfDay();
+        $checkOut = Carbon::parse($data['check_out'])->startOfDay();
+        $nights   = $checkIn->diffInDays($checkOut);
+
+        DB::beginTransaction();
+
+        try {
+            /* ================== TÍNH GIÁ GỐC ================== */
+            $subtotalPrice = 0;
+
+            foreach ($data['room_types'] as $item) {
+                $roomType = RoomType::where('room_type_id', $item['room_type_id'])->firstOrFail();
+
+                $subtotalPrice +=
+                    $roomType->base_price *
+                    $item['quantity'] *
+                    $nights;
+            }
+
+            /* ================== XỬ LÝ VOUCHER ================== */
+            $voucherDiscount = 0;
+            $voucherCode = null;
+
+            if (!empty($data['voucher_code'])) {
+                $voucher = Voucher::where('code', $data['voucher_code'])->first();
+
+                if (
+                    !$voucher ||
+                    !$voucher->isValid() ||
+                    $subtotalPrice < $voucher->min_price
+                ) {
+                    throw new RuntimeException('Voucher không hợp lệ');
+                }
+
+                $voucherDiscount = $subtotalPrice - $voucher->applyDiscount($subtotalPrice);
+                $voucherCode = $voucher->code;
+            }
+
+            $totalPrice = max(0, $subtotalPrice - $voucherDiscount);
+
+            /* ================== TẠO BOOKING ================== */
+            $booking = Booking::create([
+                'user_id'           => $request->user()->user_id,
+                'adults'            => $data['adults'],
+                'children'          => $data['children'] ?? 0,
+                'check_in'          => $checkIn->toDateString(),
+                'check_out'         => $checkOut->toDateString(),
+                'nights'            => $nights,
+                'subtotal_price'    => $subtotalPrice,
+                'voucher_code'      => $voucherCode,
+                'voucher_discount'  => $voucherDiscount,
+                'total_price'       => $totalPrice,
+                'status'            => Booking::STATUS_PENDING_PAYMENT,
+            ]);
+
+            /* ================== BOOKING ITEMS ================== */
+            foreach ($data['room_types'] as $item) {
+                $roomType = RoomType::where('room_type_id', $item['room_type_id'])->first();
+
+                BookingItem::create([
+                    'booking_id'   => $booking->id,
+                    'room_type_id' => $roomType->room_type_id,
+                    'quantity'     => $item['quantity'],
+                    'base_price'   => $roomType->base_price,
+                    'number_of_nights' => $nights,
+                    'amount' => $roomType->base_price * $item['quantity'] * $nights,
+                ]);
+            }
+
+            DB::commit();
+
+            return $this->success(
+                $booking->load('items'),
+                'Tạo booking thành công'
+            );
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
             return $this->error(
-                'ROOM_TYPE_NOT_ENOUGH',
-                'Số lượng phòng trống của loại phòng không đủ để đặt',
+                'BOOKING_FAILED',
+                $e->getMessage(),
                 [],
-                422
+                500
             );
         }
     }
-
-    $data = $validator->validated();
-
-    $checkIn  = Carbon::parse($data['check_in'])->startOfDay();
-    $checkOut = Carbon::parse($data['check_out'])->startOfDay();
-    $nights   = $checkIn->diffInDays($checkOut);
-
-    DB::beginTransaction();
-
-    try {
-        /* ================== GIÁ GỐC ================== */
-        $subtotalPrice = 0;
-
-        foreach ($data['room_types'] as $item) {
-            $roomType = RoomType::where('room_type_id', $item['room_type_id'])->firstOrFail();
-            $subtotalPrice += $roomType->base_price * $item['quantity'] * $nights;
-        }
-
-        /* ================== VOUCHER ================== */
-        $voucher = null;
-        $voucherDiscount = 0;
-        $voucherCode = null;
-
-        if (!empty($data['voucher_code'])) {
-            $user = $request->user();
-
-            // 1️⃣ Voucher RIÊNG
-            $voucher = $user->vouchers()
-                ->where('code', $data['voucher_code'])
-                ->wherePivot('is_used', false)
-                ->whereDate('expired_at', '>=', now())
-                ->first();
-
-            // 2️⃣ Voucher CHUNG
-            if (!$voucher) {
-                $voucher = Voucher::where('code', $data['voucher_code'])
-                    ->whereDate('expired_at', '>=', now())
-                    ->whereDoesntHave('users')
-                    ->first();
-            }
-
-            if (
-                !$voucher ||
-                $subtotalPrice < $voucher->min_price
-            ) {
-                throw new RuntimeException('Voucher không hợp lệ');
-            }
-
-            $voucherDiscount = $voucher->discount_percent
-                ? intval($subtotalPrice * $voucher->discount_percent / 100)
-                : $voucher->discount_amount;
-
-            if ($voucher->max_discount) {
-                $voucherDiscount = min($voucherDiscount, $voucher->max_discount);
-            }
-
-            $voucherDiscount = min($voucherDiscount, $subtotalPrice);
-            $voucherCode = $voucher->code;
-        }
-
-        $totalPrice = max(0, $subtotalPrice - $voucherDiscount);
-
-        /* ================== BOOKING ================== */
-        $booking = Booking::create([
-            'user_id'           => $request->user()->user_id,
-            'adults'            => $data['adults'],
-            'children'          => $data['children'] ?? 0,
-            'check_in'          => $checkIn->toDateString(),
-            'check_out'         => $checkOut->toDateString(),
-            'nights'            => $nights,
-            'subtotal_price'    => $subtotalPrice,
-            'voucher_code'      => $voucherCode,
-            'voucher_discount'  => $voucherDiscount,
-            'total_price'       => $totalPrice,
-            'status'            => Booking::STATUS_PENDING_PAYMENT,
-        ]);
-
-        /* ================== ITEMS ================== */
-        foreach ($data['room_types'] as $item) {
-            $roomType = RoomType::where('room_type_id', $item['room_type_id'])->first();
-
-            BookingItem::create([
-                'booking_id'   => $booking->id,
-                'room_type_id' => $roomType->room_type_id,
-                'quantity'     => $item['quantity'],
-                'base_price'   => $roomType->base_price,
-                'number_of_nights' => $nights,
-                'amount' => $roomType->base_price * $item['quantity'] * $nights,
-            ]);
-        }
-
-        /* ================== KHÓA VOUCHER RIÊNG ================== */
-        if ($voucher && $voucher->users()->exists()) {
-            $request->user()->vouchers()
-                ->updateExistingPivot($voucher->id, [
-                    'is_used' => true
-                ]);
-        }
-
-        DB::commit();
-
-        return $this->success(
-            $booking->load('items'),
-            'Tạo booking thành công'
-        );
-    } catch (\Throwable $e) {
-        DB::rollBack();
-
-        return $this->error(
-            'BOOKING_FAILED',
-            $e->getMessage(),
-            [],
-            500
-        );
-    }
-}
 
 
     public function show(Request $request, $id)
@@ -349,10 +307,6 @@ class BookingController extends Controller
     }
 
 
-
-
-
-
     public function myBookings(Request $request)
     {
         $user = $request->user();
@@ -391,6 +345,4 @@ class BookingController extends Controller
             'Danh sách booking của bạn'
         );
     }
-
-    
 }

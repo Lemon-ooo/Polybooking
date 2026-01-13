@@ -6,6 +6,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable; // 🔥 PHẢI LÀ CÁI 
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\UserPoint;
+use App\Models\Voucher;
 
 class User extends Authenticatable  // 🔥 KẾ THỪA Authenticatable (của Eloquent)
 {
@@ -38,6 +40,29 @@ class User extends Authenticatable  // 🔥 KẾ THỪA Authenticatable (của E
     public function bookings()
 {
     return $this->hasMany(Booking::class, 'user_id', 'user_id');
+}
+
+public function points()
+{
+    return $this->hasMany(UserPoint::class, 'user_id', 'user_id');
+}
+
+public function currentYearPoints()
+{
+    return $this->hasOne(UserPoint::class, 'user_id', 'user_id')
+        ->where('year', now()->year);
+}
+
+public function vouchers()
+{
+    return $this->belongsToMany(
+        Voucher::class,
+        'voucher_user',
+        'user_id',     // FK trong pivot
+        'voucher_id'   // FK trong pivot
+    )
+    ->withPivot('is_used')
+    ->withTimestamps();
 }
 
 }

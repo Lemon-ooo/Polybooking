@@ -8,7 +8,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\BookingPaidMail;
-
+use App\Models\MembershipTier;
+use App\Models\Voucher;
+use App\Models\User;
 /*
 |--------------------------------------------------------------------------
 | MODELS
@@ -20,6 +22,7 @@ use App\Models\ServiceInvoice;
 use App\Models\DamageInvoice;
 use App\Models\Penalty;
 use App\Models\AssignedRoom;
+use App\Services\LoyaltyPointService;
 
 
 /*
@@ -142,12 +145,38 @@ class PaymentController extends Controller
             /* ===== BOOKING PAYMENT ===== */
             if ($type === 'BOOKING') {
 
+                // 1. Đổi trạng thái booking
                 $booking->update(['status' => 'paid']);
 
-                // load quan hệ để gửi mail
+                if ($booking->voucher_code && $booking->user) {
+
+                    $voucher = Voucher::where('code', $booking->voucher_code)->first();
+
+                    if ($voucher) {
+                        // chỉ update nếu voucher này là voucher riêng của user
+                        $booking->user->vouchers()
+                            ->wherePivot('voucher_id', $voucher->id)
+                            ->wherePivot('is_used', false)
+                            ->update(['is_used' => true]);
+                    }
+                }
+
+                // 2. 🔥 TÍCH ĐIỂM THÀNH VIÊN
+                app(LoyaltyPointService::class)
+                    ->rewardForBooking(
+                        $booking->user,
+                        $booking->total_price
+                    );
+
+                // ===============================
+                // 3. 🔥 GÁN VOUCHER THEO HẠNG
+                // ===============================
+                $this->assignVoucherAfterPaid($booking);
+
+                // 4. Load data gửi mail
                 $booking->load(['user', 'items.roomType']);
 
-                // gửi mail
+                // 5. Gửi mail xác nhận
                 Mail::to($booking->user->email)
                     ->send(new BookingPaidMail($booking));
             }
@@ -233,5 +262,56 @@ class PaymentController extends Controller
             'success' => false,
             'error'   => ['code' => $code, 'message' => $message]
         ], $status);
+    }
+
+    private function assignVoucherAfterPaid(Booking $booking)
+    {
+        $user = $booking->user;
+        $year = now()->year;
+
+        // 1. Lấy điểm năm hiện tại
+        $points = $user->points()
+            ->where('year', $year)
+            ->first();
+
+        if (!$points) return;
+
+        // 2. Xác định hạng
+        $tier = MembershipTier::where('min_points', '<=', $points->total_points)
+            ->orderByDesc('min_points')
+            ->first();
+
+        if (!$tier) return;
+
+        // 3. Map hạng → mã voucher
+        $voucherCode = match ($tier->name) {
+            'gold'    => 'GOLD10',
+            'diamond' => 'DIAMOND20',
+            default   => null,
+        };
+
+        // ❌ Silver không có voucher
+        if (!$voucherCode) return;
+
+        // 4. Lấy voucher theo CODE
+        $voucher = Voucher::where('code', $voucherCode)
+            ->where('status', 'active')
+            ->first();
+
+        if (!$voucher) return;
+
+        // 5. Tránh gán trùng
+        $alreadyHas = $user->vouchers()
+            ->where('vouchers.id', $voucher->id)
+            ->exists();
+
+        if ($alreadyHas) return;
+
+        // 6. ✅ GÁN VOUCHER
+        $user->vouchers()->attach($voucher->id, [
+            'is_used' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 }
