@@ -45,8 +45,10 @@ import {
   DownloadOutlined,
   SendOutlined,
   EyeOutlined,
+  MoreOutlined,
   CheckCircleOutlined,
   InfoCircleOutlined,
+  PlusOutlined,
   WarningOutlined,
   UploadOutlined,
   PictureOutlined,
@@ -63,6 +65,7 @@ import {
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
+import axiosInstance from "../../../../providers/data/axiosConfig";
 
 const API_URL = "http://localhost:8000";
 const { Option } = Select;
@@ -141,30 +144,6 @@ interface User {
   phone?: string;
 }
 
-interface AssignedRoom {
-  id: number;
-  booking_id: number;
-  room_id: number;
-  room_number: string;
-  room_type_id: number;
-  room_type_name: string;
-  check_in: string;
-  check_out: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface Room {
-  room_id: number;
-  room_number: string;
-  room_type_id: number;
-  room_type_name: string;
-  floor: number;
-  status: string;
-  price_per_night: number;
-}
-
 interface Booking {
   booking_id?: number;
   id: number;
@@ -193,7 +172,6 @@ interface Booking {
   damageInvoices: DamageInvoice[];
   penaltyCharges: PenaltyCharge[];
   payments: Payment[];
-  assignedRooms?: AssignedRoom[];
 }
 
 interface Pricing {
@@ -218,7 +196,7 @@ interface PenaltyFormData {
 interface DamageFormData {
   damage_type_id: number;
   description?: string;
-  image?: File;
+  image?: string;
 }
 
 interface CheckoutSummary {
@@ -254,13 +232,6 @@ const paymentStatusConfig: Record<string, { color: string; text: string }> = {
   refunded: { color: "purple", text: "Đã hoàn tiền" },
 };
 
-const roomStatusConfig: Record<string, { color: string; text: string }> = {
-  assigned: { color: "blue", text: "Đã gắn" },
-  checked_in: { color: "green", text: "Đã check-in" },
-  checked_out: { color: "purple", text: "Đã check-out" },
-  cancelled: { color: "red", text: "Đã hủy" },
-};
-
 // ============================================
 // MAIN COMPONENT
 // ============================================
@@ -289,10 +260,13 @@ export default function BookingShow() {
   const [damageModalVisible, setDamageModalVisible] = useState(false);
   const [damageLoading, setDamageLoading] = useState(false);
   const [damageTypes, setDamageTypes] = useState<DamageType[]>([]);
+  useEffect(() => {
+    fetchDamageTypes();
+  }, []);
   const [damageForm, setDamageForm] = useState<DamageFormData>({
     damage_type_id: 0,
     description: "",
-    image: undefined,
+    image: "",
   });
 
   // State cho modal gắn phòng
@@ -387,7 +361,7 @@ export default function BookingShow() {
   };
 
   // ============================================
-  // CHECKOUT FUNCTIONS - SỬA LẠI
+  // CHECKOUT FUNCTIONS
   // ============================================
 
   // Fetch checkout summary - hiển thị trước khi xác nhận
@@ -400,13 +374,11 @@ export default function BookingShow() {
       const token = authStr ? JSON.parse(authStr).token : null;
 
       const response = await axios.get(
-        `${API_URL}/api/bookings/${id}/checkout/summary`,
+        `${API_URL}/api/admin/bookings/${id}/checkout/summary`,
         {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         }
       );
-
-      console.log("📊 Checkout summary response:", response.data);
 
       if (response.data.success) {
         setCheckoutSummary(response.data.data);
@@ -424,7 +396,7 @@ export default function BookingShow() {
     }
   };
 
-  // Xác nhận checkout - chỉ xác nhận thôi
+  // Xác nhận checkout - chỉ xác nhận thôi, không mở modal thanh toán
   const handleConfirmCheckout = async () => {
     if (!id) return;
 
@@ -433,17 +405,13 @@ export default function BookingShow() {
       const authStr = localStorage.getItem("auth");
       const token = authStr ? JSON.parse(authStr).token : null;
 
-      console.log("🔐 Confirming checkout for booking:", id);
-
       const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/checkout/confirm`,
+        `${API_URL}/api/admin/bookings/${id}/checkout/confirm`,
         {},
         {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         }
       );
-
-      console.log("✅ Confirm checkout response:", response.data);
 
       if (response.data.success) {
         message.success("Đã xác nhận checkout!");
@@ -451,21 +419,8 @@ export default function BookingShow() {
         // Đóng modal summary
         setCheckoutSummaryModalVisible(false);
 
-        // Nếu đã hoàn tất checkout (số tiền = 0)
-        if (response.data.data?.status === "completed") {
-          message.success("Checkout đã hoàn tất! Khách đã thanh toán đủ.");
-
-          // Refresh booking details
-          await fetchBookingDetails();
-
-          // Show success notification
-          notification.success({
-            message: "Checkout hoàn tất",
-            description: `Booking #${displayBookingId} đã được checkout thành công.`,
-            placement: "topRight",
-          });
-        } else if (checkoutSummary && checkoutSummary.final === 0) {
-          // Nếu số tiền thanh toán = 0, gọi pay luôn với cash
+        // Nếu tổng thanh toán = 0 (đã thanh toán đủ) thì hoàn tất checkout ngay
+        if (checkoutSummary && checkoutSummary.final <= 0) {
           await handleCompleteCheckoutWithoutPayment();
         } else {
           // Nếu còn tiền cần thanh toán thì mở modal thanh toán
@@ -475,17 +430,10 @@ export default function BookingShow() {
         message.error(response.data.message || "Không thể xác nhận checkout");
       }
     } catch (error: any) {
-      console.error("❌ Error confirming checkout:", error);
-
-      if (error.response?.status === 400) {
-        message.error(
-          error.response.data.message || "Booking chưa sẵn sàng checkout"
-        );
-      } else {
-        message.error(
-          error.response?.data?.message || "Lỗi khi xác nhận checkout"
-        );
-      }
+      console.error("Error confirming checkout:", error);
+      message.error(
+        error.response?.data?.message || "Lỗi khi xác nhận checkout"
+      );
     } finally {
       setConfirmCheckoutLoading(false);
     }
@@ -500,11 +448,9 @@ export default function BookingShow() {
       const authStr = localStorage.getItem("auth");
       const token = authStr ? JSON.parse(authStr).token : null;
 
-      console.log("💰 Completing checkout without payment for booking:", id);
-
-      // Gọi API checkout với phương thức cash
+      // Gọi API checkout với phương thức cash và số tiền = 0
       const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/checkout/pay`,
+        `${API_URL}/api/admin/bookings/${id}/checkout/pay`,
         {
           method: "cash",
         },
@@ -513,10 +459,7 @@ export default function BookingShow() {
         }
       );
 
-      console.log(
-        "✅ Complete checkout without payment response:",
-        response.data
-      );
+      console.log("Complete checkout without payment response:", response.data);
 
       if (response.data.success) {
         message.success("Checkout thành công!");
@@ -534,7 +477,7 @@ export default function BookingShow() {
         message.error(response.data.message || "Checkout thất bại");
       }
     } catch (error: any) {
-      console.error("❌ Error completing checkout without payment:", error);
+      console.error("Error completing checkout without payment:", error);
       message.error(
         error.response?.data?.message || "Lỗi khi hoàn tất checkout"
       );
@@ -543,7 +486,7 @@ export default function BookingShow() {
     }
   };
 
-  // Process checkout payment
+  // Process checkout payment - sửa lại để xử lý tốt hơn
   const handleCheckoutPayment = async () => {
     if (!id || !paymentMethod) return;
 
@@ -552,14 +495,8 @@ export default function BookingShow() {
       const authStr = localStorage.getItem("auth");
       const token = authStr ? JSON.parse(authStr).token : null;
 
-      console.log("💳 Processing checkout payment:", {
-        bookingId: id,
-        method: paymentMethod,
-        amount: checkoutSummary?.final,
-      });
-
       const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/checkout/pay`,
+        `${API_URL}/api/admin/bookings/${id}/checkout/pay`,
         {
           method: paymentMethod,
         },
@@ -568,7 +505,7 @@ export default function BookingShow() {
         }
       );
 
-      console.log("💳 Checkout payment response:", response.data);
+      console.log("Checkout payment response:", response.data);
 
       if (response.data.success) {
         // Đóng modal
@@ -577,16 +514,7 @@ export default function BookingShow() {
         if (paymentMethod === "vnpay" && response.data.data?.payment_url) {
           // Nếu là VNPay, mở trang thanh toán trong tab mới
           message.info("Đang chuyển hướng đến trang thanh toán VNPay...");
-          const newWindow = window.open(
-            response.data.data.payment_url,
-            "_blank"
-          );
-
-          if (!newWindow) {
-            message.warning(
-              "Trình duyệt đã chặn popup. Vui lòng cho phép popup hoặc nhấn vào link thủ công."
-            );
-          }
+          window.open(response.data.data.payment_url, "_blank");
 
           // Hiển thị hướng dẫn cho người dùng
           notification.info({
@@ -596,15 +524,9 @@ export default function BookingShow() {
             placement: "topRight",
             duration: 5,
           });
-
-          // Theo dõi thanh toán
-          startPaymentTracking();
         } else if (paymentMethod === "cash") {
           // Nếu là tiền mặt, thông báo thành công
           message.success("Checkout thành công với thanh toán tiền mặt!");
-
-          // Refresh booking details
-          await fetchBookingDetails();
 
           // Show success notification
           notification.success({
@@ -613,11 +535,16 @@ export default function BookingShow() {
             placement: "topRight",
           });
         }
+
+        // Refresh booking details sau 2 giây
+        setTimeout(async () => {
+          await fetchBookingDetails();
+        }, 2000);
       } else {
         message.error(response.data.message || "Checkout thất bại");
       }
     } catch (error: any) {
-      console.error("❌ Error processing checkout payment:", error);
+      console.error("Error processing checkout:", error);
 
       if (error.response?.data?.message) {
         message.error(error.response.data.message);
@@ -631,30 +558,6 @@ export default function BookingShow() {
     }
   };
 
-  // Theo dõi trạng thái thanh toán VNPay
-  const startPaymentTracking = () => {
-    const interval = setInterval(async () => {
-      try {
-        await fetchBookingDetails();
-
-        if (
-          booking?.status === "check_out" ||
-          booking?.status === "completed"
-        ) {
-          clearInterval(interval);
-          message.success("Thanh toán VNPay đã hoàn tất!");
-        }
-      } catch (error) {
-        console.error("Error tracking payment:", error);
-      }
-    }, 3000); // Kiểm tra mỗi 3 giây
-
-    // Dừng sau 5 phút
-    setTimeout(() => {
-      clearInterval(interval);
-    }, 300000);
-  };
-
   // Thêm hàm để check trạng thái checkout
   const checkCheckoutStatus = () => {
     if (!booking) return false;
@@ -665,7 +568,7 @@ export default function BookingShow() {
   };
 
   // ============================================
-  // CHECKIN HANDLER FUNCTIONS
+  // CHECKIN HANDLER FUNCTIONS - THÊM VÀO ĐÂY
   // ============================================
 
   // Handle add guest trong form checkin
@@ -888,8 +791,6 @@ export default function BookingShow() {
       return;
     }
 
-    console.log("🔍 Fetching booking details for ID:", id);
-
     setLoading(true);
     setError(null);
 
@@ -897,20 +798,13 @@ export default function BookingShow() {
       const authStr = localStorage.getItem("auth");
       const token = authStr ? JSON.parse(authStr).token : null;
 
-      // Fetch booking details
-      const bookingResponse = await axios.get(`${API_URL}/api/bookings/${id}`, {
+      const response = await axios.get(`${API_URL}/api/bookings/${id}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
 
-      console.log("📦 Booking API Response:", bookingResponse.data);
+      const responseData = response.data?.data;
+      if (!responseData) throw new Error("API không trả về dữ liệu");
 
-      const responseData = bookingResponse.data?.data || bookingResponse.data;
-
-      if (!responseData) {
-        throw new Error("API không trả về dữ liệu");
-      }
-
-      // Xác định booking data từ response
       let bookingData: Booking;
       if (responseData.booking) {
         bookingData = responseData.booking;
@@ -920,12 +814,10 @@ export default function BookingShow() {
         throw new Error("Cấu trúc dữ liệu không hợp lệ");
       }
 
-      // Xác định pricing data
       let pricingData: Pricing;
       if (responseData.pricing) {
         pricingData = responseData.pricing;
       } else {
-        // Tính toán từ booking data
         const room_total =
           bookingData.items?.reduce((sum, item) => sum + item.amount, 0) || 0;
         const service_total = bookingData.serviceInvoice?.total_amount || 0;
@@ -956,18 +848,6 @@ export default function BookingShow() {
       setBooking(bookingData);
       setPricing(pricingData);
 
-      // Lấy room_type_id từ booking items
-      const roomTypeId = bookingData.items[0]?.room_type_id;
-      const bookingId = bookingData.id || bookingData.booking_id;
-
-      // Fetch assigned rooms nếu có API
-      if (bookingId) {
-        await fetchAssignedRooms(bookingId, roomTypeId, token);
-      } else {
-        setAssignedRooms([]);
-      }
-
-      // Check invoice status
       await checkInvoiceStatus(bookingData.id || bookingData.booking_id, token);
 
       // Kiểm tra điều kiện checkin/checkout
@@ -986,8 +866,6 @@ export default function BookingShow() {
       } else if (error.response?.status === 401) {
         setError("Bạn cần đăng nhập để xem thông tin booking");
         navigate("/login");
-      } else if (error.response?.data?.message) {
-        setError(error.response.data.message);
       } else {
         setError("Lỗi khi tải thông tin booking. Vui lòng thử lại sau.");
       }
@@ -996,6 +874,9 @@ export default function BookingShow() {
     }
   };
 
+  // Check invoice status
+  const checkInvoiceStatus = async (
+    bookingId: number | string,
   // ============================================
   // CÁC HÀM KHÁC
   // ============================================
@@ -1007,6 +888,9 @@ export default function BookingShow() {
     token: string | null
   ) => {
     try {
+      const id = Number(bookingId);
+      if (isNaN(id)) {
+        setInvoiceStatus({ exists: false });
       console.log(`Fetching assigned rooms for booking ${bookingId}`);
 
       // Chỉ thử endpoint chính
@@ -1074,31 +958,14 @@ export default function BookingShow() {
         return;
       }
 
-      const roomTypeName = booking.items[0]?.room_type_name || "Không xác định";
-
-      console.log(
-        "🔍 Fetching available rooms for type:",
-        roomTypeId,
-        roomTypeName
+      const response = await axios.get(
+        `${API_URL}/api/bookings/${id}/invoice/check`,
+        {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        }
       );
 
-      // Thử endpoint chính
-      const endpoints = [
-        `${API_URL}/api/admin/rooms/available?room_type_id=${roomTypeId}&check_in=${booking.check_in}&check_out=${booking.check_out}`,
-        `${API_URL}/api/rooms/available?room_type_id=${roomTypeId}&check_in=${booking.check_in}&check_out=${booking.check_out}`,
-        `${API_URL}/api/rooms?room_type_id=${roomTypeId}&status=available`,
-      ];
-
-      let rooms: Room[] = [];
-
-      for (const endpoint of endpoints) {
-        try {
-          const response = await axios.get(endpoint, {
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-          });
-
-          console.log(`Endpoint ${endpoint} response:`, response.data);
-
+      if (response.data?.exists) {
           if (response.data.success && response.data.data) {
             rooms = response.data.data || [];
             break;
@@ -1253,106 +1120,43 @@ export default function BookingShow() {
         setInvoiceStatus({ exists: false });
       }
     } catch (error) {
-      console.log("No invoice check API or error checking");
+      console.log("Invoice check failed:", error);
       setInvoiceStatus({ exists: false });
     }
   };
 
-  // Fetch damage types
+  // Fetch damage types - SỬ DỤNG API CÓ SẴN HOẶC TẠO MỚI
   const fetchDamageTypes = async () => {
     try {
-      const authStr = localStorage.getItem("auth");
-      const token = authStr ? JSON.parse(authStr).token : null;
+      const res = await axiosInstance.get("/damage-types");
 
-      // Thử các endpoint khác nhau
-      const endpoints = [
-        `${API_URL}/api/damage-types`,
-        `${API_URL}/api/admin/damage-types`,
-        `${API_URL}/api/damage-types/list`,
-      ];
+      console.log("⚙ RAW damage-types:", res.data);
 
-      let damageTypesData: DamageType[] = [];
+      let list = [];
 
-      for (const endpoint of endpoints) {
-        try {
-          const response = await axios.get(endpoint, {
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-          });
+      const paginated = res.data?.data?.data;
+      const simple = res.data?.data;
 
-          console.log("⚙ RAW damage-types response:", response.data);
-
-          let list = [];
-
-          // Xử lý các định dạng response khác nhau
-          if (
-            response.data?.data?.data &&
-            Array.isArray(response.data.data.data)
-          ) {
-            list = response.data.data.data; // Định dạng phân trang
-          } else if (response.data?.data && Array.isArray(response.data.data)) {
-            list = response.data.data; // Định dạng có data wrapper
-          } else if (Array.isArray(response.data)) {
-            list = response.data; // Định dạng array trực tiếp
-          } else if (
-            response.data?.damage_types &&
-            Array.isArray(response.data.damage_types)
-          ) {
-            list = response.data.damage_types; // Định dạng với key damage_types
-          }
-
-          if (list.length > 0) {
-            damageTypesData = list.map((item: any) => ({
-              id: item.id || item.damage_type_id,
-              damage_type_name:
-                item.name || item.damage_type_name || "Không xác định",
-              price: item.price || item.amount || 0,
-              description: item.description || "",
-            }));
-            break; // Thoát vòng lặp khi có dữ liệu
-          }
-        } catch (err) {
-          console.log(`Endpoint ${endpoint} failed:`, err);
-          continue;
-        }
+      if (Array.isArray(paginated)) {
+        list = paginated;
+      } else if (Array.isArray(simple)) {
+        list = simple;
+      } else {
+        console.warn("⚠ format damage-types lạ:", res.data);
       }
 
-      // Nếu không có dữ liệu từ API, sử dụng mock data
-      if (damageTypesData.length === 0) {
-        console.log("Using mock damage types");
-        damageTypesData = [
-          {
-            id: 1,
-            damage_type_name: "Vỡ kính",
-            price: 500000,
-            description: "Vỡ kính cửa sổ",
-          },
-          {
-            id: 2,
-            damage_type_name: "Hư TV",
-            price: 2000000,
-            description: "Hư hỏng TV",
-          },
-          {
-            id: 3,
-            damage_type_name: "Bể gương",
-            price: 300000,
-            description: "Vỡ gương trong phòng tắm",
-          },
-        ];
-      }
+      const items = list.map((item) => ({
+        id: item.id,
+        damage_type_name: item.name,
+        price: item.price,
+        description: item.description ?? "",
+        image_path: item.image_path ?? null,
+      }));
 
-      setDamageTypes(damageTypesData);
+      setDamageTypes(items);
     } catch (err) {
-      console.error("❌ Error fetching damage types:", err);
+      console.error("❌ fetchDamageTypes:", err);
       message.error("Không thể tải danh sách loại hư hỏng");
-
-      // Fallback to mock data
-      const mockDamageTypes = [
-        { id: 1, damage_type_name: "Vỡ kính", price: 500000 },
-        { id: 2, damage_type_name: "Hư TV", price: 2000000 },
-        { id: 3, damage_type_name: "Bể gương", price: 300000 },
-      ];
-      setDamageTypes(mockDamageTypes);
     }
   };
 
@@ -1364,7 +1168,7 @@ export default function BookingShow() {
     setDamageForm({
       damage_type_id: 0,
       description: "",
-      image: undefined,
+      image: "",
     });
     setDamageModalVisible(true);
   };
@@ -1398,33 +1202,21 @@ export default function BookingShow() {
     });
   };
 
-  // Handle image upload
-  const handleImageUpload = async (file: File) => {
-    try {
-      setDamageForm((prev) => ({
-        ...prev,
-        image: file,
-      }));
+  // Handle image upload - SỬ DỤNG API UPLOAD CÓ SẴN
+  const handleImageUpload = (file: File) => {
+    setDamageForm((prev) => ({
+      ...prev,
+      image_path: file, // giữ lại file
+    }));
 
-      message.success("Đã chọn ảnh");
-      return false; // để antd không auto-upload
-    } catch (error) {
-      console.error("Error selecting image:", error);
-      message.error("Lỗi khi chọn ảnh");
-      return false;
-    }
+    message.success("Đã chọn ảnh");
+    return false; // để antd không auto-upload
   };
 
-  // Submit damage
+  // Submit damage - SỬ DỤNG API ĐÚNG THEO ROUTE ĐÃ ĐỊNH NGHĨA
   const handleAddDamage = async () => {
-    if (!booking || !id) return;
-
-    if (!damageForm.damage_type_id) {
-      message.error("Vui lòng chọn loại hư hỏng");
-      return;
-    }
-
     setDamageLoading(true);
+
     try {
       const authStr = localStorage.getItem("auth");
       const token = authStr ? JSON.parse(authStr).token : null;
@@ -1441,90 +1233,40 @@ export default function BookingShow() {
         formData.append("image", damageForm.image);
       }
 
-      console.log("📤 Adding damage for booking:", id);
-      console.log("📦 Form data:", {
-        damage_type_id: damageForm.damage_type_id,
-        description: damageForm.description,
-        hasImage: !!damageForm.image,
-      });
-
-      // Thử các endpoint khác nhau
-      const endpoints = [
+      await axios.post(
         `${API_URL}/api/bookings/${id}/checkout/damages`,
-        `${API_URL}/api/bookings/${id}/damages`,
-        `${API_URL}/api/admin/bookings/${id}/damages`,
-      ];
-
-      let response = null;
-      let error = null;
-
-      for (const endpoint of endpoints) {
-        try {
-          console.log(`Trying endpoint: ${endpoint}`);
-          const res = await axios.post(endpoint, formData, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "multipart/form-data",
-            },
-          });
-
-          console.log(`Endpoint ${endpoint} response:`, res.data);
-
-          if (res.data.success || res.data.status === "success") {
-            response = res;
-            break;
-          }
-        } catch (err: any) {
-          error = err;
-          console.log(`Endpoint ${endpoint} failed:`, err.message);
-          continue;
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
         }
-      }
+      );
 
-      if (
-        response &&
-        (response.data.success || response.data.status === "success")
-      ) {
-        message.success("Ghi nhận hư hỏng thành công!");
-        setDamageModalVisible(false);
+      message.success("Ghi nhận thành công");
+      fetchBookingDetails();
+      setDamageModalVisible(false);
 
-        // Refresh booking details
-        await fetchBookingDetails();
-
-        // Reset form
-        setDamageForm({
-          damage_type_id: 0,
-          description: "",
-          image: undefined,
-        });
-      } else {
-        const errorMessage =
-          error?.response?.data?.message ||
-          error?.response?.data?.error ||
-          "Không thể ghi nhận hư hỏng. Vui lòng thử lại.";
-        message.error(errorMessage);
-      }
-    } catch (error: any) {
-      console.error("❌ Error adding damage:", error);
-
-      if (error.response?.data?.message) {
-        message.error(error.response.data.message);
-      } else if (error.response?.status === 404) {
-        message.error("API không tồn tại. Vui lòng kiểm tra route.");
-      } else if (error.response?.status === 422) {
-        message.error("Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.");
-      } else {
-        message.error("Không thể ghi nhận hư hỏng");
-      }
+      // reset form
+      setDamageForm({
+        damage_type_id: 0,
+        description: "",
+        image: null,
+      });
+    } catch (e) {
+      console.error(e);
+      message.error("Lỗi khi ghi nhận hư hỏng");
     } finally {
       setDamageLoading(false);
     }
   };
 
-  // Submit penalties
+  // Submit penalties - SỬ DỤNG API ĐÚNG THEO ROUTE ĐÃ ĐỊNH NGHĨA
   const handleAddPenalties = async () => {
     if (!booking || !id) return;
 
+    // Validate
     if (!penaltyForm.amount || penaltyForm.amount <= 0) {
       message.error("Vui lòng nhập số tiền phạt");
       return;
@@ -1545,8 +1287,14 @@ export default function BookingShow() {
         amount: penaltyForm.amount,
       };
 
+      console.log(
+        "📤 Sending to API:",
+        `${API_URL}/api/bookings/${id}/penalties`
+      );
+      console.log("📦 Payload:", payload);
+
       const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/checkout/penalty`,
+        `${API_URL}/api/bookings/${id}/penalties`, // ĐÚNG ROUTE THEO ĐỊNH NGHĨA
         payload,
         {
           headers: {
@@ -1556,10 +1304,13 @@ export default function BookingShow() {
         }
       );
 
+      console.log("✅ Penalty API Response:", response.data);
+
       if (response.data.success) {
         message.success("Ghi nhận phạt thành công!");
         setPenaltyModalVisible(false);
-        fetchBookingDetails();
+        fetchBookingDetails(); // Refresh data
+        // Reset form
         setPenaltyForm({ days_late: 1, amount: 0 });
       } else {
         message.error(response.data.message || "Có lỗi xảy ra");
@@ -1618,6 +1369,27 @@ export default function BookingShow() {
     }
   };
 
+  const handleSendConfirmationEmail = async () => {
+    if (!booking) return;
+
+    try {
+      const authStr = localStorage.getItem("auth");
+      const token = authStr ? JSON.parse(authStr).token : null;
+
+      await axios.post(
+        `${API_URL}/api/bookings/${
+          booking.id || booking.booking_id
+        }/send-confirmation`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      message.success("Đã gửi email xác nhận!");
+    } catch (error: any) {
+      message.error(error.response?.data?.message || "Lỗi khi gửi email");
+    }
+  };
+
   // ============================================
   // INVOICE FUNCTIONS
   // ============================================
@@ -1659,12 +1431,14 @@ export default function BookingShow() {
           duration: 4,
         });
 
+        // Update invoice status
         setInvoiceStatus({
           exists: true,
           code: response.data.invoice_code,
           issued_at: new Date().toISOString(),
         });
 
+        // Open PDF in new tab
         if (response.data.pdf_url) {
           setTimeout(() => {
             window.open(response.data.pdf_url, "_blank");
@@ -1884,6 +1658,35 @@ export default function BookingShow() {
       </div>
     );
   }
+
+  // ============================================
+  // CALCULATED VALUES - TÍNH TOÁN LẠI ĐỂ BAO GỒM PHẠT
+  // ============================================
+  const displayBookingId = booking.booking_id || booking.id;
+  const status = statusConfig[booking.status] || {
+    color: "default",
+    text: booking.status,
+  };
+
+  // Tổng đã thanh toán
+  const totalPaid =
+    booking.payments?.reduce((sum, payment) => sum + payment.amount, 0) || 0;
+
+  // Sử dụng grand_total từ pricing (đã bao gồm phạt và damage)
+  const grandTotal = pricing?.grand_total || booking.total_price;
+
+  // Tính số tiền còn lại PHẢI BAO GỒM CẢ PHẠT VÀ DAMAGE
+  const balanceDue = Math.max(0, grandTotal - totalPaid);
+
+  const canCreateInvoice =
+    booking.status === "check_out" || booking.status === "completed";
+
+  // CHỈ HIỂN THỊ NÚT THÊM PHẠT VÀ DAMAGE KHI ĐANG LƯU TRÚ
+  const canAddCharges =
+    booking.status === "check_in" ||
+    booking.status === "checked_in" ||
+    booking.status === "in_use";
+
 
   return (
     <div
@@ -2575,23 +2378,6 @@ export default function BookingShow() {
                     </div>
                   </Descriptions.Item>
 
-                  <Descriptions.Item label="Loại phòng" span={1}>
-                    <div style={{ fontWeight: "600", color: "#1890ff" }}>
-                      {roomTypeName}
-                    </div>
-                  </Descriptions.Item>
-
-                  <Descriptions.Item label="Số lượng phòng" span={1}>
-                    <Badge
-                      count={booking.items[0]?.quantity || 1}
-                      style={{
-                        backgroundColor: "#1890ff",
-                        fontSize: "16px",
-                        padding: "4px 8px",
-                      }}
-                    />
-                  </Descriptions.Item>
-
                   {booking.voucher_code && (
                     <Descriptions.Item label="Voucher" span={2}>
                       <Space>
@@ -3025,7 +2811,7 @@ export default function BookingShow() {
             )}
           </Card>
 
-          {/* PAYMENT SUMMARY */}
+          {/* PAYMENT SUMMARY - SỬ DỤNG GRAND_TOTAL BAO GỒM PHẠT & DAMAGE */}
           <Card
             title={
               <span style={{ fontWeight: "600", fontSize: "16px" }}>
@@ -3137,6 +2923,7 @@ export default function BookingShow() {
                 </Col>
               </Row>
 
+              {/* SỐ TIỀN CÒN LẠI TÍNH TỪ GRAND_TOTAL (ĐÃ BAO GỒM PHẠT & DAMAGE) */}
               {balanceDue > 0 && (
                 <Row style={{ marginTop: 8 }}>
                   <Col span={12}>
@@ -3267,6 +3054,7 @@ export default function BookingShow() {
             bodyStyle={{ padding: "16px" }}
           >
             <Space direction="vertical" style={{ width: "100%" }}>
+              {/* Checkout Actions - chỉ hiển thị khi đang lưu trú */}
               {/* Checkin Button - chỉ hiển thị khi có thể checkin */}
               {canCheckin && (
                 <Button
@@ -3478,6 +3266,17 @@ export default function BookingShow() {
                   )}
                 </Button>
               </Dropdown>
+
+              <Button
+                type="default"
+                block
+                size="large"
+                onClick={handleSendConfirmationEmail}
+                icon={<MailOutlined />}
+                style={{ height: "48px", fontSize: "16px" }}
+              >
+                Gửi Email Xác nhận
+              </Button>
 
               {booking.status === "pending_payment" && (
                 <Button
@@ -4046,7 +3845,7 @@ export default function BookingShow() {
         maskClosable={!damageLoading}
         afterOpenChange={(open) => {
           if (open) {
-            fetchDamageTypes(); // Load data khi mở Modal
+            fetchDamageTypes(); // ← Load data khi mở Modal
           }
         }}
       >
@@ -4076,21 +3875,12 @@ export default function BookingShow() {
                   handleDamageFormChange("damage_type_id", value)
                 }
                 disabled={damageLoading}
-                loading={damageTypes.length === 0}
+                loading={damageLoading}
                 showSearch
                 optionFilterProp="children"
-                filterOption={(input, option) =>
-                  (option?.label ?? "")
-                    .toLowerCase()
-                    .includes(input.toLowerCase())
-                }
               >
                 {damageTypes.map((type) => (
-                  <Select.Option
-                    key={type.id}
-                    value={type.id}
-                    label={type.damage_type_name}
-                  >
+                  <Select.Option key={type.id} value={type.id}>
                     <div>
                       <div>{type.damage_type_name}</div>
                       <div style={{ fontSize: "12px", color: "#666" }}>
@@ -4113,22 +3903,13 @@ export default function BookingShow() {
               </Select>
             </Form.Item>
 
-            <Form.Item label={<strong>Mô tả (tùy chọn)</strong>}>
-              <TextArea
-                placeholder="Mô tả chi tiết hư hỏng"
-                value={damageForm.description}
-                onChange={(e) =>
-                  handleDamageFormChange("description", e.target.value)
-                }
-                rows={3}
-                disabled={damageLoading}
-              />
-            </Form.Item>
-
             <Form.Item label={<strong>Ảnh minh chứng (tùy chọn)</strong>}>
               <Upload
                 accept="image/*"
-                beforeUpload={handleImageUpload}
+                beforeUpload={(file) => {
+                  handleDamageFormChange("image", file); // Lưu file thô để gửi sau
+                  return false;
+                }}
                 showUploadList={false}
                 disabled={damageLoading}
               >
@@ -4140,7 +3921,7 @@ export default function BookingShow() {
               {damageForm.image && (
                 <div style={{ marginTop: 8 }}>
                   <Alert
-                    message={`Đã chọn ảnh: ${damageForm.image.name}`}
+                    message="Đã tải ảnh lên thành công"
                     type="success"
                     showIcon
                   />
@@ -4151,7 +3932,7 @@ export default function BookingShow() {
 
           <Alert
             message="Lưu ý"
-            description="Hệ thống sẽ tự động tính tiền theo loại hư hỏng đã chọn. Ảnh và mô tả là tùy chọn."
+            description="Hệ thống sẽ tự động tính tiền theo loại hư hỏng đã chọn. Ảnh là tùy chọn."
             type="warning"
             showIcon
             style={{ marginTop: 16 }}

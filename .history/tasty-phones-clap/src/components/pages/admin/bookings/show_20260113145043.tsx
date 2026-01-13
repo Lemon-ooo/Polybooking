@@ -292,7 +292,7 @@ export default function BookingShow() {
   const [damageForm, setDamageForm] = useState<DamageFormData>({
     damage_type_id: 0,
     description: "",
-    image: undefined,
+    image: "",
   });
 
   // State cho modal gắn phòng
@@ -387,7 +387,7 @@ export default function BookingShow() {
   };
 
   // ============================================
-  // CHECKOUT FUNCTIONS - SỬA LẠI
+  // CHECKOUT FUNCTIONS
   // ============================================
 
   // Fetch checkout summary - hiển thị trước khi xác nhận
@@ -400,13 +400,11 @@ export default function BookingShow() {
       const token = authStr ? JSON.parse(authStr).token : null;
 
       const response = await axios.get(
-        `${API_URL}/api/bookings/${id}/checkout/summary`,
+        `${API_URL}/api/admin/bookings/${id}/checkout/summary`,
         {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         }
       );
-
-      console.log("📊 Checkout summary response:", response.data);
 
       if (response.data.success) {
         setCheckoutSummary(response.data.data);
@@ -424,7 +422,7 @@ export default function BookingShow() {
     }
   };
 
-  // Xác nhận checkout - chỉ xác nhận thôi
+  // Xác nhận checkout - chỉ xác nhận thôi, không mở modal thanh toán
   const handleConfirmCheckout = async () => {
     if (!id) return;
 
@@ -433,17 +431,13 @@ export default function BookingShow() {
       const authStr = localStorage.getItem("auth");
       const token = authStr ? JSON.parse(authStr).token : null;
 
-      console.log("🔐 Confirming checkout for booking:", id);
-
       const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/checkout/confirm`,
+        `${API_URL}/api/admin/bookings/${id}/checkout/confirm`,
         {},
         {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         }
       );
-
-      console.log("✅ Confirm checkout response:", response.data);
 
       if (response.data.success) {
         message.success("Đã xác nhận checkout!");
@@ -451,21 +445,8 @@ export default function BookingShow() {
         // Đóng modal summary
         setCheckoutSummaryModalVisible(false);
 
-        // Nếu đã hoàn tất checkout (số tiền = 0)
-        if (response.data.data?.status === "completed") {
-          message.success("Checkout đã hoàn tất! Khách đã thanh toán đủ.");
-
-          // Refresh booking details
-          await fetchBookingDetails();
-
-          // Show success notification
-          notification.success({
-            message: "Checkout hoàn tất",
-            description: `Booking #${displayBookingId} đã được checkout thành công.`,
-            placement: "topRight",
-          });
-        } else if (checkoutSummary && checkoutSummary.final === 0) {
-          // Nếu số tiền thanh toán = 0, gọi pay luôn với cash
+        // Nếu tổng thanh toán = 0 (đã thanh toán đủ) thì hoàn tất checkout ngay
+        if (checkoutSummary && checkoutSummary.final <= 0) {
           await handleCompleteCheckoutWithoutPayment();
         } else {
           // Nếu còn tiền cần thanh toán thì mở modal thanh toán
@@ -475,17 +456,10 @@ export default function BookingShow() {
         message.error(response.data.message || "Không thể xác nhận checkout");
       }
     } catch (error: any) {
-      console.error("❌ Error confirming checkout:", error);
-
-      if (error.response?.status === 400) {
-        message.error(
-          error.response.data.message || "Booking chưa sẵn sàng checkout"
-        );
-      } else {
-        message.error(
-          error.response?.data?.message || "Lỗi khi xác nhận checkout"
-        );
-      }
+      console.error("Error confirming checkout:", error);
+      message.error(
+        error.response?.data?.message || "Lỗi khi xác nhận checkout"
+      );
     } finally {
       setConfirmCheckoutLoading(false);
     }
@@ -500,11 +474,9 @@ export default function BookingShow() {
       const authStr = localStorage.getItem("auth");
       const token = authStr ? JSON.parse(authStr).token : null;
 
-      console.log("💰 Completing checkout without payment for booking:", id);
-
-      // Gọi API checkout với phương thức cash
+      // Gọi API checkout với phương thức cash và số tiền = 0
       const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/checkout/pay`,
+        `${API_URL}/api/admin/bookings/${id}/checkout/pay`,
         {
           method: "cash",
         },
@@ -513,10 +485,7 @@ export default function BookingShow() {
         }
       );
 
-      console.log(
-        "✅ Complete checkout without payment response:",
-        response.data
-      );
+      console.log("Complete checkout without payment response:", response.data);
 
       if (response.data.success) {
         message.success("Checkout thành công!");
@@ -534,7 +503,7 @@ export default function BookingShow() {
         message.error(response.data.message || "Checkout thất bại");
       }
     } catch (error: any) {
-      console.error("❌ Error completing checkout without payment:", error);
+      console.error("Error completing checkout without payment:", error);
       message.error(
         error.response?.data?.message || "Lỗi khi hoàn tất checkout"
       );
@@ -543,7 +512,7 @@ export default function BookingShow() {
     }
   };
 
-  // Process checkout payment
+  // Process checkout payment - sửa lại để xử lý tốt hơn
   const handleCheckoutPayment = async () => {
     if (!id || !paymentMethod) return;
 
@@ -552,14 +521,8 @@ export default function BookingShow() {
       const authStr = localStorage.getItem("auth");
       const token = authStr ? JSON.parse(authStr).token : null;
 
-      console.log("💳 Processing checkout payment:", {
-        bookingId: id,
-        method: paymentMethod,
-        amount: checkoutSummary?.final,
-      });
-
       const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/checkout/pay`,
+        `${API_URL}/api/admin/bookings/${id}/checkout/pay`,
         {
           method: paymentMethod,
         },
@@ -568,7 +531,7 @@ export default function BookingShow() {
         }
       );
 
-      console.log("💳 Checkout payment response:", response.data);
+      console.log("Checkout payment response:", response.data);
 
       if (response.data.success) {
         // Đóng modal
@@ -577,16 +540,7 @@ export default function BookingShow() {
         if (paymentMethod === "vnpay" && response.data.data?.payment_url) {
           // Nếu là VNPay, mở trang thanh toán trong tab mới
           message.info("Đang chuyển hướng đến trang thanh toán VNPay...");
-          const newWindow = window.open(
-            response.data.data.payment_url,
-            "_blank"
-          );
-
-          if (!newWindow) {
-            message.warning(
-              "Trình duyệt đã chặn popup. Vui lòng cho phép popup hoặc nhấn vào link thủ công."
-            );
-          }
+          window.open(response.data.data.payment_url, "_blank");
 
           // Hiển thị hướng dẫn cho người dùng
           notification.info({
@@ -596,15 +550,9 @@ export default function BookingShow() {
             placement: "topRight",
             duration: 5,
           });
-
-          // Theo dõi thanh toán
-          startPaymentTracking();
         } else if (paymentMethod === "cash") {
           // Nếu là tiền mặt, thông báo thành công
           message.success("Checkout thành công với thanh toán tiền mặt!");
-
-          // Refresh booking details
-          await fetchBookingDetails();
 
           // Show success notification
           notification.success({
@@ -613,11 +561,16 @@ export default function BookingShow() {
             placement: "topRight",
           });
         }
+
+        // Refresh booking details sau 2 giây
+        setTimeout(async () => {
+          await fetchBookingDetails();
+        }, 2000);
       } else {
         message.error(response.data.message || "Checkout thất bại");
       }
     } catch (error: any) {
-      console.error("❌ Error processing checkout payment:", error);
+      console.error("Error processing checkout:", error);
 
       if (error.response?.data?.message) {
         message.error(error.response.data.message);
@@ -631,30 +584,6 @@ export default function BookingShow() {
     }
   };
 
-  // Theo dõi trạng thái thanh toán VNPay
-  const startPaymentTracking = () => {
-    const interval = setInterval(async () => {
-      try {
-        await fetchBookingDetails();
-
-        if (
-          booking?.status === "check_out" ||
-          booking?.status === "completed"
-        ) {
-          clearInterval(interval);
-          message.success("Thanh toán VNPay đã hoàn tất!");
-        }
-      } catch (error) {
-        console.error("Error tracking payment:", error);
-      }
-    }, 3000); // Kiểm tra mỗi 3 giây
-
-    // Dừng sau 5 phút
-    setTimeout(() => {
-      clearInterval(interval);
-    }, 300000);
-  };
-
   // Thêm hàm để check trạng thái checkout
   const checkCheckoutStatus = () => {
     if (!booking) return false;
@@ -665,7 +594,7 @@ export default function BookingShow() {
   };
 
   // ============================================
-  // CHECKIN HANDLER FUNCTIONS
+  // CHECKIN HANDLER FUNCTIONS - THÊM VÀO ĐÂY
   // ============================================
 
   // Handle add guest trong form checkin
@@ -1258,7 +1187,7 @@ export default function BookingShow() {
     }
   };
 
-  // Fetch damage types
+  // Fetch damage types - SỬ DỤNG API CÓ SẴN HOẶC TẠO MỚI
   const fetchDamageTypes = async () => {
     try {
       const authStr = localStorage.getItem("auth");
@@ -1398,7 +1327,7 @@ export default function BookingShow() {
     });
   };
 
-  // Handle image upload
+  // Handle image upload - SỬ DỤNG API UPLOAD CÓ SẴN
   const handleImageUpload = async (file: File) => {
     try {
       setDamageForm((prev) => ({
@@ -1415,7 +1344,7 @@ export default function BookingShow() {
     }
   };
 
-  // Submit damage
+  // Submit damage - SỬ DỤNG API ĐÚNG THEO ROUTE
   const handleAddDamage = async () => {
     if (!booking || !id) return;
 
@@ -1546,7 +1475,7 @@ export default function BookingShow() {
       };
 
       const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/checkout/penalty`,
+        `${API_URL}/api/bookings/${id}/penalties`,
         payload,
         {
           headers: {
@@ -4044,11 +3973,6 @@ export default function BookingShow() {
         cancelButtonProps={{ disabled: damageLoading }}
         closable={!damageLoading}
         maskClosable={!damageLoading}
-        afterOpenChange={(open) => {
-          if (open) {
-            fetchDamageTypes(); // Load data khi mở Modal
-          }
-        }}
       >
         <div style={{ padding: "16px 0" }}>
           <Alert
@@ -4076,7 +4000,6 @@ export default function BookingShow() {
                   handleDamageFormChange("damage_type_id", value)
                 }
                 disabled={damageLoading}
-                loading={damageTypes.length === 0}
                 showSearch
                 optionFilterProp="children"
                 filterOption={(input, option) =>
@@ -4086,7 +4009,7 @@ export default function BookingShow() {
                 }
               >
                 {damageTypes.map((type) => (
-                  <Select.Option
+                  <Option
                     key={type.id}
                     value={type.id}
                     label={type.damage_type_name}
@@ -4108,7 +4031,7 @@ export default function BookingShow() {
                         )}
                       </div>
                     </div>
-                  </Select.Option>
+                  </Option>
                 ))}
               </Select>
             </Form.Item>
@@ -4128,7 +4051,10 @@ export default function BookingShow() {
             <Form.Item label={<strong>Ảnh minh chứng (tùy chọn)</strong>}>
               <Upload
                 accept="image/*"
-                beforeUpload={handleImageUpload}
+                beforeUpload={(file) => {
+                  handleImageUpload(file);
+                  return false; // Prevent auto upload
+                }}
                 showUploadList={false}
                 disabled={damageLoading}
               >
@@ -4136,11 +4062,10 @@ export default function BookingShow() {
                   Tải ảnh lên
                 </Button>
               </Upload>
-
               {damageForm.image && (
                 <div style={{ marginTop: 8 }}>
                   <Alert
-                    message={`Đã chọn ảnh: ${damageForm.image.name}`}
+                    message="Đã tải ảnh lên thành công"
                     type="success"
                     showIcon
                   />

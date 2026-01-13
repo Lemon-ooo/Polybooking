@@ -559,7 +559,7 @@ export default function BookingShow() {
       });
 
       const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/checkout/pay`,
+        `${API_URL}/api/admin/bookings/${id}/checkout/pay`,
         {
           method: paymentMethod,
         },

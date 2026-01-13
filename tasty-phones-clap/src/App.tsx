@@ -242,6 +242,13 @@ export default function App() {
             edit: "/admin/vouchers/edit/:id",
             show: "/admin/vouchers/show/:id",
           },
+          {
+            name: "damages",
+            list: "/admin/damages",
+            create: "/admin/damages/create",
+            edit: "/admin/damages/edit/:id",
+            show: "/admin/damages/show/:id",
+          },
         ]}
       />
     </BrowserRouter>

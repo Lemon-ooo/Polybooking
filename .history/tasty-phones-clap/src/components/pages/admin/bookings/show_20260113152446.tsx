@@ -400,7 +400,7 @@ export default function BookingShow() {
       const token = authStr ? JSON.parse(authStr).token : null;
 
       const response = await axios.get(
-        `${API_URL}/api/bookings/${id}/checkout/summary`,
+        `${API_URL}/api/admin/bookings/${id}/checkout/summary`,
         {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         }
@@ -436,7 +436,7 @@ export default function BookingShow() {
       console.log("🔐 Confirming checkout for booking:", id);
 
       const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/checkout/confirm`,
+        `${API_URL}/api/admin/bookings/${id}/checkout/confirm`,
         {},
         {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -504,7 +504,7 @@ export default function BookingShow() {
 
       // Gọi API checkout với phương thức cash
       const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/checkout/pay`,
+        `${API_URL}/api/admin/bookings/${id}/checkout/pay`,
         {
           method: "cash",
         },
@@ -559,7 +559,7 @@ export default function BookingShow() {
       });
 
       const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/checkout/pay`,
+        `${API_URL}/api/admin/bookings/${id}/checkout/pay`,
         {
           method: paymentMethod,
         },

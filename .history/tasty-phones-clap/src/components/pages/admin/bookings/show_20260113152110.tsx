@@ -400,7 +400,7 @@ export default function BookingShow() {
       const token = authStr ? JSON.parse(authStr).token : null;
 
       const response = await axios.get(
-        `${API_URL}/api/bookings/${id}/checkout/summary`,
+        `${API_URL}/api/admin/bookings/${id}/checkout/summary`,
         {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         }
@@ -436,7 +436,7 @@ export default function BookingShow() {
       console.log("🔐 Confirming checkout for booking:", id);
 
       const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/checkout/confirm`,
+        `${API_URL}/api/admin/bookings/${id}/checkout/confirm`,
         {},
         {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -452,12 +452,12 @@ export default function BookingShow() {
         setCheckoutSummaryModalVisible(false);
 
         // Nếu đã hoàn tất checkout (số tiền = 0)
-        if (response.data.data?.status === "completed") {
+        if (response.data.data?.status === 'completed') {
           message.success("Checkout đã hoàn tất! Khách đã thanh toán đủ.");
-
+          
           // Refresh booking details
           await fetchBookingDetails();
-
+          
           // Show success notification
           notification.success({
             message: "Checkout hoàn tất",
@@ -476,11 +476,9 @@ export default function BookingShow() {
       }
     } catch (error: any) {
       console.error("❌ Error confirming checkout:", error);
-
+      
       if (error.response?.status === 400) {
-        message.error(
-          error.response.data.message || "Booking chưa sẵn sàng checkout"
-        );
+        message.error(error.response.data.message || "Booking chưa sẵn sàng checkout");
       } else {
         message.error(
           error.response?.data?.message || "Lỗi khi xác nhận checkout"
@@ -504,7 +502,7 @@ export default function BookingShow() {
 
       // Gọi API checkout với phương thức cash
       const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/checkout/pay`,
+        `${API_URL}/api/admin/bookings/${id}/checkout/pay`,
         {
           method: "cash",
         },
@@ -513,10 +511,7 @@ export default function BookingShow() {
         }
       );
 
-      console.log(
-        "✅ Complete checkout without payment response:",
-        response.data
-      );
+      console.log("✅ Complete checkout without payment response:", response.data);
 
       if (response.data.success) {
         message.success("Checkout thành công!");
@@ -555,11 +550,11 @@ export default function BookingShow() {
       console.log("💳 Processing checkout payment:", {
         bookingId: id,
         method: paymentMethod,
-        amount: checkoutSummary?.final,
+        amount: checkoutSummary?.final
       });
 
       const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/checkout/pay`,
+        `${API_URL}/api/admin/bookings/${id}/checkout/pay`,
         {
           method: paymentMethod,
         },
@@ -577,35 +572,30 @@ export default function BookingShow() {
         if (paymentMethod === "vnpay" && response.data.data?.payment_url) {
           // Nếu là VNPay, mở trang thanh toán trong tab mới
           message.info("Đang chuyển hướng đến trang thanh toán VNPay...");
-          const newWindow = window.open(
-            response.data.data.payment_url,
-            "_blank"
-          );
-
+          const newWindow = window.open(response.data.data.payment_url, "_blank");
+          
           if (!newWindow) {
-            message.warning(
-              "Trình duyệt đã chặn popup. Vui lòng cho phép popup hoặc nhấn vào link thủ công."
-            );
+            message.warning("Trình duyệt đã chặn popup. Vui lòng cho phép popup hoặc nhấn vào link thủ công.");
           }
 
           // Hiển thị hướng dẫn cho người dùng
           notification.info({
             message: "Chuyển hướng thanh toán VNPay",
-            description:
-              "Hệ thống đã mở trang thanh toán VNPay. Vui lòng hoàn tất thanh toán trong tab mới.",
+            description: "Hệ thống đã mở trang thanh toán VNPay. Vui lòng hoàn tất thanh toán trong tab mới.",
             placement: "topRight",
             duration: 5,
           });
-
+          
           // Theo dõi thanh toán
           startPaymentTracking();
+          
         } else if (paymentMethod === "cash") {
           // Nếu là tiền mặt, thông báo thành công
           message.success("Checkout thành công với thanh toán tiền mặt!");
-
+          
           // Refresh booking details
           await fetchBookingDetails();
-
+          
           // Show success notification
           notification.success({
             message: "Checkout thành công",
@@ -636,11 +626,8 @@ export default function BookingShow() {
     const interval = setInterval(async () => {
       try {
         await fetchBookingDetails();
-
-        if (
-          booking?.status === "check_out" ||
-          booking?.status === "completed"
-        ) {
+        
+        if (booking?.status === "check_out" || booking?.status === "completed") {
           clearInterval(interval);
           message.success("Thanh toán VNPay đã hoàn tất!");
         }
@@ -1546,7 +1533,7 @@ export default function BookingShow() {
       };
 
       const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/checkout/penalty`,
+        `${API_URL}/api/bookings/${id}/penalties`,
         payload,
         {
           headers: {
