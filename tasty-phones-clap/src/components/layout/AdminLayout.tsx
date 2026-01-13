@@ -82,6 +82,7 @@ export const AdminLayout: React.FC = () => {
     },
     { key: "bookings", icon: <BookOutlined />, label: "Đặt Phòng" },
     { key: "amenities", icon: <ToolOutlined />, label: "Tiện Ích" },
+    { key: "damages", icon: <ToolOutlined />, label: "Thiệt Hại" },
     { key: "users", icon: <TeamOutlined />, label: "Khách Hàng" },
     { key: "revenue", icon: <DollarOutlined />, label: "Doanh Thu" },
     { key: "settings", icon: <SettingOutlined />, label: "Cài Đặt" },

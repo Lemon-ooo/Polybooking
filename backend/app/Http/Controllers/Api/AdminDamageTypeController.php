@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-
 use App\Models\DamageType;
+use App\Models\DamageInvoice;
+use Illuminate\Support\Facades\Storage;
 
 class AdminDamageTypeController extends Controller
 {
@@ -25,7 +25,19 @@ class AdminDamageTypeController extends Controller
     public function show($id)
     {
         $item = DamageType::findOrFail($id);
-        return response()->json(['success' => true, 'data' => $item]);
+
+        $invoices = DamageInvoice::where('damage_type_id', $id)
+            ->with('booking')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'type' => $item,
+                'invoices' => $invoices
+            ]
+        ]);
     }
 
     // Create
@@ -34,20 +46,14 @@ class AdminDamageTypeController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
-            'description' => 'nullable|string',
-            'image' => 'nullable|image|max:5120'
+            'description' => 'nullable|string'
         ]);
-
-        $imagePath = null;
-        if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('damage-types', 'public');
-        }
 
         $type = DamageType::create([
             'name' => $data['name'],
             'price' => $data['price'],
             'description' => $data['description'] ?? null,
-            'image_path' => $imagePath
+            'image_path' => null
         ]);
 
         return response()->json(['success' => true, 'data' => $type], 201);
@@ -61,20 +67,12 @@ class AdminDamageTypeController extends Controller
         $data = $request->validate([
             'name' => 'nullable|string|max:255',
             'price' => 'nullable|numeric|min:0',
-            'description' => 'nullable|string',
-            'image' => 'nullable|image|max:5120'
+            'description' => 'nullable|string'
         ]);
 
         if (isset($data['name'])) $type->name = $data['name'];
         if (isset($data['price'])) $type->price = $data['price'];
         if (array_key_exists('description', $data)) $type->description = $data['description'];
-
-        if ($request->hasFile('image')) {
-            if ($type->image_path) {
-                Storage::disk('public')->delete($type->image_path);
-            }
-            $type->image_path = $request->file('image')->store('damage-types', 'public');
-        }
 
         $type->save();
 

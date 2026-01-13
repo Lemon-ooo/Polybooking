@@ -65,6 +65,10 @@ import AdminConversations from "./components/pages/admin/conversations/AdminConv
 import ClientEventDetail from "./components/pages/client/events/ClientEventDetail";
 import BookingList from "./components/pages/admin/bookings/list";
 import BookingShow from "./components/pages/admin/bookings/show";
+import Damages from "./components/pages/admin/damages";
+import DamageCreate from "./components/pages/admin/damages/create";
+import DamageEdit from "./components/pages/admin/damages/edit";
+import DamageShow from "./components/pages/admin/damages/show";
 
 // ======================================================
 // 🚀 APP CHÍNH - ĐÃ SỬA
@@ -171,6 +175,11 @@ export default function App() {
             <Route path="users" element={<UserList />} />
             <Route path="users/create" element={<EventCreate />} />
             <Route path="users/edit/:id" element={<EventEdit />} />
+            {/* Damages */}
+            <Route path="damages" element={<Damages />} />
+            <Route path="damages/create" element={<DamageCreate />} />
+            <Route path="damages/edit/:id" element={<DamageEdit />} />
+            <Route path="damages/show/:id" element={<DamageShow />} />
           </Route>
 
           {/* --------------------------------------------- */}
