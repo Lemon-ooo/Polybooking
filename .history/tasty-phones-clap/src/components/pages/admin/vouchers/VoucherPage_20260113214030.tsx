@@ -306,31 +306,9 @@ const VoucherPage: React.FC = () => {
             rules={[
               { required: true, message: "Vui lòng nhập mã voucher" },
               {
-                validator: (_, value) => {
-                  if (!value) return Promise.resolve();
-
-                  // Kiểm tra không có khoảng trắng
-                  if (/\s/.test(value)) {
-                    return Promise.reject(
-                      new Error("Không được chứa khoảng trắng")
-                    );
-                  }
-
-                  // Kiểm tra chỉ có chữ và số (cả chữ hoa và thường)
-                  if (!/^[A-Za-z0-9]+$/.test(value)) {
-                    return Promise.reject(
-                      new Error("Chỉ cho phép chữ cái và số, không dấu")
-                    );
-                  }
-
-                  // Tự động chuyển thành chữ IN HOA
-                  const upperValue = value.toUpperCase();
-                  if (value !== upperValue) {
-                    form.setFieldValue("code", upperValue);
-                  }
-
-                  return Promise.resolve();
-                },
+                pattern: /^[A-Z0-9]+$/,
+                message:
+                  "Chỉ cho phép chữ IN HOA và số, không dấu, không khoảng trắng",
               },
               { min: 3, max: 20, message: "Mã voucher từ 3 đến 20 ký tự" },
             ]}
@@ -338,11 +316,9 @@ const VoucherPage: React.FC = () => {
             <Input
               placeholder="VD: SALE30, GIAM50K"
               maxLength={20}
-              onChange={(e) => {
-                // Tự động chuyển thành chữ IN HOA và loại bỏ khoảng trắng
-                const value = e.target.value.toUpperCase().replace(/\s+/g, "");
-                form.setFieldValue("code", value);
-              }}
+              onChange={(e) =>
+                form.setFieldValue("code", e.target.value.toUpperCase())
+              }
             />
           </Form.Item>
 

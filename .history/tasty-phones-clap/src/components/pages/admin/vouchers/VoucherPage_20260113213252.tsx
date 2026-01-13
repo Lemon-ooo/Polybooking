@@ -231,35 +231,6 @@ const VoucherPage: React.FC = () => {
     },
   ];
 
-  // Component cho input phần trăm với cảnh báo
-  const PercentInputWithWarning = () => {
-    const discountPercent = Form.useWatch("discount_percent", form);
-
-    return (
-      <div>
-        <InputNumber
-          min={1}
-          style={{ width: "100%" }}
-          addonAfter="%"
-          step={5}
-          onKeyDown={(e) => {
-            // Chỉ cho phép nhập số, dấu chấm và các phím điều hướng
-            if (
-              !/[0-9]|\.|Backspace|Delete|ArrowLeft|ArrowRight|Tab/.test(e.key)
-            ) {
-              e.preventDefault();
-            }
-          }}
-        />
-        {discountPercent > 100 && (
-          <div style={{ color: "#faad14", marginTop: 4, fontSize: 12 }}>
-            ⚠️ Phần trăm giảm không được vượt quá 100%
-          </div>
-        )}
-      </div>
-    );
-  };
-
   return (
     <>
       <Space style={{ marginBottom: 16 }}>
@@ -306,31 +277,9 @@ const VoucherPage: React.FC = () => {
             rules={[
               { required: true, message: "Vui lòng nhập mã voucher" },
               {
-                validator: (_, value) => {
-                  if (!value) return Promise.resolve();
-
-                  // Kiểm tra không có khoảng trắng
-                  if (/\s/.test(value)) {
-                    return Promise.reject(
-                      new Error("Không được chứa khoảng trắng")
-                    );
-                  }
-
-                  // Kiểm tra chỉ có chữ và số (cả chữ hoa và thường)
-                  if (!/^[A-Za-z0-9]+$/.test(value)) {
-                    return Promise.reject(
-                      new Error("Chỉ cho phép chữ cái và số, không dấu")
-                    );
-                  }
-
-                  // Tự động chuyển thành chữ IN HOA
-                  const upperValue = value.toUpperCase();
-                  if (value !== upperValue) {
-                    form.setFieldValue("code", upperValue);
-                  }
-
-                  return Promise.resolve();
-                },
+                pattern: /^[A-Z0-9]+$/,
+                message:
+                  "Chỉ cho phép chữ IN HOA và số, không dấu, không khoảng trắng",
               },
               { min: 3, max: 20, message: "Mã voucher từ 3 đến 20 ký tự" },
             ]}
@@ -338,11 +287,9 @@ const VoucherPage: React.FC = () => {
             <Input
               placeholder="VD: SALE30, GIAM50K"
               maxLength={20}
-              onChange={(e) => {
-                // Tự động chuyển thành chữ IN HOA và loại bỏ khoảng trắng
-                const value = e.target.value.toUpperCase().replace(/\s+/g, "");
-                form.setFieldValue("code", value);
-              }}
+              onChange={(e) =>
+                form.setFieldValue("code", e.target.value.toUpperCase())
+              }
             />
           </Form.Item>
 
@@ -378,32 +325,19 @@ const VoucherPage: React.FC = () => {
                           message: "Vui lòng nhập phần trăm giảm",
                         },
                         {
-                          validator: (_, value) => {
-                            if (
-                              value === undefined ||
-                              value === null ||
-                              value === ""
-                            ) {
-                              return Promise.reject(
-                                "Vui lòng nhập phần trăm giảm"
-                              );
-                            }
-                            if (value < 1) {
-                              return Promise.reject(
-                                "Phần trăm giảm tối thiểu là 1%"
-                              );
-                            }
-                            if (value > 100) {
-                              return Promise.reject(
-                                "Phần trăm giảm không được vượt quá 100%"
-                              );
-                            }
-                            return Promise.resolve();
-                          },
+                          type: "number",
+                          min: 1,
+                          max: 100,
+                          message: "Phần trăm từ 1 đến 100",
                         },
                       ]}
                     >
-                      <PercentInputWithWarning />
+                      <InputNumber
+                        min={1}
+                        max={100}
+                        style={{ width: "100%" }}
+                        addonAfter="%"
+                      />
                     </Form.Item>
                   )}
 
