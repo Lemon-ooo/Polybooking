@@ -382,70 +382,21 @@ export default function BookingShow() {
     }
   };
 
-  // Fetch damage types - SỬ DỤNG API CÓ SẴN HOẶC TẠO MỚI
+  // Fetch damage types
   const fetchDamageTypes = async () => {
     try {
       const authStr = localStorage.getItem("auth");
       const token = authStr ? JSON.parse(authStr).token : null;
 
-      // THỬ API damage-types TRƯỚC
-      try {
-        const response = await axios.get(`${API_URL}/api/damage-types`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
+      const response = await axios.get(`${API_URL}/api/damage-types`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
 
-        if (response.data.success) {
-          setDamageTypes(response.data.data || []);
-          return;
-        }
-      } catch (error) {
-        console.log("API damage-types không tồn tại, sử dụng mock data");
+      if (response.data.success) {
+        setDamageTypes(response.data.data || []);
       }
-
-      // NẾU API KHÔNG TỒN TẠI, DÙNG MOCK DATA
-      const mockDamageTypes = [
-        {
-          id: 1,
-          damage_type_name: "Vỡ kính",
-          price: 500000,
-          description: "Vỡ kính cửa sổ",
-        },
-        {
-          id: 2,
-          damage_type_name: "Hư TV",
-          price: 2000000,
-          description: "Hư hỏng TV",
-        },
-        {
-          id: 3,
-          damage_type_name: "Bể gương",
-          price: 300000,
-          description: "Vỡ gương trong phòng tắm",
-        },
-        {
-          id: 4,
-          damage_type_name: "Nệm bẩn",
-          price: 1000000,
-          description: "Nệm bị ố màu không thể tẩy",
-        },
-        {
-          id: 5,
-          damage_type_name: "Hư điều hòa",
-          price: 1500000,
-          description: "Hư hỏng điều hòa",
-        },
-      ];
-
-      setDamageTypes(mockDamageTypes);
     } catch (error) {
       console.error("Error fetching damage types:", error);
-      // Vẫn dùng mock data nếu có lỗi
-      const mockDamageTypes = [
-        { id: 1, damage_type_name: "Vỡ kính", price: 500000 },
-        { id: 2, damage_type_name: "Hư TV", price: 2000000 },
-        { id: 3, damage_type_name: "Bể gương", price: 300000 },
-      ];
-      setDamageTypes(mockDamageTypes);
     }
   };
 
@@ -491,7 +442,7 @@ export default function BookingShow() {
     });
   };
 
-  // Handle image upload - SỬ DỤNG API UPLOAD CÓ SẴN
+  // Handle image upload
   const handleImageUpload = async (file: File) => {
     try {
       const authStr = localStorage.getItem("auth");
@@ -500,47 +451,19 @@ export default function BookingShow() {
       const formData = new FormData();
       formData.append("image", file);
 
-      // THỬ CÁC API UPLOAD KHÁC NHAU
-      const uploadEndpoints = [
-        `${API_URL}/api/upload`,
-        `${API_URL}/api/uploads`,
-        `${API_URL}/api/upload-image`,
-      ];
+      const response = await axios.post(`${API_URL}/api/upload`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
-      let uploadSuccessful = false;
-      let uploadedUrl = "";
-
-      for (const endpoint of uploadEndpoints) {
-        try {
-          const response = await axios.post(endpoint, formData, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "multipart/form-data",
-            },
-          });
-
-          if (response.data.success || response.data.url) {
-            uploadedUrl =
-              response.data.url ||
-              response.data.path ||
-              response.data.image_url;
-            uploadSuccessful = true;
-            break;
-          }
-        } catch (error) {
-          console.log(`Upload endpoint ${endpoint} failed, trying next...`);
-        }
-      }
-
-      if (uploadSuccessful) {
+      if (response.data.success) {
         setDamageForm({
           ...damageForm,
-          image: uploadedUrl,
+          image: response.data.url,
         });
         message.success("Tải ảnh lên thành công");
-      } else {
-        // Nếu không có API upload, vẫn cho tiếp tục nhưng không có ảnh
-        message.warning("Không thể tải ảnh lên, tiếp tục không có ảnh");
       }
     } catch (error) {
       console.error("Error uploading image:", error);
@@ -548,7 +471,7 @@ export default function BookingShow() {
     }
   };
 
-  // Submit damage - SỬ DỤNG API ĐÚNG THEO ROUTE ĐÃ ĐỊNH NGHĨA
+  // Submit damage - SỬ DỤNG API ADMIN CHECKOUT
   const handleAddDamage = async () => {
     if (!booking || !id) return;
 
@@ -568,13 +491,13 @@ export default function BookingShow() {
       };
 
       console.log(
-        "📤 Sending to API:",
-        `${API_URL}/api/bookings/${id}/damages`
+        "📤 Sending to ADMIN CHECKOUT API:",
+        `${API_URL}/api/admin/bookings/${id}/damages`
       );
       console.log("📦 Payload:", payload);
 
       const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/damages`, // ĐÚNG ROUTE THEO ĐỊNH NGHĨA
+        `${API_URL}/api/admin/bookings/${id}/damages`,
         payload,
         {
           headers: {
@@ -604,8 +527,6 @@ export default function BookingShow() {
 
       if (error.response?.data?.message) {
         message.error(error.response.data.message);
-      } else if (error.response?.status === 404) {
-        message.error("API không tồn tại. Vui lòng kiểm tra route.");
       } else {
         message.error("Không thể ghi nhận hư hỏng");
       }
@@ -614,7 +535,7 @@ export default function BookingShow() {
     }
   };
 
-  // Submit penalties - SỬ DỤNG API ĐÚNG THEO ROUTE ĐÃ ĐỊNH NGHĨA
+  // Submit penalties - SỬ DỤNG API ADMIN CHECKOUT
   const handleAddPenalties = async () => {
     if (!booking || !id) return;
 
@@ -640,13 +561,13 @@ export default function BookingShow() {
       };
 
       console.log(
-        "📤 Sending to API:",
-        `${API_URL}/api/bookings/${id}/penalties`
+        "📤 Sending to ADMIN CHECKOUT API:",
+        `${API_URL}/api/admin/bookings/${id}/penalties`
       );
       console.log("📦 Payload:", payload);
 
       const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/penalties`, // ĐÚNG ROUTE THEO ĐỊNH NGHĨA
+        `${API_URL}/api/admin/bookings/${id}/penalties`,
         payload,
         {
           headers: {
@@ -672,8 +593,6 @@ export default function BookingShow() {
 
       if (error.response?.data?.message) {
         message.error(error.response.data.message);
-      } else if (error.response?.status === 404) {
-        message.error("API không tồn tại. Vui lòng kiểm tra route.");
       } else {
         message.error("Không thể ghi nhận phạt");
       }
@@ -2357,17 +2276,6 @@ export default function BookingShow() {
                       <div>{type.damage_type_name}</div>
                       <div style={{ fontSize: "12px", color: "#666" }}>
                         Giá: {formatCurrency(type.price)}
-                        {type.description && (
-                          <div
-                            style={{
-                              fontSize: "11px",
-                              color: "#999",
-                              marginTop: 2,
-                            }}
-                          >
-                            {type.description}
-                          </div>
-                        )}
                       </div>
                     </div>
                   </Option>
@@ -2375,9 +2283,9 @@ export default function BookingShow() {
               </Select>
             </Form.Item>
 
-            <Form.Item label={<strong>Mô tả (tùy chọn)</strong>}>
+            <Form.Item label={<strong>Mô tả</strong>}>
               <TextArea
-                placeholder="Mô tả chi tiết hư hỏng"
+                placeholder="Mô tả hư hỏng (tùy chọn)"
                 value={damageForm.description}
                 onChange={(e) =>
                   handleDamageFormChange("description", e.target.value)
@@ -2387,7 +2295,7 @@ export default function BookingShow() {
               />
             </Form.Item>
 
-            <Form.Item label={<strong>Ảnh minh chứng (tùy chọn)</strong>}>
+            <Form.Item label={<strong>Ảnh minh chứng</strong>}>
               <Upload
                 accept="image/*"
                 beforeUpload={(file) => {
@@ -2415,7 +2323,7 @@ export default function BookingShow() {
 
           <Alert
             message="Lưu ý"
-            description="Hệ thống sẽ tự động tính tiền theo loại hư hỏng đã chọn. Ảnh và mô tả là tùy chọn."
+            description="Hệ thống sẽ tự động tính tiền theo loại hư hỏng đã chọn"
             type="warning"
             showIcon
             style={{ marginTop: 16 }}
@@ -2512,7 +2420,7 @@ export default function BookingShow() {
 
           <Alert
             message="Lưu ý"
-            description="Hệ thống sẽ tự động validate và trả về lỗi nếu booking không hợp lệ"
+            description="API sẽ tự động validate và trả về lỗi nếu booking không hợp lệ"
             type="warning"
             showIcon
             style={{ marginTop: 16 }}

@@ -19,11 +19,6 @@ import {
   Dropdown,
   Menu,
   Tooltip,
-  Form,
-  Input,
-  InputNumber,
-  Select,
-  Upload,
 } from "antd";
 import {
   HomeOutlined,
@@ -42,21 +37,14 @@ import {
   DownloadOutlined,
   SendOutlined,
   EyeOutlined,
-  MoreOutlined,
   CheckCircleOutlined,
   InfoCircleOutlined,
-  PlusOutlined,
-  WarningOutlined,
-  UploadOutlined,
-  PictureOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 
 const API_URL = "http://localhost:8000";
-const { Option } = Select;
-const { TextArea } = Input;
 
 // ============================================
 // INTERFACES
@@ -79,13 +67,6 @@ interface ServiceCharge {
   created_at: string;
 }
 
-interface DamageType {
-  id: number;
-  damage_type_name: string;
-  price: number;
-  description?: string;
-}
-
 interface DamageInvoice {
   damage_invoice_id: number;
   damage_type: {
@@ -93,14 +74,13 @@ interface DamageInvoice {
   };
   amount: number;
   description: string;
-  image_path?: string;
   created_at: string;
 }
 
 interface PenaltyCharge {
   penalty_charge_id: number;
   amount: number;
-  days_late: number;
+  reason: string;
   created_at: string;
 }
 
@@ -165,17 +145,6 @@ interface InvoiceStatus {
   issued_at?: string;
 }
 
-interface PenaltyFormData {
-  days_late: number;
-  amount: number;
-}
-
-interface DamageFormData {
-  damage_type_id: number;
-  description?: string;
-  image?: string;
-}
-
 // ============================================
 // STATUS CONFIG
 // ============================================
@@ -189,7 +158,6 @@ const statusConfig: Record<string, { color: string; text: string }> = {
   completed: { color: "purple", text: "Hoàn thành" },
   canceled: { color: "red", text: "Đã hủy" },
   checked_in: { color: "green", text: "Đang lưu trú" },
-  in_use: { color: "green", text: "Đang lưu trú" },
 };
 
 const paymentStatusConfig: Record<string, { color: string; text: string }> = {
@@ -215,24 +183,6 @@ export default function BookingShow() {
   });
   const [invoiceModalVisible, setInvoiceModalVisible] = useState(false);
   const [invoiceLoading, setInvoiceLoading] = useState(false);
-
-  // State cho modal phạt
-  const [penaltyModalVisible, setPenaltyModalVisible] = useState(false);
-  const [penaltyLoading, setPenaltyLoading] = useState(false);
-  const [penaltyForm, setPenaltyForm] = useState<PenaltyFormData>({
-    days_late: 1,
-    amount: 0,
-  });
-
-  // State cho modal damage
-  const [damageModalVisible, setDamageModalVisible] = useState(false);
-  const [damageLoading, setDamageLoading] = useState(false);
-  const [damageTypes, setDamageTypes] = useState<DamageType[]>([]);
-  const [damageForm, setDamageForm] = useState<DamageFormData>({
-    damage_type_id: 0,
-    description: "",
-    image: "",
-  });
 
   // ============================================
   // FORMATTING FUNCTIONS
@@ -293,39 +243,35 @@ export default function BookingShow() {
         throw new Error("Cấu trúc dữ liệu không hợp lệ");
       }
 
-      // Xác định pricing data
-      let pricingData: Pricing;
-      if (responseData.pricing) {
-        pricingData = responseData.pricing;
-      } else {
-        // Tính toán từ booking data - BAO GỒM PHẠT
-        const room_total =
-          bookingData.items?.reduce((sum, item) => sum + item.amount, 0) || 0;
-        const service_total = bookingData.serviceInvoice?.total_amount || 0;
-        const damage_total =
-          bookingData.damageInvoices?.reduce(
-            (sum, invoice) => sum + invoice.amount,
-            0
-          ) || 0;
-        const penalty_total =
-          bookingData.penaltyCharges?.reduce(
-            (sum, charge) => sum + charge.amount,
-            0
-          ) || 0;
+      // Xác định pricing data - TÍNH TOÁN LẠI ĐỂ CHẮC CHẮN BAO GỒM PHẠT
+      const penalty_total =
+        bookingData.penaltyCharges?.reduce(
+          (sum, charge) => sum + charge.amount,
+          0
+        ) || 0;
 
-        // TÍNH LẠI TỔNG BAO GỒM PHẠT VÀ DAMAGE
-        const subtotal =
-          room_total + service_total + damage_total + penalty_total;
-        const grand_total = subtotal - (bookingData.voucher_discount || 0);
+      const damage_total =
+        bookingData.damageInvoices?.reduce(
+          (sum, invoice) => sum + invoice.amount,
+          0
+        ) || 0;
 
-        pricingData = {
-          room_total,
-          service_total,
-          damage_total,
-          penalty_total,
-          grand_total,
-        };
-      }
+      const service_total = bookingData.serviceInvoice?.total_amount || 0;
+      const room_total =
+        bookingData.items?.reduce((sum, item) => sum + item.amount, 0) || 0;
+
+      // Tính tổng - ĐẢM BẢO ĐÃ BAO GỒM PHẠT
+      const subtotal =
+        room_total + service_total + damage_total + penalty_total;
+      const grand_total = subtotal - (bookingData.voucher_discount || 0);
+
+      const pricingData: Pricing = {
+        room_total,
+        service_total,
+        damage_total,
+        penalty_total,
+        grand_total,
+      };
 
       setBooking(bookingData);
       setPricing(pricingData);
@@ -334,10 +280,7 @@ export default function BookingShow() {
       await checkInvoiceStatus(bookingData.id || bookingData.booking_id, token);
 
       console.log("✅ Booking data loaded:", bookingData);
-      console.log(
-        "💰 Pricing data (includes penalties & damage):",
-        pricingData
-      );
+      console.log("💰 Pricing data (including penalties):", pricingData);
     } catch (error: any) {
       console.error("❌ Error fetching booking details:", error);
 
@@ -379,381 +322,6 @@ export default function BookingShow() {
     } catch (error) {
       console.log("No invoice check API or error checking");
       setInvoiceStatus({ exists: false });
-    }
-  };
-
-  // Fetch damage types - SỬ DỤNG API CÓ SẴN HOẶC TẠO MỚI
-  const fetchDamageTypes = async () => {
-    try {
-      const authStr = localStorage.getItem("auth");
-      const token = authStr ? JSON.parse(authStr).token : null;
-
-      // THỬ API damage-types TRƯỚC
-      try {
-        const response = await axios.get(`${API_URL}/api/damage-types`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
-
-        if (response.data.success) {
-          setDamageTypes(response.data.data || []);
-          return;
-        }
-      } catch (error) {
-        console.log("API damage-types không tồn tại, sử dụng mock data");
-      }
-
-      // NẾU API KHÔNG TỒN TẠI, DÙNG MOCK DATA
-      const mockDamageTypes = [
-        {
-          id: 1,
-          damage_type_name: "Vỡ kính",
-          price: 500000,
-          description: "Vỡ kính cửa sổ",
-        },
-        {
-          id: 2,
-          damage_type_name: "Hư TV",
-          price: 2000000,
-          description: "Hư hỏng TV",
-        },
-        {
-          id: 3,
-          damage_type_name: "Bể gương",
-          price: 300000,
-          description: "Vỡ gương trong phòng tắm",
-        },
-        {
-          id: 4,
-          damage_type_name: "Nệm bẩn",
-          price: 1000000,
-          description: "Nệm bị ố màu không thể tẩy",
-        },
-        {
-          id: 5,
-          damage_type_name: "Hư điều hòa",
-          price: 1500000,
-          description: "Hư hỏng điều hòa",
-        },
-      ];
-
-      setDamageTypes(mockDamageTypes);
-    } catch (error) {
-      console.error("Error fetching damage types:", error);
-      // Vẫn dùng mock data nếu có lỗi
-      const mockDamageTypes = [
-        { id: 1, damage_type_name: "Vỡ kính", price: 500000 },
-        { id: 2, damage_type_name: "Hư TV", price: 2000000 },
-        { id: 3, damage_type_name: "Bể gương", price: 300000 },
-      ];
-      setDamageTypes(mockDamageTypes);
-    }
-  };
-
-  // Open damage modal
-  const showDamageModal = async () => {
-    if (!booking) return;
-
-    await fetchDamageTypes();
-    setDamageForm({
-      damage_type_id: 0,
-      description: "",
-      image: "",
-    });
-    setDamageModalVisible(true);
-  };
-
-  // Open penalty modal
-  const showPenaltyModal = () => {
-    if (!booking) return;
-
-    setPenaltyForm({
-      days_late: 1,
-      amount: 0,
-    });
-    setPenaltyModalVisible(true);
-  };
-
-  // Handle form changes
-  const handlePenaltyFormChange = (
-    field: keyof PenaltyFormData,
-    value: any
-  ) => {
-    setPenaltyForm({
-      ...penaltyForm,
-      [field]: value,
-    });
-  };
-
-  const handleDamageFormChange = (field: keyof DamageFormData, value: any) => {
-    setDamageForm({
-      ...damageForm,
-      [field]: value,
-    });
-  };
-
-  // Handle image upload - SỬ DỤNG API UPLOAD CÓ SẴN
-  const handleImageUpload = async (file: File) => {
-    try {
-      const authStr = localStorage.getItem("auth");
-      const token = authStr ? JSON.parse(authStr).token : null;
-
-      const formData = new FormData();
-      formData.append("image", file);
-
-      // THỬ CÁC API UPLOAD KHÁC NHAU
-      const uploadEndpoints = [
-        `${API_URL}/api/upload`,
-        `${API_URL}/api/uploads`,
-        `${API_URL}/api/upload-image`,
-      ];
-
-      let uploadSuccessful = false;
-      let uploadedUrl = "";
-
-      for (const endpoint of uploadEndpoints) {
-        try {
-          const response = await axios.post(endpoint, formData, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "multipart/form-data",
-            },
-          });
-
-          if (response.data.success || response.data.url) {
-            uploadedUrl =
-              response.data.url ||
-              response.data.path ||
-              response.data.image_url;
-            uploadSuccessful = true;
-            break;
-          }
-        } catch (error) {
-          console.log(`Upload endpoint ${endpoint} failed, trying next...`);
-        }
-      }
-
-      if (uploadSuccessful) {
-        setDamageForm({
-          ...damageForm,
-          image: uploadedUrl,
-        });
-        message.success("Tải ảnh lên thành công");
-      } else {
-        // Nếu không có API upload, vẫn cho tiếp tục nhưng không có ảnh
-        message.warning("Không thể tải ảnh lên, tiếp tục không có ảnh");
-      }
-    } catch (error) {
-      console.error("Error uploading image:", error);
-      message.error("Lỗi khi tải ảnh lên");
-    }
-  };
-
-  // Submit damage - SỬ DỤNG API ĐÚNG THEO ROUTE ĐÃ ĐỊNH NGHĨA
-  const handleAddDamage = async () => {
-    if (!booking || !id) return;
-
-    if (!damageForm.damage_type_id) {
-      message.error("Vui lòng chọn loại hư hỏng");
-      return;
-    }
-
-    setDamageLoading(true);
-    try {
-      const authStr = localStorage.getItem("auth");
-      const token = authStr ? JSON.parse(authStr).token : null;
-
-      const payload = {
-        damage_type_id: damageForm.damage_type_id,
-        image: damageForm.image || null,
-      };
-
-      console.log(
-        "📤 Sending to API:",
-        `${API_URL}/api/bookings/${id}/damages`
-      );
-      console.log("📦 Payload:", payload);
-
-      const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/damages`, // ĐÚNG ROUTE THEO ĐỊNH NGHĨA
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      console.log("✅ Damage API Response:", response.data);
-
-      if (response.data.success) {
-        message.success("Ghi nhận hư hỏng thành công!");
-        setDamageModalVisible(false);
-        fetchBookingDetails(); // Refresh data
-        // Reset form
-        setDamageForm({
-          damage_type_id: 0,
-          description: "",
-          image: "",
-        });
-      } else {
-        message.error(response.data.message || "Có lỗi xảy ra");
-      }
-    } catch (error: any) {
-      console.error("❌ Error adding damage:", error);
-
-      if (error.response?.data?.message) {
-        message.error(error.response.data.message);
-      } else if (error.response?.status === 404) {
-        message.error("API không tồn tại. Vui lòng kiểm tra route.");
-      } else {
-        message.error("Không thể ghi nhận hư hỏng");
-      }
-    } finally {
-      setDamageLoading(false);
-    }
-  };
-
-  // Submit penalties - SỬ DỤNG API ĐÚNG THEO ROUTE ĐÃ ĐỊNH NGHĨA
-  const handleAddPenalties = async () => {
-    if (!booking || !id) return;
-
-    // Validate
-    if (!penaltyForm.amount || penaltyForm.amount <= 0) {
-      message.error("Vui lòng nhập số tiền phạt");
-      return;
-    }
-
-    if (!penaltyForm.days_late || penaltyForm.days_late <= 0) {
-      message.error("Vui lòng nhập số ngày trễ");
-      return;
-    }
-
-    setPenaltyLoading(true);
-    try {
-      const authStr = localStorage.getItem("auth");
-      const token = authStr ? JSON.parse(authStr).token : null;
-
-      const payload = {
-        days_late: penaltyForm.days_late,
-        amount: penaltyForm.amount,
-      };
-
-      console.log(
-        "📤 Sending to API:",
-        `${API_URL}/api/bookings/${id}/penalties`
-      );
-      console.log("📦 Payload:", payload);
-
-      const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/penalties`, // ĐÚNG ROUTE THEO ĐỊNH NGHĨA
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      console.log("✅ Penalty API Response:", response.data);
-
-      if (response.data.success) {
-        message.success("Ghi nhận phạt thành công!");
-        setPenaltyModalVisible(false);
-        fetchBookingDetails(); // Refresh data
-        // Reset form
-        setPenaltyForm({ days_late: 1, amount: 0 });
-      } else {
-        message.error(response.data.message || "Có lỗi xảy ra");
-      }
-    } catch (error: any) {
-      console.error("❌ Error adding penalties:", error);
-
-      if (error.response?.data?.message) {
-        message.error(error.response.data.message);
-      } else if (error.response?.status === 404) {
-        message.error("API không tồn tại. Vui lòng kiểm tra route.");
-      } else {
-        message.error("Không thể ghi nhận phạt");
-      }
-    } finally {
-      setPenaltyLoading(false);
-    }
-  };
-
-  // Handle confirm checkout
-  const handleConfirmCheckout = async () => {
-    if (!booking || !id) return;
-
-    try {
-      const authStr = localStorage.getItem("auth");
-      const token = authStr ? JSON.parse(authStr).token : null;
-
-      const response = await axios.post(
-        `${API_URL}/api/admin/bookings/${id}/checkout/confirm`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (response.data.success) {
-        message.success("Đã xác nhận checkout!");
-        fetchBookingDetails();
-      } else {
-        message.error(response.data.message || "Có lỗi xảy ra");
-      }
-    } catch (error: any) {
-      console.error("Error confirming checkout:", error);
-      message.error(
-        error.response?.data?.message || "Lỗi khi xác nhận checkout"
-      );
-    }
-  };
-
-  // Handle get checkout summary
-  const handleGetCheckoutSummary = async () => {
-    if (!booking || !id) return;
-
-    try {
-      const authStr = localStorage.getItem("auth");
-      const token = authStr ? JSON.parse(authStr).token : null;
-
-      const response = await axios.get(
-        `${API_URL}/api/admin/bookings/${id}/checkout/summary`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.data.success) {
-        const summary = response.data.data;
-        Modal.info({
-          title: "Tổng thanh toán checkout",
-          content: (
-            <div>
-              <p>Tiền phòng: {formatCurrency(summary.room)}</p>
-              <p>Dịch vụ: {formatCurrency(summary.service)}</p>
-              <p>Hư hỏng: {formatCurrency(summary.damage)}</p>
-              <p>Phạt: {formatCurrency(summary.penalty)}</p>
-              <p>Đã trả trước: {formatCurrency(summary.prepaid)}</p>
-              <Divider />
-              <p style={{ fontWeight: "bold", fontSize: "16px" }}>
-                Tổng thanh toán: {formatCurrency(summary.final)}
-              </p>
-            </div>
-          ),
-        });
-      }
-    } catch (error) {
-      console.error("Error getting checkout summary:", error);
-      message.error("Lỗi khi lấy tổng thanh toán");
     }
   };
 
@@ -1038,32 +606,24 @@ export default function BookingShow() {
   }
 
   // ============================================
-  // CALCULATED VALUES - TÍNH TOÁN LẠI ĐỂ BAO GỒM PHẠT
+  // CALCULATED VALUES
   // ============================================
   const displayBookingId = booking.booking_id || booking.id;
   const status = statusConfig[booking.status] || {
     color: "default",
     text: booking.status,
   };
-
-  // Tổng đã thanh toán
   const totalPaid =
     booking.payments?.reduce((sum, payment) => sum + payment.amount, 0) || 0;
-
-  // Sử dụng grand_total từ pricing (đã bao gồm phạt và damage)
-  const grandTotal = pricing?.grand_total || booking.total_price;
-
-  // Tính số tiền còn lại PHẢI BAO GỒM CẢ PHẠT VÀ DAMAGE
-  const balanceDue = Math.max(0, grandTotal - totalPaid);
+  const balanceDue = (pricing?.grand_total || booking.total_price) - totalPaid;
 
   const canCreateInvoice =
     booking.status === "check_out" || booking.status === "completed";
 
-  // CHỈ HIỂN THỊ NÚT THÊM PHẠT VÀ DAMAGE KHI ĐANG LƯU TRÚ
-  const canAddCharges =
-    booking.status === "check_in" ||
-    booking.status === "checked_in" ||
-    booking.status === "in_use";
+  // XÁC ĐỊNH CÓ NÊN HIỂN THỊ NÚT THÊM PHẠT KHÔNG
+  // CHỈ HIỂN THỊ KHI KHÔNG Ở TRẠNG THÁI CHECK-OUT
+  const canAddPenalties =
+    booking.status !== "check_out" && booking.status !== "completed";
 
   return (
     <div
@@ -1253,13 +813,9 @@ export default function BookingShow() {
 
               <Timeline.Item
                 color={
-                  [
-                    "check_in",
-                    "check_out",
-                    "completed",
-                    "checked_in",
-                    "in_use",
-                  ].includes(booking.status)
+                  ["check_in", "check_out", "completed", "checked_in"].includes(
+                    booking.status
+                  )
                     ? "green"
                     : "gray"
                 }
@@ -1273,7 +829,6 @@ export default function BookingShow() {
                       "check_out",
                       "completed",
                       "checked_in",
-                      "in_use",
                     ].includes(booking.status)
                       ? "#000"
                       : "#999",
@@ -1288,7 +843,6 @@ export default function BookingShow() {
                       "check_out",
                       "completed",
                       "checked_in",
-                      "in_use",
                     ].includes(booking.status)
                       ? "#666"
                       : "#999",
@@ -1723,23 +1277,6 @@ export default function BookingShow() {
                         title: "Mô tả",
                         dataIndex: "description",
                         key: "description",
-                        render: (text, record) => (
-                          <div>
-                            {text}
-                            {record.image_path && (
-                              <div style={{ marginTop: 4 }}>
-                                <PictureOutlined style={{ marginRight: 4 }} />
-                                <a
-                                  href={`${API_URL}${record.image_path}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                >
-                                  Xem ảnh
-                                </a>
-                              </div>
-                            )}
-                          </div>
-                        ),
                       },
                       {
                         title: "Số tiền",
@@ -1767,7 +1304,7 @@ export default function BookingShow() {
               {booking.penaltyCharges?.length > 0 && (
                 <>
                   <Divider orientation="left" style={{ fontWeight: "600" }}>
-                    Phạt trễ check-out
+                    Phạt
                   </Divider>
                   <Table
                     dataSource={booking.penaltyCharges}
@@ -1776,10 +1313,9 @@ export default function BookingShow() {
                     size="small"
                     columns={[
                       {
-                        title: "Số ngày trễ",
-                        dataIndex: "days_late",
-                        key: "days_late",
-                        render: (days) => <div>{days} ngày</div>,
+                        title: "Lý do",
+                        dataIndex: "reason",
+                        key: "reason",
                       },
                       {
                         title: "Số tiền",
@@ -1867,7 +1403,7 @@ export default function BookingShow() {
             )}
           </Card>
 
-          {/* PAYMENT SUMMARY - SỬ DỤNG GRAND_TOTAL BAO GỒM PHẠT & DAMAGE */}
+          {/* PAYMENT SUMMARY */}
           <Card
             title={
               <span style={{ fontWeight: "600", fontSize: "16px" }}>
@@ -1963,7 +1499,7 @@ export default function BookingShow() {
                       color: "#1890ff",
                     }}
                   >
-                    {formatCurrency(grandTotal)}
+                    {formatCurrency(pricing?.grand_total || 0)}
                   </div>
                 </Col>
               </Row>
@@ -1979,7 +1515,6 @@ export default function BookingShow() {
                 </Col>
               </Row>
 
-              {/* SỐ TIỀN CÒN LẠI TÍNH TỪ GRAND_TOTAL (ĐÃ BAO GỒM PHẠT & DAMAGE) */}
               {balanceDue > 0 && (
                 <Row style={{ marginTop: 8 }}>
                   <Col span={12}>
@@ -2110,71 +1645,6 @@ export default function BookingShow() {
             bodyStyle={{ padding: "16px" }}
           >
             <Space direction="vertical" style={{ width: "100%" }}>
-              {/* Checkout Actions - chỉ hiển thị khi đang lưu trú */}
-              {canAddCharges && (
-                <>
-                  <Button
-                    type="primary"
-                    block
-                    size="large"
-                    onClick={showDamageModal}
-                    icon={<ExclamationCircleOutlined />}
-                    style={{
-                      height: "48px",
-                      fontSize: "16px",
-                      background: "#fa8c16",
-                      borderColor: "#fa8c16",
-                    }}
-                  >
-                    Thêm Hư hỏng
-                  </Button>
-
-                  <Button
-                    type="primary"
-                    danger
-                    block
-                    size="large"
-                    onClick={showPenaltyModal}
-                    icon={<WarningOutlined />}
-                    style={{
-                      height: "48px",
-                      fontSize: "16px",
-                      background: "#ff4d4f",
-                      borderColor: "#ff4d4f",
-                    }}
-                  >
-                    Thêm Phạt Trễ
-                  </Button>
-
-                  <Button
-                    type="default"
-                    block
-                    size="large"
-                    onClick={handleGetCheckoutSummary}
-                    icon={<DollarOutlined />}
-                    style={{ height: "48px", fontSize: "16px" }}
-                  >
-                    Xem Tổng Thanh Toán
-                  </Button>
-
-                  <Button
-                    type="primary"
-                    block
-                    size="large"
-                    onClick={handleConfirmCheckout}
-                    icon={<CheckCircleOutlined />}
-                    style={{
-                      height: "48px",
-                      fontSize: "16px",
-                      background: "#52c41a",
-                      borderColor: "#52c41a",
-                    }}
-                  >
-                    Xác nhận Checkout
-                  </Button>
-                </>
-              )}
-
               {/* Invoice Dropdown */}
               <Dropdown
                 overlay={
@@ -2290,236 +1760,6 @@ export default function BookingShow() {
         </Col>
       </Row>
 
-      {/* DAMAGE MODAL */}
-      <Modal
-        title={
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <ExclamationCircleOutlined style={{ color: "#fa8c16" }} />
-            <span>Thêm Hư hỏng</span>
-          </div>
-        }
-        open={damageModalVisible}
-        onCancel={() => setDamageModalVisible(false)}
-        onOk={handleAddDamage}
-        okText="Ghi nhận"
-        cancelText="Hủy"
-        width={600}
-        okButtonProps={{
-          type: "primary",
-          loading: damageLoading,
-          style: { background: "#fa8c16", borderColor: "#fa8c16" },
-        }}
-        cancelButtonProps={{ disabled: damageLoading }}
-        closable={!damageLoading}
-        maskClosable={!damageLoading}
-      >
-        <div style={{ padding: "16px 0" }}>
-          <Alert
-            message="Thông báo"
-            description={
-              <div>
-                <p>Bạn đang thêm hư hỏng cho Booking #{displayBookingId}</p>
-                <p>
-                  <strong>Khách hàng:</strong> {booking?.user?.name} (
-                  {booking?.user?.email})
-                </p>
-              </div>
-            }
-            type="info"
-            showIcon
-            style={{ marginBottom: 24 }}
-          />
-
-          <Form layout="vertical">
-            <Form.Item label={<strong>Loại hư hỏng *</strong>} required>
-              <Select
-                placeholder="Chọn loại hư hỏng"
-                value={damageForm.damage_type_id || undefined}
-                onChange={(value) =>
-                  handleDamageFormChange("damage_type_id", value)
-                }
-                disabled={damageLoading}
-                showSearch
-                optionFilterProp="children"
-                filterOption={(input, option) =>
-                  (option?.label ?? "")
-                    .toLowerCase()
-                    .includes(input.toLowerCase())
-                }
-              >
-                {damageTypes.map((type) => (
-                  <Option
-                    key={type.id}
-                    value={type.id}
-                    label={type.damage_type_name}
-                  >
-                    <div>
-                      <div>{type.damage_type_name}</div>
-                      <div style={{ fontSize: "12px", color: "#666" }}>
-                        Giá: {formatCurrency(type.price)}
-                        {type.description && (
-                          <div
-                            style={{
-                              fontSize: "11px",
-                              color: "#999",
-                              marginTop: 2,
-                            }}
-                          >
-                            {type.description}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-
-            <Form.Item label={<strong>Mô tả (tùy chọn)</strong>}>
-              <TextArea
-                placeholder="Mô tả chi tiết hư hỏng"
-                value={damageForm.description}
-                onChange={(e) =>
-                  handleDamageFormChange("description", e.target.value)
-                }
-                rows={3}
-                disabled={damageLoading}
-              />
-            </Form.Item>
-
-            <Form.Item label={<strong>Ảnh minh chứng (tùy chọn)</strong>}>
-              <Upload
-                accept="image/*"
-                beforeUpload={(file) => {
-                  handleImageUpload(file);
-                  return false; // Prevent auto upload
-                }}
-                showUploadList={false}
-                disabled={damageLoading}
-              >
-                <Button icon={<UploadOutlined />} disabled={damageLoading}>
-                  Tải ảnh lên
-                </Button>
-              </Upload>
-              {damageForm.image && (
-                <div style={{ marginTop: 8 }}>
-                  <Alert
-                    message="Đã tải ảnh lên thành công"
-                    type="success"
-                    showIcon
-                  />
-                </div>
-              )}
-            </Form.Item>
-          </Form>
-
-          <Alert
-            message="Lưu ý"
-            description="Hệ thống sẽ tự động tính tiền theo loại hư hỏng đã chọn. Ảnh và mô tả là tùy chọn."
-            type="warning"
-            showIcon
-            style={{ marginTop: 16 }}
-          />
-        </div>
-      </Modal>
-
-      {/* PENALTY MODAL */}
-      <Modal
-        title={
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <WarningOutlined style={{ color: "#ff4d4f" }} />
-            <span>Thêm Phạt Trễ Check-out</span>
-          </div>
-        }
-        open={penaltyModalVisible}
-        onCancel={() => setPenaltyModalVisible(false)}
-        onOk={handleAddPenalties}
-        okText="Ghi nhận"
-        cancelText="Hủy"
-        width={500}
-        okButtonProps={{
-          type: "primary",
-          danger: true,
-          loading: penaltyLoading,
-        }}
-        cancelButtonProps={{ disabled: penaltyLoading }}
-        closable={!penaltyLoading}
-        maskClosable={!penaltyLoading}
-      >
-        <div style={{ padding: "16px 0" }}>
-          <Alert
-            message="Thông báo"
-            description={
-              <div>
-                <p>
-                  Bạn đang thêm phạt trễ check-out cho Booking #
-                  {displayBookingId}
-                </p>
-                <p>
-                  <strong>Khách hàng:</strong> {booking?.user?.name} (
-                  {booking?.user?.email})
-                </p>
-              </div>
-            }
-            type="info"
-            showIcon
-            style={{ marginBottom: 24 }}
-          />
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <div style={{ marginBottom: 8 }}>
-                <strong>Số ngày trễ *</strong>
-              </div>
-              <InputNumber
-                style={{ width: "100%" }}
-                placeholder="Số ngày trễ check-out"
-                value={penaltyForm.days_late}
-                onChange={(value) =>
-                  handlePenaltyFormChange("days_late", value || 1)
-                }
-                min={1}
-                max={30}
-                disabled={penaltyLoading}
-              />
-              <div style={{ fontSize: "12px", color: "#999", marginTop: 4 }}>
-                Số ngày khách trễ check-out
-              </div>
-            </Col>
-            <Col span={12}>
-              <div style={{ marginBottom: 8 }}>
-                <strong>Số tiền phạt (VND) *</strong>
-              </div>
-              <InputNumber
-                style={{ width: "100%" }}
-                placeholder="Nhập số tiền phạt"
-                value={penaltyForm.amount}
-                onChange={(value) =>
-                  handlePenaltyFormChange("amount", value || 0)
-                }
-                formatter={(value) =>
-                  `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                }
-                parser={(value) => value!.replace(/\$\s?|(,*)/g, "")}
-                min={0}
-                disabled={penaltyLoading}
-              />
-              <div style={{ fontSize: "12px", color: "#999", marginTop: 4 }}>
-                Ví dụ: 100.000 VND
-              </div>
-            </Col>
-          </Row>
-
-          <Alert
-            message="Lưu ý"
-            description="Hệ thống sẽ tự động validate và trả về lỗi nếu booking không hợp lệ"
-            type="warning"
-            showIcon
-            style={{ marginTop: 16 }}
-          />
-        </div>
-      </Modal>
-
       {/* INVOICE CONFIRMATION MODAL */}
       <Modal
         title="Xác nhận tạo hóa đơn"
@@ -2547,7 +1787,8 @@ export default function BookingShow() {
                   {booking?.user?.email})
                 </p>
                 <p>
-                  <strong>Tổng thanh toán:</strong> {formatCurrency(grandTotal)}
+                  <strong>Tổng thanh toán:</strong>{" "}
+                  {formatCurrency(pricing?.grand_total || 0)}
                 </p>
                 <Divider style={{ margin: "12px 0" }} />
                 <p>Hệ thống sẽ tự động:</p>
