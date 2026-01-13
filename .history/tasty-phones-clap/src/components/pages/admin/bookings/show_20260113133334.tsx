@@ -55,7 +55,7 @@ import {
   ApartmentOutlined,
   PlusOutlined,
   DeleteOutlined,
-  WalletOutlined,
+  CashRegisterOutlined,
   BankOutlined,
   CalculatorOutlined,
   ShoppingCartOutlined,
@@ -385,219 +385,219 @@ export default function BookingShow() {
 
     return isCheckedIn || hasCheckedInRooms;
   };
-  // ============================================
-  // CHECKOUT FUNCTIONS - SỬA LẠI
-  // ============================================
+// ============================================
+// CHECKOUT FUNCTIONS - SỬA LẠI
+// ============================================
 
-  // Fetch checkout summary - hiển thị trước khi xác nhận
-  const fetchCheckoutSummary = async () => {
-    if (!id) return;
+// Fetch checkout summary - hiển thị trước khi xác nhận
+const fetchCheckoutSummary = async () => {
+  if (!id) return;
 
-    setCheckoutSummaryLoading(true);
-    try {
-      const authStr = localStorage.getItem("auth");
-      const token = authStr ? JSON.parse(authStr).token : null;
+  setCheckoutSummaryLoading(true);
+  try {
+    const authStr = localStorage.getItem("auth");
+    const token = authStr ? JSON.parse(authStr).token : null;
 
-      const response = await axios.get(
-        `${API_URL}/api/admin/bookings/${id}/checkout/summary`,
-        {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        }
-      );
-
-      if (response.data.success) {
-        setCheckoutSummary(response.data.data);
-        setCheckoutSummaryModalVisible(true);
-      } else {
-        message.error(response.data.message || "Không thể lấy tổng thanh toán");
+    const response = await axios.get(
+      `${API_URL}/api/admin/bookings/${id}/checkout/summary`,
+      {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       }
-    } catch (error: any) {
-      console.error("Error fetching checkout summary:", error);
-      message.error(
-        error.response?.data?.message || "Lỗi khi lấy tổng thanh toán"
-      );
-    } finally {
-      setCheckoutSummaryLoading(false);
+    );
+
+    if (response.data.success) {
+      setCheckoutSummary(response.data.data);
+      setCheckoutSummaryModalVisible(true);
+    } else {
+      message.error(response.data.message || "Không thể lấy tổng thanh toán");
     }
-  };
+  } catch (error: any) {
+    console.error("Error fetching checkout summary:", error);
+    message.error(
+      error.response?.data?.message || "Lỗi khi lấy tổng thanh toán"
+    );
+  } finally {
+    setCheckoutSummaryLoading(false);
+  }
+};
 
-  // Xác nhận checkout - chỉ xác nhận thôi, không mở modal thanh toán
-  const handleConfirmCheckout = async () => {
-    if (!id) return;
+// Xác nhận checkout - chỉ xác nhận thôi, không mở modal thanh toán
+const handleConfirmCheckout = async () => {
+  if (!id) return;
 
-    setConfirmCheckoutLoading(true);
-    try {
-      const authStr = localStorage.getItem("auth");
-      const token = authStr ? JSON.parse(authStr).token : null;
+  setConfirmCheckoutLoading(true);
+  try {
+    const authStr = localStorage.getItem("auth");
+    const token = authStr ? JSON.parse(authStr).token : null;
 
-      const response = await axios.post(
-        `${API_URL}/api/admin/bookings/${id}/checkout/confirm`,
-        {},
-        {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        }
-      );
-
-      if (response.data.success) {
-        message.success("Đã xác nhận checkout!");
-
-        // Đóng modal summary
-        setCheckoutSummaryModalVisible(false);
-
-        // Nếu tổng thanh toán = 0 (đã thanh toán đủ) thì hoàn tất checkout ngay
-        if (checkoutSummary && checkoutSummary.final <= 0) {
-          await handleCompleteCheckoutWithoutPayment();
-        } else {
-          // Nếu còn tiền cần thanh toán thì mở modal thanh toán
-          setCheckoutModalVisible(true);
-        }
-      } else {
-        message.error(response.data.message || "Không thể xác nhận checkout");
+    const response = await axios.post(
+      `${API_URL}/api/admin/bookings/${id}/checkout/confirm`,
+      {},
+      {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       }
-    } catch (error: any) {
-      console.error("Error confirming checkout:", error);
-      message.error(
-        error.response?.data?.message || "Lỗi khi xác nhận checkout"
-      );
-    } finally {
-      setConfirmCheckoutLoading(false);
+    );
+
+    if (response.data.success) {
+      message.success("Đã xác nhận checkout!");
+      
+      // Đóng modal summary
+      setCheckoutSummaryModalVisible(false);
+      
+      // Nếu tổng thanh toán = 0 (đã thanh toán đủ) thì hoàn tất checkout ngay
+      if (checkoutSummary && checkoutSummary.final <= 0) {
+        await handleCompleteCheckoutWithoutPayment();
+      } else {
+        // Nếu còn tiền cần thanh toán thì mở modal thanh toán
+        setCheckoutModalVisible(true);
+      }
+    } else {
+      message.error(response.data.message || "Không thể xác nhận checkout");
     }
-  };
+  } catch (error: any) {
+    console.error("Error confirming checkout:", error);
+    message.error(
+      error.response?.data?.message || "Lỗi khi xác nhận checkout"
+    );
+  } finally {
+    setConfirmCheckoutLoading(false);
+  }
+};
 
-  // Xử lý checkout khi không cần thanh toán (số tiền = 0)
-  const handleCompleteCheckoutWithoutPayment = async () => {
-    if (!id) return;
+// Xử lý checkout khi không cần thanh toán (số tiền = 0)
+const handleCompleteCheckoutWithoutPayment = async () => {
+  if (!id) return;
 
-    setCheckoutLoading(true);
-    try {
-      const authStr = localStorage.getItem("auth");
-      const token = authStr ? JSON.parse(authStr).token : null;
+  setCheckoutLoading(true);
+  try {
+    const authStr = localStorage.getItem("auth");
+    const token = authStr ? JSON.parse(authStr).token : null;
 
-      // Gọi API checkout với phương thức cash và số tiền = 0
-      const response = await axios.post(
-        `${API_URL}/api/admin/bookings/${id}/checkout/pay`,
-        {
-          method: "cash",
-        },
-        {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        }
-      );
+    // Gọi API checkout với phương thức cash và số tiền = 0
+    const response = await axios.post(
+      `${API_URL}/api/admin/bookings/${id}/checkout/pay`,
+      {
+        method: "cash",
+      },
+      {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      }
+    );
 
-      console.log("Complete checkout without payment response:", response.data);
+    console.log("Complete checkout without payment response:", response.data);
 
-      if (response.data.success) {
-        message.success("Checkout thành công!");
+    if (response.data.success) {
+      message.success("Checkout thành công!");
+      
+      // Refresh booking details
+      await fetchBookingDetails();
 
-        // Refresh booking details
-        await fetchBookingDetails();
+      // Show success notification
+      notification.success({
+        message: "Checkout thành công",
+        description: `Booking #${displayBookingId} đã được checkout. Khách đã thanh toán đủ từ trước.`,
+        placement: "topRight",
+      });
+    } else {
+      message.error(response.data.message || "Checkout thất bại");
+    }
+  } catch (error: any) {
+    console.error("Error completing checkout without payment:", error);
+    message.error(
+      error.response?.data?.message || "Lỗi khi hoàn tất checkout"
+    );
+  } finally {
+    setCheckoutLoading(false);
+  }
+};
 
+// Process checkout payment - sửa lại để xử lý tốt hơn
+const handleCheckoutPayment = async () => {
+  if (!id || !paymentMethod) return;
+
+  setCheckoutLoading(true);
+  try {
+    const authStr = localStorage.getItem("auth");
+    const token = authStr ? JSON.parse(authStr).token : null;
+
+    const response = await axios.post(
+      `${API_URL}/api/admin/bookings/${id}/checkout/pay`,
+      {
+        method: paymentMethod,
+      },
+      {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      }
+    );
+
+    console.log("Checkout payment response:", response.data);
+
+    if (response.data.success) {
+      // Đóng modal
+      setCheckoutModalVisible(false);
+      
+      if (paymentMethod === "vnpay" && response.data.data?.payment_url) {
+        // Nếu là VNPay, mở trang thanh toán trong tab mới
+        message.info("Đang chuyển hướng đến trang thanh toán VNPay...");
+        window.open(response.data.data.payment_url, "_blank");
+        
+        // Hiển thị hướng dẫn cho người dùng
+        notification.info({
+          message: "Chuyển hướng thanh toán VNPay",
+          description: "Hệ thống đã mở trang thanh toán VNPay. Vui lòng hoàn tất thanh toán trong tab mới.",
+          placement: "topRight",
+          duration: 5,
+        });
+      } else if (paymentMethod === "cash") {
+        // Nếu là tiền mặt, thông báo thành công
+        message.success("Checkout thành công với thanh toán tiền mặt!");
+        
         // Show success notification
         notification.success({
           message: "Checkout thành công",
-          description: `Booking #${displayBookingId} đã được checkout. Khách đã thanh toán đủ từ trước.`,
+          description: `Booking #${displayBookingId} đã được checkout. Phòng đã được mở lại.`,
           placement: "topRight",
         });
-      } else {
-        message.error(response.data.message || "Checkout thất bại");
       }
-    } catch (error: any) {
-      console.error("Error completing checkout without payment:", error);
-      message.error(
-        error.response?.data?.message || "Lỗi khi hoàn tất checkout"
-      );
-    } finally {
-      setCheckoutLoading(false);
+
+      // Refresh booking details sau 2 giây
+      setTimeout(async () => {
+        await fetchBookingDetails();
+      }, 2000);
+
+    } else {
+      message.error(response.data.message || "Checkout thất bại");
     }
-  };
+  } catch (error: any) {
+    console.error("Error processing checkout:", error);
 
-  // Process checkout payment - sửa lại để xử lý tốt hơn
-  const handleCheckoutPayment = async () => {
-    if (!id || !paymentMethod) return;
-
-    setCheckoutLoading(true);
-    try {
-      const authStr = localStorage.getItem("auth");
-      const token = authStr ? JSON.parse(authStr).token : null;
-
-      const response = await axios.post(
-        `${API_URL}/api/admin/bookings/${id}/checkout/pay`,
-        {
-          method: paymentMethod,
-        },
-        {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        }
-      );
-
-      console.log("Checkout payment response:", response.data);
-
-      if (response.data.success) {
-        // Đóng modal
-        setCheckoutModalVisible(false);
-
-        if (paymentMethod === "vnpay" && response.data.data?.payment_url) {
-          // Nếu là VNPay, mở trang thanh toán trong tab mới
-          message.info("Đang chuyển hướng đến trang thanh toán VNPay...");
-          window.open(response.data.data.payment_url, "_blank");
-
-          // Hiển thị hướng dẫn cho người dùng
-          notification.info({
-            message: "Chuyển hướng thanh toán VNPay",
-            description:
-              "Hệ thống đã mở trang thanh toán VNPay. Vui lòng hoàn tất thanh toán trong tab mới.",
-            placement: "topRight",
-            duration: 5,
-          });
-        } else if (paymentMethod === "cash") {
-          // Nếu là tiền mặt, thông báo thành công
-          message.success("Checkout thành công với thanh toán tiền mặt!");
-
-          // Show success notification
-          notification.success({
-            message: "Checkout thành công",
-            description: `Booking #${displayBookingId} đã được checkout. Phòng đã được mở lại.`,
-            placement: "topRight",
-          });
-        }
-
-        // Refresh booking details sau 2 giây
-        setTimeout(async () => {
-          await fetchBookingDetails();
-        }, 2000);
-      } else {
-        message.error(response.data.message || "Checkout thất bại");
-      }
-    } catch (error: any) {
-      console.error("Error processing checkout:", error);
-
-      if (error.response?.data?.message) {
-        message.error(error.response.data.message);
-      } else if (error.response?.status === 400) {
-        message.error("Chưa xác nhận checkout. Vui lòng xác nhận trước.");
-      } else {
-        message.error("Không thể xử lý checkout. Vui lòng thử lại.");
-      }
-    } finally {
-      setCheckoutLoading(false);
+    if (error.response?.data?.message) {
+      message.error(error.response.data.message);
+    } else if (error.response?.status === 400) {
+      message.error("Chưa xác nhận checkout. Vui lòng xác nhận trước.");
+    } else {
+      message.error("Không thể xử lý checkout. Vui lòng thử lại.");
     }
-  };
+  } finally {
+    setCheckoutLoading(false);
+  }
+};
 
-  // Thêm hàm để check trạng thái checkout
-  const checkCheckoutStatus = () => {
-    if (!booking) return false;
+// Thêm hàm để check trạng thái checkout
+const checkCheckoutStatus = () => {
+  if (!booking) return false;
+  
+  // Booking phải đang ở trạng thái check-in
+  const validStatuses = ['check_in', 'checked_in', 'in_use'];
+  return validStatuses.includes(booking.status);
+};
 
-    // Booking phải đang ở trạng thái check-in
-    const validStatuses = ["check_in", "checked_in", "in_use"];
-    return validStatuses.includes(booking.status);
-  };
-
-  // Cập nhật useEffect để kiểm tra checkout status
-  useEffect(() => {
-    if (booking) {
-      setCanCheckout(checkCheckoutStatus());
-    }
-  }, [booking]);
+// Cập nhật useEffect để kiểm tra checkout status
+useEffect(() => {
+  if (booking) {
+    setCanCheckout(checkCheckoutStatus());
+  }
+}, [booking]);
 
   // ============================================
   // FETCH BOOKING DETAILS
@@ -3185,12 +3185,12 @@ export default function BookingShow() {
           <Button
             key="confirm"
             type="primary"
-            onClick={handleConfirmCheckout}
-            loading={confirmCheckoutLoading}
+            onClick={() => {
+              setCheckoutSummaryModalVisible(false);
+              handleConfirmCheckout();
+            }}
           >
-            {checkoutSummary?.final === 0
-              ? "Hoàn tất Checkout"
-              : "Tiếp tục Thanh toán"}
+            Tiếp tục Checkout
           </Button>,
         ]}
         width={600}
@@ -3257,13 +3257,10 @@ export default function BookingShow() {
 
             <div
               style={{
-                background: checkoutSummary.final === 0 ? "#f6ffed" : "#fff7e6",
+                background: "#f6ffed",
                 padding: "16px",
                 borderRadius: "8px",
-                border:
-                  checkoutSummary.final === 0
-                    ? "1px solid #b7eb8f"
-                    : "1px solid #ffd591",
+                border: "1px solid #b7eb8f",
               }}
             >
               <div
@@ -3280,57 +3277,24 @@ export default function BookingShow() {
                   style={{
                     fontSize: "24px",
                     fontWeight: "700",
-                    color: checkoutSummary.final === 0 ? "#52c41a" : "#1890ff",
+                    color: "#1890ff",
                   }}
                 >
                   {formatCurrency(checkoutSummary.final)}
                 </div>
               </div>
               <div style={{ marginTop: 8, fontSize: "14px", color: "#666" }}>
-                {checkoutSummary.final === 0 ? (
-                  <Alert
-                    message="Khách đã thanh toán đủ"
-                    description="Không cần thanh toán thêm. Bấm 'Hoàn tất Checkout' để hoàn thành."
-                    type="success"
-                    showIcon
-                  />
-                ) : checkoutSummary.final < 0 ? (
-                  <Alert
-                    message="Khách đã thanh toán thừa"
-                    description={`Cần hoàn trả ${formatCurrency(
-                      Math.abs(checkoutSummary.final)
-                    )} cho khách.`}
-                    type="warning"
-                    showIcon
-                  />
-                ) : (
-                  <Alert
-                    message="Cần thanh toán thêm"
-                    description={`Khách cần thanh toán thêm ${formatCurrency(
+                {checkoutSummary.final <= 0
+                  ? "Khách đã thanh toán đủ. Không cần thanh toán thêm."
+                  : `Khách cần thanh toán thêm ${formatCurrency(
                       checkoutSummary.final
                     )}`}
-                    type="info"
-                    showIcon
-                  />
-                )}
               </div>
             </div>
 
             <Alert
-              message="Lưu ý quan trọng"
-              description={
-                <div>
-                  <p>1. Sau khi xác nhận checkout, hệ thống sẽ:</p>
-                  <ul style={{ marginLeft: "20px" }}>
-                    <li>Cập nhật trạng thái booking thành "check_out"</li>
-                    <li>Mở lại phòng cho đặt tiếp</li>
-                    <li>Tạo bản ghi thanh toán (nếu có)</li>
-                  </ul>
-                  <p style={{ marginTop: "8px" }}>
-                    2. Quá trình này không thể hoàn tác.
-                  </p>
-                </div>
-              }
+              message="Lưu ý"
+              description="Sau khi xác nhận checkout, hệ thống sẽ tính toán và xử lý thanh toán cuối cùng."
               type="warning"
               showIcon
               style={{ marginTop: 16 }}
@@ -3414,7 +3378,7 @@ export default function BookingShow() {
                         gap: "8px",
                       }}
                     >
-                      <WalletOutlined style={{ color: "#52c41a" }} />
+                      <CashRegisterOutlined style={{ color: "#52c41a" }} />
                       <div>
                         <div style={{ fontWeight: "600" }}>Tiền mặt</div>
                         <div style={{ fontSize: "12px", color: "#666" }}>

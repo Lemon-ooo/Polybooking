@@ -55,7 +55,7 @@ import {
   ApartmentOutlined,
   PlusOutlined,
   DeleteOutlined,
-  WalletOutlined,
+  CashRegisterOutlined,
   BankOutlined,
   CalculatorOutlined,
   ShoppingCartOutlined,
@@ -3414,7 +3414,7 @@ export default function BookingShow() {
                         gap: "8px",
                       }}
                     >
-                      <WalletOutlined style={{ color: "#52c41a" }} />
+                      <CashRegisterOutlined style={{ color: "#52c41a" }} />
                       <div>
                         <div style={{ fontWeight: "600" }}>Tiền mặt</div>
                         <div style={{ fontSize: "12px", color: "#666" }}>
