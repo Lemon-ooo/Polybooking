@@ -64,6 +64,11 @@ const useAuth = () => {
 };
 
 export default function ClientBooking() {
+  const [voucherCode, setVoucherCode] = useState<string>("");
+const [voucherApplied, setVoucherApplied] = useState(false);
+const [voucherLoading, setVoucherLoading] = useState(false);
+
+
   const [step, setStep] = useState(1);
   const [selectedRooms, setSelectedRooms] = useState<any[]>([]);
 
@@ -122,6 +127,13 @@ export default function ClientBooking() {
       .catch(() => setRooms([]))
       .finally(() => setLoading(false));
   }, [filters]);
+  // ===============================
+// RESET VOUCHER WHEN CHANGE ROOMS OR DATES
+// ===============================
+useEffect(() => {
+  setVoucherApplied(false);
+}, [selectedRooms, filters.dates]);
+
 
   // ===============================
   // ADD / UPDATE ROOM
@@ -336,16 +348,19 @@ export default function ClientBooking() {
 
     try {
       // STEP 1: Create booking
-      const bookingData = {
-        check_in: filters.dates[0].format("YYYY-MM-DD"),
-        check_out: filters.dates[1].format("YYYY-MM-DD"),
-        adults: filters.adults,
-        children: filters.children,
-        room_types: selectedRooms.map((room) => ({
-          room_type_id: room.room_type_id,
-          quantity: room.quantity,
-        })),
-      };
+  const bookingData = {
+  check_in: filters.dates[0].format("YYYY-MM-DD"),
+  check_out: filters.dates[1].format("YYYY-MM-DD"),
+  adults: filters.adults,
+  children: filters.children,
+  voucher_code: voucherCode || null,
+  room_types: selectedRooms.map((room) => ({
+    room_type_id: room.room_type_id,
+    quantity: room.quantity,
+  })),
+};
+
+
 
       console.log("📤 Sending booking request:", bookingData);
 
@@ -419,6 +434,7 @@ export default function ClientBooking() {
         bookingId: bId,
         paymentUrl: pUrl,
         totalAmount: calcTotal(),
+        
       });
 
       // Bắt đầu check payment status ngay
@@ -1059,12 +1075,71 @@ export default function ClientBooking() {
                         </div>
 
                         <div className="summary-total-section">
-                          <div className="summary-total-row">
-                            <span className="total-label">Total Amount</span>
-                            <span className="total-amount">
-                              {calcTotal().toLocaleString()} ₫
-                            </span>
-                          </div>
+                          {/* VOUCHER SECTION */}
+<div style={{ marginBottom: 16 }}>
+  <div
+    style={{
+      fontSize: 13,
+      color: "#666",
+      marginBottom: 6,
+      fontWeight: 500,
+    }}
+  >
+    Voucher Code
+  </div>
+
+  <div style={{ display: "flex", gap: 8 }}>
+    <input
+      type="text"
+      placeholder="Enter voucher code"
+      value={voucherCode}
+      onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
+      style={{
+        flex: 1,
+        padding: "8px 10px",
+        borderRadius: 6,
+        border: "1px solid #d9d9d9",
+      }}
+    />
+
+   <Button
+  loading={voucherLoading}
+  type={voucherApplied ? "default" : "primary"}
+  onClick={() => {
+    if (!voucherCode) {
+      message.warning("Please enter voucher code");
+      return;
+    }
+    setVoucherApplied(true);
+    message.success(`Voucher "${voucherCode}" applied`);
+  }}
+>
+  {voucherApplied ? "Applied" : "Apply"}
+</Button>
+
+  </div>
+
+  <div style={{ fontSize: 12, color: "#999", marginTop: 4 }}>
+    Voucher will be validated at payment step
+  </div>
+</div>
+
+                     <div className="summary-total-row">
+  <div className="total-left">
+    <span className="total-label">Total Amount</span>
+
+    {voucherApplied && (
+      <span className="voucher-applied">
+        ✓ Voucher <b>{voucherCode}</b> will be applied at checkout
+      </span>
+    )}
+  </div>
+
+  <span className="total-amount">
+    {calcTotal().toLocaleString()} ₫
+  </span>
+</div>
+
 
                           <div className="summary-note">
                             <InfoCircleOutlined />
