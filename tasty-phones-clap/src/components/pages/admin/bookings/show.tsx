@@ -1258,7 +1258,7 @@ export default function BookingShow() {
       // Thử các endpoint khác nhau
       const endpoints = [
         `${API_URL}/api/damage-types`,
-        `${API_URL}/api/admin/damage-types`,
+        `${API_URL}/api/damage-types`,
         `${API_URL}/api/damage-types/list`,
       ];
 
@@ -1443,7 +1443,7 @@ export default function BookingShow() {
       const endpoints = [
         `${API_URL}/api/bookings/${id}/checkout/damages`,
         `${API_URL}/api/bookings/${id}/damages`,
-        `${API_URL}/api/admin/bookings/${id}/damages`,
+        `${API_URL}/api/bookings/${id}/damages`,
       ];
 
       let response = null;

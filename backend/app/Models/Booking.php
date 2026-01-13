@@ -21,7 +21,7 @@ class Booking extends Model
     protected $table = 'bookings';
 
     /**
-     * ⚠️ Nếu PK của bookings KHÔNG phải là id
+     * ⚠️ Nếu PK của bookings KHÔNG phải là id  
      * (ví dụ booking_id) thì BẮT BUỘC bật dòng dưới
      */
     // protected $primaryKey = 'booking_id';
