@@ -2,9 +2,9 @@
 import React, { useState, useEffect } from "react";
 
 const IMAGES = [
-  "https://img.dothi.net/2020/07/31/Z9BcC3fq/khach-san-dep-2-88c4.jpg",
-  "https://img.dothi.net/2020/07/31/Z9BcC3fq/khach-san-dep-10-eb7a.jpg",
-  "https://img.dothi.net/2020/07/31/Z9BcC3fq/khach-san-dep-4-4fe1.jpg",
+  "https://muongthanh.com/images/gallery/2019/06/14/original/pt2.jpg",
+  "https://muongthanh.com/images/gallery/2019/06/14/original/pt12.jpg",
+  "https://muongthanh.com/images/gallery/2019/06/14/original/pt3.jpg",
 ] as const;
 
 const GOLD = "#c9a96e";

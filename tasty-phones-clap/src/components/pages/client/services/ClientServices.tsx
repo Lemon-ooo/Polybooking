@@ -35,8 +35,8 @@ const ClientServices: React.FC = () => {
 
   const handleViewDetails = (serviceId: number) => {
     navigate(`/client/services/${serviceId}`);
-   // Thêm dòng này để chắc chắn URL được update trước khi component mount
-  window.scrollTo({ top: 0, behavior: "instant" });
+    // Thêm dòng này để chắc chắn URL được update trước khi component mount
+    window.scrollTo({ top: 0, behavior: "instant" });
   };
 
   if (isError) {
@@ -49,7 +49,7 @@ const ClientServices: React.FC = () => {
           showIcon
           action={
             <Button size="small" onClick={() => tableQueryResult?.refetch()}>
-            Retry
+              Retry
             </Button>
           }
         />
@@ -97,47 +97,51 @@ const ClientServices: React.FC = () => {
             <div style={{ textAlign: "center" }}>
               <Spin size="large" />
               <Text style={{ marginTop: 16, display: "block" }}>
-               Loading service...
+                Loading service...
               </Text>
             </div>
           ) : services.length === 0 ? (
             <div style={{ textAlign: "center" }}>
               <Text type="secondary" style={{ fontSize: 16 }}>
-              No services available yet.
+                No services available yet.
               </Text>
             </div>
           ) : (
-        <Row gutter={[40, 60]} justify="center">
-  {services.map((service) => (
-    <Col xs={24} md={12} lg={12} xl={12} key={service.service_id}>
-      {/* 2 card/hàng từ tablet trở lên, mobile 1 card */}
-      <div 
-        className="service-card-horizontal" 
-        onClick={() => handleViewDetails(service.service_id)}
-      >
-        {/* Ảnh bên trái */}
-        <div className="card-image-left">
-          <img
-            src={getImageUrl(service.service_image)}
-            alt={service.service_name}
-            onError={(e) => (e.target as HTMLImageElement).src = "https://ruedelamourhotel.com/wp-content/uploads/2025/05/spa1.jpg"}
-          />
-        </div>
+            <Row gutter={[24, 40]} justify="start">
+              {services.map((service) => (
+                <Col xs={24} sm={12} lg={8} xl={8} key={service.service_id}>
+                  {/* 2 card/hàng từ tablet trở lên, mobile 1 card */}
+                  <div
+                    className="service-card-horizontal"
+                    onClick={() => handleViewDetails(service.service_id)}
+                  >
+                    {/* Ảnh bên trái */}
+                    <div className="card-image-left">
+                      <img
+                        src={getImageUrl(service.service_image)}
+                        alt={service.service_name}
+                        onError={(e) =>
+                          ((e.target as HTMLImageElement).src =
+                            "https://ruedelamourhotel.com/wp-content/uploads/2025/05/spa1.jpg")
+                        }
+                      />
+                    </div>
 
-        {/* Nội dung bên phải */}
-        <div className="card-content-right">
-          <h3 className="card-title-h">{service.service_name}</h3>
-          <div className="card-desc-h">
-            {service.description || "The all-inclusive package includes a premium tent, BBQ food, free drinks, and many other attractive offers."}
-          </div>
-          <div className="details-btn-h">
-            <button>DETAILS SERVICES</button>
-          </div>
-        </div>
-      </div>
-    </Col>
-  ))}
-</Row>
+                    {/* Nội dung bên phải */}
+                    <div className="card-content-right">
+                      <h3 className="card-title-h">{service.service_name}</h3>
+                      <div className="card-desc-h">
+                        {service.description ||
+                          "The all-inclusive package includes a premium tent, BBQ food, free drinks, and many other attractive offers."}
+                      </div>
+                      <div className="details-btn-h">
+                        <button>DETAILS SERVICES</button>
+                      </div>
+                    </div>
+                  </div>
+                </Col>
+              ))}
+            </Row>
           )}
         </div>
       </section>

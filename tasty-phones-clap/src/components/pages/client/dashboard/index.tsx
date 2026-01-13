@@ -182,133 +182,6 @@ export const ClientDashboard: React.FC = () => {
 
   return (
     <>
-      {/* ===================== BOOKING BAR ===================== */}
-      <section
-        style={{
-          width: "100%",
-          background: "white",
-          padding: "20px 0",
-          display: "flex",
-          justifyContent: "center",
-          borderBottom: "1px solid #eee",
-        }}
-      >
-        <div
-          style={{
-            width: "100%",
-            maxWidth: "1200px",
-            display: "grid",
-            gridTemplateColumns: "repeat(5, 1fr)",
-            gap: "12px",
-            alignItems: "center",
-            padding: "0 16px",
-          }}
-        >
-          {/* CHECK-IN */}
-          <div
-            style={{
-              border: "1px solid #d9d9d9",
-              borderRadius: 6,
-              padding: "8px 12px",
-              background: "#fff",
-            }}
-          >
-            <label style={{ fontSize: 13, color: "#666" }}>Check-in</label>
-            <input
-              type="date"
-              style={{
-                border: "none",
-                width: "100%",
-                marginTop: 4,
-                fontWeight: 600,
-                outline: "none",
-              }}
-              defaultValue="2025-11-19"
-            />
-          </div>
-
-          {/* CHECK-OUT */}
-          <div
-            style={{
-              border: "1px solid #d9d9d9",
-              borderRadius: 6,
-              padding: "8px 12px",
-              background: "#fff",
-            }}
-          >
-            <label style={{ fontSize: 13, color: "#666" }}>Check-out</label>
-            <input
-              type="date"
-              style={{
-                border: "none",
-                width: "100%",
-                marginTop: 4,
-                fontWeight: 600,
-                outline: "none",
-              }}
-              defaultValue="2025-11-20"
-            />
-          </div>
-
-          {/* GUESTS */}
-          <div
-            style={{
-              border: "1px solid #d9d9d9",
-              borderRadius: 6,
-              padding: "8px 12px",
-              background: "#fff",
-            }}
-          >
-            <label style={{ fontSize: 13, color: "#666" }}>Guests</label>
-            <select
-              style={{
-                border: "none",
-                width: "100%",
-                marginTop: 4,
-                fontWeight: 600,
-                outline: "none",
-                background: "transparent",
-              }}
-            >
-              <option>2 adults, 0 children</option>
-              <option>2 adults, 1 child</option>
-              <option>1 adult</option>
-            </select>
-          </div>
-
-          {/* PROMO CODE */}
-          {/* <button
-            style={{
-              width: "100%",
-              height: "100%",
-              borderRadius: 6,
-              border: "1px solid #d9d9d9",
-              background: "#efe5e0",
-              fontWeight: 500,
-              cursor: "pointer",
-            }}
-          >
-            I have a promo code
-          </button> */}
-
-          {/* BUTTON FIND ROOM */}
-          <button
-            style={{
-              width: "100%",
-              height: "100%",
-              borderRadius: 6,
-              border: "none",
-              background: "#b89585",
-              color: "white",
-              fontWeight: 600,
-              cursor: "pointer",
-            }}
-            onClick={() => console.log("Search rooms")}
-          >
-            FIND ROOM
-          </button>
-        </div>
-      </section>
       {/* ====== SHARED BACKGROUND WRAPPER ====== */}
       <div
         style={{
@@ -555,9 +428,9 @@ export const ClientDashboard: React.FC = () => {
                   pauseOnHover={false}
                 >
                   {[
-                    "https://img.dothi.net/2020/07/31/Z9BcC3fq/khach-san-dep-8-1a9e.jpg",
-                    "https://img.dothi.net/2020/07/31/Z9BcC3fq/khach-san-dep-7-8271.jpg",
-                    "https://img.dothi.net/2020/07/31/Z9BcC3fq/khach-san-dep-9-8a24.jpg",
+                    "https://muongthanh.com/images/gallery/2019/06/14/original/pt7.jpg",
+                    "https://muongthanh.com/images/gallery/2019/06/14/original/pt4.jpg",
+                    "https://muongthanh.com/images/gallery/2019/06/14/original/pt5.jpg",
                   ].map((img, index) => (
                     <div key={index} style={{ width: "100%", height: "480px" }}>
                       <img

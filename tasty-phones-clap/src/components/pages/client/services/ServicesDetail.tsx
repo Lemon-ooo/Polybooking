@@ -4,11 +4,11 @@ import axiosInstance from "../../../../providers/data/axiosConfig";
 import {
   Row,
   Col,
-  Tag,
   Spin,
   Space,
   Typography,
   Divider,
+  Tag,
   Button,
 } from "antd";
 import {
@@ -58,17 +58,17 @@ const ServicesDetail: React.FC = () => {
     return isNaN(num) ? "Contact us" : num.toLocaleString("en-US") + "$";
   };
 
-  if (!id || id === "undefined" || loading || !service) {
-    // Giữ nguyên phần loading/error như trước (bạn có thể copy từ phiên bản cũ)
+  if (loading || !service) {
     return (
       <div className="services-loading-container">
         <Spin size="large" />
       </div>
     );
   }
+
   return (
     <>
-      {/* BANNER GIỮ NGUYÊN */}
+      {/* ================= BANNER (giữ nguyên) ================= */}
       <div className="services-hero-banner">
         <div className="hero-content">
           <h1 className="hero-title">SERVICES</h1>
@@ -83,11 +83,10 @@ const ServicesDetail: React.FC = () => {
         </Button>
       </div>
 
-      {/* MAIN CONTENT - RỘNG HƠN */}
+      {/* ================= MAIN CONTENT ================= */}
       <section className="services-content-section">
-        <Row gutter={[100, 100]} justify="center">
-          {" "}
-          {/* Tăng gutter */}
+        <Row gutter={[80, 100]} justify="center">
+          {/* IMAGE LEFT */}
           <Col xs={24} lg={12}>
             <div className="services-image-wrapper">
               <img
@@ -101,30 +100,31 @@ const ServicesDetail: React.FC = () => {
               />
             </div>
           </Col>
+
+          {/* CONTENT RIGHT */}
           <Col xs={24} lg={12}>
-            <Space direction="vertical" size={48} style={{ width: "100%" }}>
-              {" "}
-              {/* Tăng size */}
-              {/* Title + Price */}
+            <Space direction="vertical" size={24} style={{ width: "100%" }}>
               <div>
                 <Title level={1} className="services-title">
                   {service.service_name}
                 </Title>
+
                 <Tag className="services-price-tag">
                   {formatPrice(service.service_price)}
                 </Tag>
               </div>
+
               <div>
                 <Title level={3} className="services-subtitle">
                   Description
                 </Title>
                 <Paragraph className="services-description">
                   {service.description ||
-                    "Premium treatment with advanced techniques..."}
+                    "Premium treatment with advanced techniques designed for deep relaxation and healing."}
                 </Paragraph>
               </div>
-              {/* Lợi ích của phòng */}
-              {/* Trải nghiệm khi lưu trú */}
+
+
               <div>
                 <Title level={3} className="services-subtitle">
                   <InfoCircleOutlined /> Accommodation experience
@@ -132,21 +132,19 @@ const ServicesDetail: React.FC = () => {
                 <Paragraph className="services-text">
                   When using our services, you will receive a warm welcome in a
                   comfortable and professional environment. Our experienced
-                  staff will provide detailed advice and dedicated support to
-                  best meet your needs. We always pay attention to every small
-                  detail to ensure maximum satisfaction. Our services are
-                  available 24/7, guaranteeing the most convenient and complete
-                  experience.
+                  staff will provide detailed consultation and dedicated support
+                  to best meet your needs and ensure total satisfaction.
                 </Paragraph>
               </div>
-              <Divider />
+
+              {/* CONTACT SECTION */}
               <div className="services-contact-section">
                 <Title level={4} className="services-contact-title">
                   <PhoneOutlined /> Ready to indulge?
                 </Title>
                 <Paragraph className="services-contact-text">
-                  Try our service. We are committed to providing you with the
-                  best experience.
+                  Try our services — we are committed to providing you the best
+                  experience.
                   <br />
                   Phone: <strong>+84 (123 456 789)</strong> | Email:{" "}
                   <strong>services@polyhotel.com</strong>
