@@ -33,6 +33,10 @@ class AdminCheckinController extends Controller
         try {
             $validated = $request->validate([
                 'room_id' => 'sometimes|nullable|exists:rooms,room_id',
+<<<<<<< HEAD
+=======
+
+>>>>>>> lamtangthanh
                 'guests' => 'required|array|min:1',
                 'guests.*.name' => 'required|string|max:255',
                 'guests.*.age'  => 'required|integer|min:0',

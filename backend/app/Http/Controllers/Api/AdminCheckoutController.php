@@ -43,68 +43,11 @@ use App\Http\Controllers\Api\PaymentController;
 class AdminCheckoutController extends Controller
 {
     /* =========================================================
-     * 1. ADD DAMAGE (0..n)
-     * POST /api/admin/bookings/{id}/damages
+     * NOTE: Damage and Penalty endpoints moved to dedicated controllers:
+     * - AdminDamageController
+     * - AdminPenaltyController
+     * This controller now only handles confirm/summary/pay/complete checkout flows.
      * ========================================================= */
-    public function addDamage(Request $request, $id)
-    {
-        $booking = Booking::findOrFail($id);
-
-        if (!in_array($booking->status, [Booking::STATUS_CHECK_IN, Booking::STATUS_IN_USE])) {
-            return response()->json(['success' => false, 'message' => 'Booking không hợp lệ'], 400);
-        }
-
-        $data = $request->validate([
-            'damage_type_id' => 'required|exists:damage_types,id',
-            'image' => 'nullable|string'
-        ]);
-
-        $damageType = DamageType::findOrFail($data['damage_type_id']);
-
-        DamageInvoice::create([
-            'booking_id'     => $booking->id,
-            'damage_type_id' => $damageType->id,
-            'amount'         => $damageType->price,
-            'image_path'     => $data['image'] ?? null
-        ]);
-
-        // đảm bảo booking đang in_use
-        if ($booking->status === Booking::STATUS_CHECK_IN) {
-            $booking->update(['status' => Booking::STATUS_IN_USE]);
-        }
-
-        return response()->json(['success' => true, 'message' => 'Đã thêm thiệt hại']);
-    }
-
-    /* =========================================================
-     * 2. ADD PENALTY (TRẢ PHÒNG TRỄ)
-     * POST /api/admin/bookings/{id}/penalties
-     * ========================================================= */
-    public function addPenalty(Request $request, $id)
-    {
-        $booking = Booking::findOrFail($id);
-
-        if (!in_array($booking->status, [Booking::STATUS_CHECK_IN, Booking::STATUS_IN_USE])) {
-            return response()->json(['success' => false, 'message' => 'Booking không hợp lệ'], 400);
-        }
-
-        $data = $request->validate([
-            'days_late' => 'required|integer|min:1',
-            'amount'    => 'required|integer|min:0'
-        ]);
-
-        Penalty::create([
-            'booking_id' => $booking->id,
-            'days_late'  => $data['days_late'],
-            'amount'     => $data['amount']
-        ]);
-
-            if ($booking->status === Booking::STATUS_CHECK_IN) {
-                $booking->update(['status' => Booking::STATUS_IN_USE]);
-            }
-
-        return response()->json(['success' => true, 'message' => 'Đã thêm penalty']);
-    }
 
     /* =========================================================
      * 3. CONFIRM CHECKOUT (BẮT BUỘC)
@@ -171,6 +114,64 @@ class AdminCheckoutController extends Controller
 
 
     /* =========================================================
+     *  Add Damage (upload image immediately)
+     * POST /api/admin/bookings/{id}/checkout/damages
+     * ========================================================= */
+    public function addDamages(Request $request, $id)
+    {
+        $booking = Booking::findOrFail($id);
+
+        $data = $request->validate([
+            'damage_type_id' => 'required|exists:damage_types,id',
+            'amount' => 'required|numeric|min:0',
+            'notes' => 'nullable|string',
+            'image' => 'required|image|max:5120'
+        ]);
+
+        // store image immediately to public storage
+        $path = $request->file('image')->store('damages', 'public');
+
+        $damage = DamageInvoice::create([
+            'booking_id' => $booking->id,
+            'damage_type_id' => $data['damage_type_id'],
+            'amount' => $data['amount'],
+            'image_path' => $path,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $damage
+        ], 201);
+    }
+
+
+    /* =========================================================
+     *  Add Penalty
+     * POST /api/admin/bookings/{id}/checkout/penalty
+     * ========================================================= */
+    public function addPenatis(Request $request, $id)
+    {
+        $booking = Booking::findOrFail($id);
+
+        $data = $request->validate([
+            'days_late' => 'required|integer|min:0',
+            'amount' => 'required|numeric|min:0'
+        ]);
+
+        $penalty = Penalty::create([
+            'booking_id' => $booking->id,
+            'days_late' => $data['days_late'],
+            'amount' => $data['amount']
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $penalty
+        ], 201);
+    }
+
+
+    /* =========================================================
      * 5. PAY CHECKOUT (CASH / VNPAY)
      * POST /api/admin/bookings/{id}/checkout/pay
      * ========================================================= */
@@ -219,9 +220,21 @@ class AdminCheckoutController extends Controller
             // đóng booking
             $booking->update(['status' => Booking::STATUS_CHECK_OUT]);
 
-            // mở lại phòng
+            // mở lại phòng (đánh dấu assigned rooms đã checked out)
             AssignedRoom::where('booking_id', $booking->id)
                 ->update(['status' => \App\Models\AssignedRoom::STATUS_CHECKED_OUT]);
+
+            // cập nhật trạng thái thực tế của room về available
+            $roomIds = AssignedRoom::where('booking_id', $booking->id)
+                ->pluck('room_id')
+                ->filter()
+                ->unique()
+                ->toArray();
+
+            if (!empty($roomIds)) {
+                \App\Models\Room::whereIn('room_id', $roomIds)
+                    ->update(['room_status' => \App\Models\Room::STATUS_AVAILABLE]);
+            }
 
             // xóa cờ xác nhận
             Cache::forget("checkout_confirmed_{$booking->id}");

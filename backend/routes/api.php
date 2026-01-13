@@ -23,6 +23,9 @@ use App\Http\Controllers\Api\AdminBookingController;
 use App\Http\Controllers\Api\AdminCheckinController;
 use App\Http\Controllers\Api\AdminServiceController;
 use App\Http\Controllers\Api\AdminCheckoutController;
+// AdminDamageController removed — damage endpoints moved into AdminCheckoutController
+use App\Http\Controllers\Api\AdminDamageTypeController;
+// AdminPenaltyController removed — penalty endpoints moved into AdminCheckoutController
 use App\Http\Controllers\Api\RoomTypeImageController;
 
 Route::get('/bookings/my', [BookingController::class, 'myBookings'])->middleware('auth:sanctum');
@@ -129,17 +132,16 @@ Route::post(
 /* =========================================================
 | ADMIN – PENALTY (HƯ HỎNG / PHẠT)
 ========================================================= */
-// 1️⃣ Thêm thiệt hại
-Route::post(
-    'bookings/{id}/damages',
-    [AdminCheckoutController::class, 'addDamage']
-)->middleware('auth:sanctum');
+// Damage endpoints moved to checkout flow (see bookings/{id}/checkout/...)
 
-// 2️⃣ Thêm penalty (trả phòng trễ)
-Route::post(
-    'bookings/{id}/penalties',
-    [AdminCheckoutController::class, 'addPenalty']
-)->middleware('auth:sanctum');
+// Damage types CRUD (catalog used when creating invoices)
+Route::get('damage-types', [AdminDamageTypeController::class, 'index'])->middleware('auth:sanctum');
+Route::post('damage-types', [AdminDamageTypeController::class, 'store'])->middleware('auth:sanctum');
+Route::get('damage-types/{id}', [AdminDamageTypeController::class, 'show'])->middleware('auth:sanctum');
+Route::put('damage-types/{id}', [AdminDamageTypeController::class, 'update'])->middleware('auth:sanctum');
+Route::delete('damage-types/{id}', [AdminDamageTypeController::class, 'destroy'])->middleware('auth:sanctum');
+
+// Penalty endpoints moved to checkout flow (see bookings/{id}/checkout/...)
 
 // 3️⃣ Xác nhận checkout (bắt buộc)
 Route::post(
@@ -157,6 +159,17 @@ Route::get(
 Route::post(
     'bookings/{id}/checkout/pay',
     [AdminCheckoutController::class, 'pay']
+)->middleware('auth:sanctum');
+
+// 6️⃣ Thêm damage/penalty trực tiếp trong luồng checkout (AdminCheckoutController)
+Route::post(
+    'bookings/{id}/checkout/damages',
+    [AdminCheckoutController::class, 'addDamages']
+)->middleware('auth:sanctum');
+
+Route::post(
+    'bookings/{id}/checkout/penalty',
+    [AdminCheckoutController::class, 'addPenatis']
 )->middleware('auth:sanctum');
 
 //chatbot
