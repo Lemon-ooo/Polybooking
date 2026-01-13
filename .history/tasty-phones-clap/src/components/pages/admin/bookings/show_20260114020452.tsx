@@ -1001,12 +1001,6 @@ export default function BookingShow() {
 
       if (response && response.data.success) {
         message.success("Check-in thành công!");
-        setCheckedInGuests(
-          payload.guests.map((g: any) => ({
-            name: g.name,
-            age: g.age,
-          }))
-        );
         setCheckinModalVisible(false);
         setCheckinForm({
           guests: [{ name: "", age: 18 }],
@@ -3174,43 +3168,6 @@ export default function BookingShow() {
                     </div>
                   )}
                 </div>
-
-                {/* Hiển thị thông tin khách đã check-in */}
-                {checkedInGuests.length > 0 && (
-                  <>
-                    <Divider style={{ margin: "12px 0" }} />
-                    <div>
-                      <div style={{ fontWeight: "600", marginBottom: 8 }}>
-                        <CheckCircleOutlined
-                          style={{ marginRight: 6, color: "#52c41a" }}
-                        />
-                        Khách đã check-in:
-                      </div>
-                      {checkedInGuests.map((guest, index) => (
-                        <div
-                          key={index}
-                          style={{
-                            padding: "8px 0",
-                            borderBottom: "1px dashed #eee",
-                          }}
-                        >
-                          <div style={{ fontWeight: "500" }}>
-                            Khách {index + 1}:
-                          </div>
-                          <div style={{ marginLeft: 12 }}>
-                            <div>
-                              <strong>Tên:</strong> {guest.name || "Chưa nhập"}
-                            </div>
-                            <div>
-                              <strong>Tuổi:</strong> {guest.age}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-
                 <Divider style={{ margin: "12px 0" }} />
                 <div style={{ fontSize: "12px", color: "#999" }}>
                   User ID: {booking.user.user_id}
