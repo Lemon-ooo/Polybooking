@@ -65,9 +65,8 @@ const useAuth = () => {
 
 export default function ClientBooking() {
   const [voucherCode, setVoucherCode] = useState<string>("");
-const [voucherApplied, setVoucherApplied] = useState(false);
-const [voucherLoading, setVoucherLoading] = useState(false);
-
+  const [voucherApplied, setVoucherApplied] = useState(false);
+  const [voucherLoading, setVoucherLoading] = useState(false);
 
   const [step, setStep] = useState(1);
   const [selectedRooms, setSelectedRooms] = useState<any[]>([]);
@@ -103,37 +102,61 @@ const [voucherLoading, setVoucherLoading] = useState(false);
     setLoading(true);
     const totalGuests = filters.adults + filters.children;
 
+    // Lấy room types trước
     axios
       .get(`${API_URL}/api/room-types`)
-      .then((res) => {
-        const data = res.data?.data || [];
-        const filtered = data.filter(
+      .then(async (res) => {
+        const roomTypes = res.data?.data || [];
+
+        // Lọc theo số khách
+        const filteredTypes = roomTypes.filter(
           (room: any) => room.max_guests >= totalGuests
         );
 
-        const mappedRooms = filtered.map((room: any) => ({
-          room_type_id: room.room_type_id,
-          room_type_name: room.room_type_name,
-          room_type_image: room.room_type_image,
-          price: Number(room.base_price),
-          maxGuests: room.max_guests,
-          description: room.description,
-          images: room.images || [],
-          soldOut: room.total_rooms === 0,
-        }));
+        // Lấy danh sách rooms để check trạng thái booked
+        const roomsRes = await axios.get(`${API_URL}/api/rooms`);
+        const roomsData = roomsRes.data?.data || [];
+
+        // Tính số phòng booked theo room_type_id
+        const bookedCount: any = roomsData.reduce((acc: any, r: any) => {
+          if (r.room_status === "booked") {
+            acc[r.room_type_id] = (acc[r.room_type_id] || 0) + 1;
+          }
+          return acc;
+        }, {});
+
+        // Map dữ liệu cuối cùng
+        const mappedRooms = filteredTypes.map((room: any) => {
+          const booked = bookedCount[room.room_type_id] || 0;
+          const available = room.total_rooms - booked;
+
+          return {
+            room_type_id: room.room_type_id,
+            room_type_name: room.room_type_name,
+            room_type_image: room.room_type_image,
+            price: Number(room.base_price),
+            maxGuests: room.max_guests,
+            description: room.description,
+            images: room.images || [],
+            total_rooms: room.total_rooms,
+            booked,
+            available,
+            soldOut: available <= 0,
+          };
+        });
 
         setRooms(mappedRooms);
       })
       .catch(() => setRooms([]))
       .finally(() => setLoading(false));
   }, [filters]);
-  // ===============================
-// RESET VOUCHER WHEN CHANGE ROOMS OR DATES
-// ===============================
-useEffect(() => {
-  setVoucherApplied(false);
-}, [selectedRooms, filters.dates]);
 
+  // ===============================
+  // RESET VOUCHER WHEN CHANGE ROOMS OR DATES
+  // ===============================
+  useEffect(() => {
+    setVoucherApplied(false);
+  }, [selectedRooms, filters.dates]);
 
   // ===============================
   // ADD / UPDATE ROOM
@@ -348,19 +371,17 @@ useEffect(() => {
 
     try {
       // STEP 1: Create booking
-  const bookingData = {
-  check_in: filters.dates[0].format("YYYY-MM-DD"),
-  check_out: filters.dates[1].format("YYYY-MM-DD"),
-  adults: filters.adults,
-  children: filters.children,
-  voucher_code: voucherCode || null,
-  room_types: selectedRooms.map((room) => ({
-    room_type_id: room.room_type_id,
-    quantity: room.quantity,
-  })),
-};
-
-
+      const bookingData = {
+        check_in: filters.dates[0].format("YYYY-MM-DD"),
+        check_out: filters.dates[1].format("YYYY-MM-DD"),
+        adults: filters.adults,
+        children: filters.children,
+        voucher_code: voucherCode || null,
+        room_types: selectedRooms.map((room) => ({
+          room_type_id: room.room_type_id,
+          quantity: room.quantity,
+        })),
+      };
 
       console.log("📤 Sending booking request:", bookingData);
 
@@ -434,7 +455,6 @@ useEffect(() => {
         bookingId: bId,
         paymentUrl: pUrl,
         totalAmount: calcTotal(),
-        
       });
 
       // Bắt đầu check payment status ngay
@@ -750,16 +770,18 @@ useEffect(() => {
                           <div className="room-img-wrap">
                             <img
                               src={
-                                room.images?.[0]?.image_url
-                                  ? `${API_URL}/storage/${room.images[0].image_url}`
+                                room.room_type_image
+                                  ? `${API_URL}/storage/${room.room_type_image}`
                                   : "https://images.unsplash.com/photo-1566073771259-6a8506099945"
                               }
                               className="room-img"
                               alt={room.room_type_name}
                             />
+
                             {room.soldOut && (
                               <div className="soldout-badge">Sold Out</div>
                             )}
+
                             {currentQuantity > 0 && (
                               <div
                                 className="soldout-badge"
@@ -769,6 +791,7 @@ useEffect(() => {
                               </div>
                             )}
                           </div>
+
                           <h3 className="room-title">{room.room_type_name}</h3>
                           <p className="room-desc">
                             Capacity: {room.maxGuests} guests
@@ -805,7 +828,9 @@ useEffect(() => {
                                 <Button
                                   size="small"
                                   type="primary"
+                                  disabled={currentQuantity >= room.available}
                                   onClick={() =>
+                                    currentQuantity < room.available &&
                                     handleAddRoom(room, currentQuantity + 1)
                                   }
                                 >
@@ -1076,70 +1101,81 @@ useEffect(() => {
 
                         <div className="summary-total-section">
                           {/* VOUCHER SECTION */}
-<div style={{ marginBottom: 16 }}>
-  <div
-    style={{
-      fontSize: 13,
-      color: "#666",
-      marginBottom: 6,
-      fontWeight: 500,
-    }}
-  >
-    Voucher Code
-  </div>
+                          <div style={{ marginBottom: 16 }}>
+                            <div
+                              style={{
+                                fontSize: 13,
+                                color: "#666",
+                                marginBottom: 6,
+                                fontWeight: 500,
+                              }}
+                            >
+                              Voucher Code
+                            </div>
 
-  <div style={{ display: "flex", gap: 8 }}>
-    <input
-      type="text"
-      placeholder="Enter voucher code"
-      value={voucherCode}
-      onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
-      style={{
-        flex: 1,
-        padding: "8px 10px",
-        borderRadius: 6,
-        border: "1px solid #d9d9d9",
-      }}
-    />
+                            <div style={{ display: "flex", gap: 8 }}>
+                              <input
+                                type="text"
+                                placeholder="Enter voucher code"
+                                value={voucherCode}
+                                onChange={(e) =>
+                                  setVoucherCode(e.target.value.toUpperCase())
+                                }
+                                style={{
+                                  flex: 1,
+                                  padding: "8px 10px",
+                                  borderRadius: 6,
+                                  border: "1px solid #d9d9d9",
+                                }}
+                              />
 
-   <Button
-  loading={voucherLoading}
-  type={voucherApplied ? "default" : "primary"}
-  onClick={() => {
-    if (!voucherCode) {
-      message.warning("Please enter voucher code");
-      return;
-    }
-    setVoucherApplied(true);
-    message.success(`Voucher "${voucherCode}" applied`);
-  }}
->
-  {voucherApplied ? "Applied" : "Apply"}
-</Button>
+                              <Button
+                                loading={voucherLoading}
+                                type={voucherApplied ? "default" : "primary"}
+                                onClick={() => {
+                                  if (!voucherCode) {
+                                    message.warning(
+                                      "Please enter voucher code"
+                                    );
+                                    return;
+                                  }
+                                  setVoucherApplied(true);
+                                  message.success(
+                                    `Voucher "${voucherCode}" applied`
+                                  );
+                                }}
+                              >
+                                {voucherApplied ? "Applied" : "Apply"}
+                              </Button>
+                            </div>
 
-  </div>
+                            <div
+                              style={{
+                                fontSize: 12,
+                                color: "#999",
+                                marginTop: 4,
+                              }}
+                            >
+                              Voucher will be validated at payment step
+                            </div>
+                          </div>
 
-  <div style={{ fontSize: 12, color: "#999", marginTop: 4 }}>
-    Voucher will be validated at payment step
-  </div>
-</div>
+                          <div className="summary-total-row">
+                            <div className="total-left">
+                              <span className="total-label">Total Amount</span>
 
-                     <div className="summary-total-row">
-  <div className="total-left">
-    <span className="total-label">Total Amount</span>
+                              {voucherApplied && (
+                                <span className="voucher-applied">
+                                  ✓ Voucher <b>{voucherCode}</b> will be applied
+                                  at checkout
+                                </span>
+                              )}
+                            </div>
 
-    {voucherApplied && (
-      <span className="voucher-applied">
-        ✓ Voucher <b>{voucherCode}</b> will be applied at checkout
-      </span>
-    )}
-  </div>
-
-  <span className="total-amount">
-    {calcTotal().toLocaleString()} ₫
-  </span>
-</div>
-
+                            <span className="total-amount">
+                              {calcTotal().toLocaleString()} ₫
+                            </span>
+                          </div>
 
                           <div className="summary-note">
                             <InfoCircleOutlined />

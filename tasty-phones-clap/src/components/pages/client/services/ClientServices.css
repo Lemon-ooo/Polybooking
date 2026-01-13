@@ -5,7 +5,7 @@
   font-family: "Lora", serif;        
 }
 
-/* ===================== HERO BANNER - NHỎ GỌN HƠN ===================== */
+/* ===================== HERO BANNER - GIỮ NGUYÊN ===================== */
 .services-hero {
   position: relative;
   height: 550px;                     
@@ -55,7 +55,7 @@
 
 /* ===================== SECTION ===================== */
 .services-section {
-  padding: 120px 5% 160px;
+  padding: 100px 5% 120px;
   background: #fff;
 }
 
@@ -72,131 +72,123 @@
   font-size: 18px;
   color: #666;
   max-width: 760px;
-  margin: 0 auto 90px;
+  margin: 0 auto 80px;
   text-align: center;
   line-height: 1.7;
 }
 
-/* ===================== CARD NGANG - ĐỒNG BỘ VỚI ROOMS ===================== */
+/* ===================== CARD DỌC (ẢNH TRÊN — TEXT DƯỚI) ===================== */
 .service-card-horizontal {
   background: #fff;
-  border-radius: 28px;
+  border-radius: 22px;
   overflow: hidden;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.09);
-  transition: all 0.45s ease;
-  display: flex;
-  flex-direction: row;
-  height: 400px;                     /* tăng chút để rộng rãi hơn */
+  box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+  transition: all 0.35s ease;
   cursor: pointer;
+  display: flex;
+  flex-direction: column;   /* đổi thành vertical */
+  height: auto;             /* bỏ height cố định */
 }
 
 .service-card-horizontal:hover {
-  transform: translateY(-20px);
-  box-shadow: 0 30px 70px rgba(0,0,0,0.16);
+  transform: translateY(-8px);
+  box-shadow: 0 18px 48px rgba(0,0,0,0.14);
 }
 
-/* Ảnh bên trái */
+/* Ảnh nằm trên */
 .card-image-left {
-  width: 45%;
-  flex-shrink: 0;
+  width: 100%;
+  height: 240px;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .card-image-left img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.9s ease;
+  transition: transform 0.7s ease;
 }
 
 .service-card-horizontal:hover .card-image-left img {
-  transform: scale(1.14);
+  transform: scale(1.08);
 }
 
-/* Nội dung bên phải */
+/* Nội dung dưới */
 .card-content-right {
-  padding: 44px 48px 56px;
+  padding: 26px 28px 30px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  width: 55%;
+  align-items: center; /* căn giữa */
+  text-align: center;
 }
 
-/* Tiêu đề và mô tả giống hệt Rooms */
+/* Title */
 .card-title-h {
   font-family: "Playfair Display", serif;
-  font-size: 36px;
+  font-size: 26px;
   font-weight: 700;
-  color: #a8765a;                    /* màu vàng cam chuẩn Rooms & CAMP */
-  margin: 0 0 20px;
-  line-height: 1.2;
+  color: #a8765a;
+  margin-bottom: 10px;
 }
 
+/* Description */
 .card-desc-h {
-  font-size: 17px;
+  font-size: 15px;
   color: #444;
-  line-height: 1.85;
-  margin-bottom: 32px;
-
-  /* giới hạn 5-6 dòng */
+  line-height: 1.55;
+  margin-bottom: 20px;
+  max-width: 95%;
   display: -webkit-box;
-  -webkit-line-clamp: 6;
+  -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-/* Nút cam giống hệt Rooms */
+/* Button */
 .details-btn-h button {
   background: #a8765a;
   color: white;
   border: none;
-  padding: 14px 40px;
-  border-radius: 50px;
+  padding: 11px 36px;
+  border-radius: 40px;
   font-weight: 600;
-  font-size: 16px;
+  font-size: 13px;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
+  letter-spacing: 1px;
   cursor: pointer;
-  transition: all 0.35s ease;
- 
+  transition: 0.3s;
 }
 
 .details-btn-h button:hover {
   background: #755312;
-  transform: translateY(-4px);
-  box-shadow: 0 15px 35px rgba(244,169,30,0.45);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px rgba(244,169,30,0.35);
+}
+
+/* ===================== GRID 3/ROW ===================== */
+.row-services {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
 }
 
 /* ===================== RESPONSIVE ===================== */
 @media (max-width: 992px) {
-  .service-card-horizontal { height: 360px; }
-  .card-title-h { font-size: 32px; }
-  .card-content-right { padding: 40px; }
+  .row-services {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .card-image-left { height: 220px; }
 }
 
 @media (max-width: 768px) {
-  .services-hero { height: 480px; }
-  .services-hero h1 { font-size: 56px; }
-  .section-title { font-size: 44px; }
-
-  .service-card-horizontal {
-    flex-direction: column;
-    height: auto;
+  .row-services {
+    grid-template-columns: 1fr;
   }
-  .card-image-left {
-    width: 100%;
-    height: 300px;
-  }
-  .card-content-right {
-    width: 100%;
-    padding: 40px 36px;
-  }
-  .card-title-h { font-size: 30px; }
+  .card-image-left { height: 210px; }
 }
 
 @media (max-width: 576px) {
-  .card-image-left { height: 260px; }
-  .card-content-right { padding: 36px 32px; }
-  .card-title-h { font-size: 28px; }
+  .card-title-h { font-size: 22px; }
+  .card-image-left { height: 190px; }
 }

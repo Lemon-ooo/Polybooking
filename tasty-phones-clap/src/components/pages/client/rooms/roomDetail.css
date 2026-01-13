@@ -1,713 +1,126 @@
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap");
-
-.room-detail-wrapper {
-  background: linear-gradient(to bottom, #faf8f6 0%, #f8f3ef 60%, #f0e9e3 100%);
-  min-height: 100vh;
-  font-family: "Inter", system-ui, -apple-system, sans-serif;
-  color: #333;
-  line-height: 1.7;
-}
-
+/* ===================== BANNER (GIỮ NGUYÊN) ===================== */
 .rooms-hero-banner {
-  position: relative;
   width: 100%;
-  height: 650px;
-  overflow: hidden;
+  height: 360px;
+  position: relative;
+  background-image: url("https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=1600");
+  background-size: cover;
+  background-position: center;
   display: flex;
   align-items: center;
   justify-content: center;
-  text-align: center;
 }
 
-.rooms-hero-banner::before {
-  content: "";
+.hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.75)),
-    url("https://ruedelamourhotel.com/wp-content/uploads/2025/05/QTX09567-copy-scaled.jpg");
-  background-size: cover;
-  background-position: center 38%;
-  background-repeat: no-repeat;
-  z-index: 1;
-  animation: zoomSlow 22s ease-in-out infinite alternate;
-}
-
-@keyframes zoomSlow {
-  from {
-    transform: scale(1);
-  }
-  to {
-    transform: scale(1.12);
-  }
+  background: rgba(0,0,0,0.3);
 }
 
 .hero-content {
   position: relative;
-  z-index: 2;
-  padding: 0 20px;
   text-align: center;
-  color: white;
+  color: #fff;
 }
 
 .hero-title {
-  font-family: "Playfair Display", serif !important;
-  font-size: 82px;
-  font-weight: 700;
-  letter-spacing: 4px;
-  margin: 0 0 16px 0;
-  text-transform: uppercase;
-  text-shadow: 0 6px 30px rgba(0, 0, 0, 0.8);
-  opacity: 0;
-  transform: translateY(60px);
-  animation: fadeUp 1.6s ease-out forwards;
+  font-size: 48px;
+  font-weight: 600;
+  letter-spacing: 2px;
 }
 
-@keyframes fadeUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.hero-subtitle {
-  font-size: 22px;
-  font-weight: 300;
-  letter-spacing: 3px;
-  opacity: 0.95;
-  margin: 0;
-}
-
+/* ===================== TITLE ===================== */
 .room-main-title {
   text-align: center;
-  padding: 80px 20px 40px;
-  position: relative;
+  margin: 40px 0 20px;
 }
-
 .room-main-title h2 {
-  font-family: "Playfair Display", serif;
-  font-size: 52px;
+  font-size: 34px;
   font-weight: 600;
-  color: #a8765a;
-  margin: 0;
-  position: relative;
-  display: inline-block;
+  letter-spacing: 1px;
 }
 
-.room-main-title h2::after {
-  content: "";
-  position: absolute;
-  width: 80px;
-  height: 3px;
-  background: #a8765a;
-  bottom: -16px;
-  left: 50%;
-  transform: translateX(-50%);
-  border-radius: 2px;
-}
-@media (max-width: 1200px) {
-  .hero-title {
-    font-size: 68px;
-  }
-  .room-main-title h2 {
-    font-size: 46px;
-  }
-}
-
-@media (max-width: 992px) {
-  .hero-title {
-    font-size: 68px;
-  }
-  .room-main-title h2 {
-    font-size: 42px;
-  }
-}
-
-@media (max-width: 768px) {
-  .rooms-hero-banner {
-    height: 500px;
-  }
-  .hero-title {
-    font-size: 56px;
-  }
-  .hero-subtitle {
-    font-size: 18px;
-  }
-}
-
-@media (max-width: 480px) {
-  .hero-title {
-    font-size: 48px;
-  }
-}
-
-/* Animation cũ (nếu vẫn cần cho phần khác) */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(40px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-/* ===== ICON FEATURES - Sang trọng hơn ===== */
+/* ===================== FEATURES (COMPACT) ===================== */
 .room-features-grid {
   display: flex;
   justify-content: center;
-  flex-wrap: wrap;
-  gap: 70px;
-  padding: 60px 40px;
-  background: rgba(168, 118, 90, 0.07);
-  border-radius: 24px;
-  margin: 0 auto 80px;
-  max-width: 1100px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(168, 118, 90, 0.1) solid;
+  gap: 36px;
+  padding: 32px 28px;
+  max-width: 900px;
+  margin: 0 auto 30px;
 }
 
 .feature-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
-  min-width: 160px;
-  transition: all 0.4s ease;
-}
-
-.feature-box:hover {
-  transform: translateY(-8px);
+  min-width: 120px;
 }
 
 .feature-box .icon {
-  font-size: 48px;
-  margin-bottom: 16px;
-  color: #a8765a;
-  filter: drop-shadow(0 6px 12px rgba(168, 118, 90, 0.3));
+  font-size: 32px;
+  margin-bottom: 10px;
 }
 
 .feature-box .text {
-  font-size: 17px;
+  font-size: 14px;
   font-weight: 500;
-  color: #444;
-  letter-spacing: 0.5px;
 }
 
-/* ===== NỘI DUNG CHÍNH ===== */
+/* ===================== OVERVIEW ===================== */
 .room-overview {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 5%;
+  max-width: 1200px;
+  margin: 20px auto 60px;
+  padding: 0 3%;
 }
 
-.room-image-main {
-  border-radius: 24px;
-  overflow: hidden;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.22);
-  transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
-  position: relative;
-}
-
-.room-image-main:hover {
-  transform: translateY(-15px) scale(1.015);
-  box-shadow: 0 40px 90px rgba(168, 118, 90, 0.3);
-}
-
-.room-image-main img {
-  width: 100%;
-  height: 560px;
-  object-fit: cover;
-  display: block;
-  transition: transform 0.8s ease;
-}
-
-.room-image-main:hover img {
-  transform: scale(1.08);
-}
-
-/* Thumbnail - Đẹp hơn hẳn */
-.room-thumbnails {
-  display: flex;
-  gap: 18px;
-  margin-top: 32px;
-  overflow-x: auto;
-  padding: 16px 0;
-  scrollbar-width: none;
-}
-
-.room-thumbnails::-webkit-scrollbar {
-  display: none;
-}
-
-.room-thumbnails img {
-  width: 150px;
-  height: 110px;
-  object-fit: cover;
-  border-radius: 16px;
-  cursor: pointer;
-  border: 4px solid transparent;
-  transition: all 0.5s ease;
-  flex-shrink: 0;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
-}
-
-.room-thumbnails img:hover,
-.room-thumbnails img.active {
-  border-color: #a8765a;
-  transform: scale(1.12);
-  box-shadow: 0 20px 40px rgba(168, 118, 90, 0.45);
-}
-
-/* Thông tin phòng */
 .room-info-text {
-  font-size: 18px;
-  line-height: 2;
-  color: #444;
-  text-align: justify;
-  margin-bottom: 40px;
+  font-size: 15px !important;
+  line-height: 1.7;
+  margin-bottom: 30px;
 }
 
+/* ===================== HIGHLIGHT ===================== */
 .room-highlight-list {
-  margin: 50px 0;
-  padding-left: 4px;
+  margin: 36px 0;
 }
 
 .room-highlight-list div {
-  padding: 14px 0;
-  font-size: 18px;
-  color: #333;
+  font-size: 15px;
+  margin-bottom: 8px;
+  padding-left: 24px;
   position: relative;
-  padding-left: 32px;
-  font-weight: 500;
 }
 
 .room-highlight-list div::before {
-  content: "✔";
-  color: #a8765a;
-  font-weight: bold;
+  content: "•";
   position: absolute;
   left: 0;
-  font-size: 20px;
-  top: 14px;
+  top: 5px;
+  font-size: 16px;
 }
 
-/* Nút Book Now - Đỉnh cao sang trọng */
+/* ===================== BUTTON ===================== */
 .book-now-btn {
-  background: linear-gradient(135deg, #a8765a 0%, #c89a7e 100%);
-  color: white;
-  border: none;
-  padding: 20px 60px;
-  font-size: 19px;
-  font-weight: 600;
-  border-radius: 16px;
-  cursor: pointer;
-  transition: all 0.5s ease;
-  box-shadow: 0 12px 35px rgba(168, 118, 90, 0.45);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-top: 20px;
-  position: relative;
-  overflow: hidden;
+  padding: 12px 34px !important;
+  font-size: 14px;
+  letter-spacing: 1px;
+  border-radius: 10px;
+  margin-top: 10px;
 }
 
-.book-now-btn::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.2),
-    transparent
-  );
-  transition: left 0.6s;
-}
-
-.book-now-btn:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 25px 50px rgba(168, 118, 90, 0.6);
-  background: linear-gradient(135deg, #945f49, #b5896f);
-}
-
-.book-now-btn:hover::before {
-  left: 100%;
-}
-
-/* ==================== TIỆN NGHI ĐI KÈM - PHIÊN BẢN SIÊU SANG 2025 ==================== */
-.included-amenities-section {
-  margin: 140px auto 80px;
-  padding: 100px 5% 120px;
-  background: linear-gradient(to bottom, #fdf9f6 0%, #ffffff 100%);
-  position: relative;
-  overflow: hidden;
-}
-
-.included-amenities-section::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url("https://images.unsplash.com/photo-1558618666-5801f0ea000f?w=1800")
-    center/cover no-repeat;
-  opacity: 0.03;
-  z-index: 0;
-}
-
-.included-amenities-title {
-  text-align: center;
-  font-family: "Playfair Display", serif;
-  font-size: 48px;
-  font-weight: 600;
-  color: #a8765a;
-  margin-bottom: 80px;
-  position: relative;
-  z-index: 1;
-}
-
-.included-amenities-title::after {
-  content: "";
-  width: 120px;
-  height: 4px;
-  background: linear-gradient(90deg, transparent, #a8765a, transparent);
-  position: absolute;
-  bottom: -24px;
-  left: 50%;
-  transform: translateX(-50%);
-  border-radius: 2px;
-}
-
-/* Grid 3–5 cột tùy màn hình */
-.included-amenities-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 40px 32px;
-  max-width: 1400px;
-  margin: 0 auto;
-  position: relative;
-  z-index: 1;
-}
-
-/* Card tiện nghi */
-.included-amenity-card {
-  background: white;
-  border-radius: 24px;
-  padding: 32px 24px;
-  text-align: center;
-  box-shadow: 0 15px 40px rgba(168, 118, 90, 0.12);
-  transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
-  border: 1px solid #f0e6e0;
-  height: 100%;
+/* ===================== SLIDESHOW ===================== */
+.carousel-loading {
+  height: 440px;
   display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-}
-
-.included-amenity-card:hover {
-  transform: translateY(-20px);
-  box-shadow: 0 35px 80px rgba(168, 118, 90, 0.25);
-  border-color: #a8765a44;
-}
-
-.included-amenity-image {
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
-  border-radius: 18px;
-  margin-bottom: 24px;
-  transition: transform 0.6s ease;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-}
-
-.included-amenity-card:hover .included-amenity-image {
-  transform: scale(1.08);
-}
-
-.included-amenity-card h4 {
-  font-family: "Playfair Display", serif;
-  font-size: 22px;
-  font-weight: 600;
-  color: #333;
-  margin: 0 0 12px 0;
-}
-
-.included-amenity-card p {
-  font-size: 15.5px;
-  color: #666;
-  line-height: 1.7;
-  margin: 0;
-  flex-grow: 1;
-}
-
-/* Nếu bạn muốn kiểu card nhỏ gọn hơn (chỉ icon + text, không ảnh) – dùng cái này thay thế */
-.included-amenity-icon-card {
-  background: white;
-  border-radius: 20px;
-  padding: 32px 20px;
-  text-align: center;
-  box-shadow: 0 12px 35px rgba(168, 118, 90, 0.1);
-  transition: all 0.4s ease;
-  border: 1px solid #f0e6e0;
-}
-
-.included-amenity-icon-card:hover {
-  transform: translateY(-12px);
-  box-shadow: 0 25px 60px rgba(168, 118, 90, 0.22);
-}
-
-.included-amenity-icon-card img {
-  width: 80px;
-  height: 80px;
-  object-fit: contain;
-  margin-bottom: 20px;
-  filter: drop-shadow(0 6px 12px rgba(168, 118, 90, 0.2));
-}
-
-.included-amenity-icon-card h4 {
-  font-size: 18px;
-  color: #333;
-  margin: 0 0 8px;
-  font-weight: 600;
-}
-
-.included-amenity-icon-card p {
-  font-size: 14.5px;
-  color: #777;
-  margin: 0;
-}
-
-/* Responsive */
-@media (max-width: 992px) {
-  .included-amenities-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 32px;
-  }
-  .included-amenities-title {
-    font-size: 42px;
-  }
-}
-
-@media (max-width: 768px) {
-  .included-amenities-section {
-    margin: 100px auto 60px;
-    padding: 80px 5%;
-  }
-  .included-amenities-title {
-    font-size: 38px;
-    margin-bottom: 60px;
-  }
-  .included-amenity-card {
-    padding: 28px 20px;
-  }
-  .included-amenity-image {
-    height: 160px;
-  }
-}
-
-@media (max-width: 480px) {
-  .included-amenities-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-  }
-  .included-amenity-card h4 {
-    font-size: 20px;
-  }
-}
-/* ===== RESPONSIVE ===== */
-@media (max-width: 1200px) {
-  .hero-title {
-    font-size: 60px;
-  }
-  .room-main-title h2 {
-    font-size: 46px;
-  }
-}
-
-@media (max-width: 992px) {
-  .hero-title {
-    font-size: 52px;
-    letter-spacing: 4px;
-  }
-  .room-main-title h2 {
-    font-size: 42px;
-  }
-  .room-features-grid {
-    gap: 50px;
-    padding: 50px 30px;
-  }
-  .room-image-main img {
-    height: 480px;
-  }
-}
-
-@media (max-width: 768px) {
-  .rooms-hero-banner {
-    height: 70vh;
-  }
-  .hero-title {
-    font-size: 40px;
-    letter-spacing: 3px;
-  }
-  .hero-subtitle {
-    font-size: 18px;
-  }
-  .room-features-grid {
-    flex-direction: column;
-    gap: 40px;
-    padding: 50px 20px;
-  }
-  .room-thumbnails img {
-    width: 120px;
-    height: 90px;
-  }
-  .book-now-btn {
-    width: 100%;
-    padding: 18px;
-  }
-  .amenities-wrapper {
-    margin: 80px auto;
-    padding: 70px 5%;
-  }
-  .amenities-title {
-    font-size: 38px;
-  }
-}
-
-@media (max-width: 480px) {
-  .hero-title {
-    font-size: 36px;
-  }
-  .room-main-title h2 {
-    font-size: 36px;
-  }
-  .room-info-text,
-  .room-highlight-list div {
-    font-size: 16px;
-  }
-}
-
-/* Animation */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(40px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-/* Phần tiện nghi đi kèm - thiết kế cao cấp */
-.included-amenities-section {
-  padding: 80px 20px;
-  background: #f9f7f5;
-  text-align: center;
-}
-
-.included-amenities-title {
-  font-size: 36px;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 60px;
-  position: relative;
-}
-
-.included-amenities-title::after {
-  content: "";
-  width: 80px;
-  height: 3px;
-  background: #a8765a;
-  position: absolute;
-  bottom: -15px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.included-amenities-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 30px;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.included-amenity-card {
-  background: white;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  transition: all 0.4s ease;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.included-amenity-card:hover {
-  transform: translateY(-12px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-}
-
-.amenity-image-wrapper {
-  width: 100%;
-  height: 220px;
-  overflow: hidden;
-}
-
-.amenity-image-wrapper img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.5s ease;
-}
-
-.included-amenity-card:hover .amenity-image-wrapper img {
-  transform: scale(1.12);
-}
-
-.amenity-content {
-  padding: 24px;
-  text-align: center;
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: center;
 }
 
-.amenity-content h4 {
-  font-size: 20px;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 12px;
-}
-
-.amenity-content p {
-  color: #666;
-  font-size: 15px;
-  line-height: 1.6;
-  margin: 0;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .included-amenities-grid {
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 20px;
-  }
-
-  .included-amenities-title {
-    font-size: 30px;
-  }
-} /* Slideshow phòng - Luxury style */
-.ant-carousel .slick-slider {
-  border-radius: 28px;
-  overflow: hidden;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
-}
-
 .room-slide {
-  position: relative;
-  height: 620px; /* Chiều cao ảnh lớn */
+  width: 100%;
+  height: 440px;
 }
 
 .room-slide img {
@@ -716,48 +129,112 @@
   object-fit: cover;
 }
 
-/* Dot navigation đẹp hơn */
+/* Dots & arrows */
 .custom-dots {
-  bottom: 30px !important;
+  margin-bottom: 10px !important;
 }
 
-.custom-dots li button {
-  background: rgba(255, 255, 255, 0.6) !important;
-  opacity: 0.6;
-  width: 12px !important;
-  height: 12px !important;
-  border-radius: 50% !important;
-}
-
-.custom-dots li.slick-active button {
-  background: #a8765a !important;
-  opacity: 1;
-  width: 40px !important;
-  border-radius: 20px !important;
-  transition: all 0.4s ease;
-}
-
-/* Arrow navigation (nếu muốn hiện) */
-.ant-carousel .slick-prev,
-.ant-carousel .slick-next {
-  border-radius: 50%;
+.custom-arrow {
+  position: absolute;
+  top: 50%;
+  font-size: 18px;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.8);
+  border-radius: 6px;
+  cursor: pointer;
   z-index: 10;
+  transform: translateY(-50%);
 }
 
-.ant-carousel .slick-prev:hover,
-.ant-carousel .slick-next:hover {
-  background: #a8765a;
+.custom-arrow.prev { left: 10px; }
+.custom-arrow.next { right: 10px; }
+
+/* ===================== AMENITIES ===================== */
+.included-amenities-section {
+  max-width: 1200px;
+  margin: 100px auto 60px;
+  padding: 60px 4% 80px;
+  background: #fafafa;
+  border-radius: 18px;
 }
 
-/* Responsive */
-@media (max-width: 992px) {
-  .room-slide {
-    height: 480px;
-  }
+.included-amenities-title {
+  font-size: 30px;
+  font-weight: 600;
+  margin-bottom: 36px;
+  text-align: center;
 }
 
+.included-amenities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 28px;
+}
+
+.included-amenity-card {
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.05);
+  transition: 0.3s;
+  padding: 18px 16px;
+}
+.included-amenity-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 38px rgba(0,0,0,0.08);
+}
+
+.amenity-image-wrapper {
+  width: 100%;
+  height: 130px;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.amenity-image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.amenity-content h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.amenity-content p {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #555;
+}
+
+/* ===================== LOADING ===================== */
+.loading-page {
+  text-align: center;
+  padding: 120px;
+  font-size: 20px;
+  color: #777;
+}
+
+/* ===================== RESPONSIVE ===================== */
 @media (max-width: 768px) {
-  .room-slide {
-    height: 380px;
+  .hero-title { font-size: 32px; }
+
+  .room-slide { height: 340px; }
+
+  .room-features-grid {
+    gap: 26px;
+    flex-wrap: wrap;
+  }
+
+  .book-now-btn {
+    width: 100%;
+  }
+
+  .included-amenities-title {
+    font-size: 26px;
   }
 }
+
