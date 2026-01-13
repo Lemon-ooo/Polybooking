@@ -17,4 +17,10 @@ class Event extends Model
         'end_date',
         'is_active',
     ];
+
+
+    public function vouchers()
+{
+    return $this->belongsToMany(Voucher::class, 'event_voucher');
+}
 }

@@ -19,8 +19,14 @@ class EventStartMail extends Mailable
     }
 
     public function build()
-    {
-        return $this->subject('🎉 Sự kiện mới tại Poly Homestay')
-                    ->view('emails.event_start');
-    }
+{
+    return $this->subject('🎉 Sự kiện mới tại Poly Homestay')
+        ->view('emails.event_start')
+        ->with([
+            'event' => $this->event,
+            'vouchers' => $this->event->vouchers
+                ->where('status', 'active')
+                ->where('expired_at', '>=', now()),
+        ]);
+}
 }

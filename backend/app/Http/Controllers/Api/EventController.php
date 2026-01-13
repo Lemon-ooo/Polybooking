@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\EventStartMail;
+use App\Models\User;
 
 class EventController extends Controller
 {
@@ -72,26 +75,42 @@ class EventController extends Controller
      * POST /events
      */
     public function store(Request $request)
-    {
-        $data = $request->validate([
-            'title'       => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'banner'      => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'start_date'  => 'required|date',
-            'end_date'    => 'required|date|after_or_equal:start_date',
-        ]);
+{
+    $data = $request->validate([
+        'title'          => 'required|string|max:255',
+        'description'    => 'nullable|string',
+        'banner'         => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        'start_date'     => 'required|date',
+        'end_date'       => 'required|date|after_or_equal:start_date',
 
-        // 📸 Upload banner
-        if ($request->hasFile('banner')) {
-            $data['banner'] = $request->file('banner')->store('events', 'public');
-        }
+        // 🔥 thêm validate voucher
+        'voucher_ids'    => 'nullable|array',
+        'voucher_ids.*'  => 'exists:vouchers,id',
+    ]);
 
-        $event = Event::create($data);
-
-        return response()->json([
-            'data' => $event
-        ], 201);
+    // 📸 Upload banner
+    if ($request->hasFile('banner')) {
+        $data['banner'] = $request->file('banner')->store('events', 'public');
     }
+
+    // 🔒 Mặc định event TẮT
+    $data['is_active'] = 0;
+
+    // ❌ không cho mass assign voucher_ids
+    unset($data['voucher_ids']);
+
+    // ➕ tạo event
+    $event = Event::create($data);
+
+    // 🔗 Gắn voucher cho event (nếu có)
+    if ($request->filled('voucher_ids')) {
+        $event->vouchers()->sync($request->voucher_ids);
+    }
+
+    return response()->json([
+        'data' => $event->load('vouchers')
+    ], 201);
+}
 
     /**
      * GET /events/{id}
@@ -160,13 +179,29 @@ class EventController extends Controller
      * PATCH /events/{id}/toggle-status
      */
     public function toggleStatus($id)
-    {
-        $event = Event::findOrFail($id);
-        $event->is_active = !$event->is_active;
-        $event->save();
+{
+    $event = Event::findOrFail($id);
 
-        return response()->json([
-            'data' => $event
-        ]);
+    // Nếu đang TẮT → BẬT thì mới gửi mail
+    if (!$event->is_active) {
+    $event->is_active = true;
+    $event->save();
+
+    $event->load('vouchers');
+
+    $users = User::whereNotNull('email')->get();
+
+    foreach ($users as $user) {
+        Mail::to($user->email)->send(new EventStartMail($event));
     }
+    } else {
+        // Nếu đang BẬT → TẮT thì chỉ tắt
+        $event->is_active = false;
+        $event->save();
+    }
+
+    return response()->json([
+        'data' => $event
+    ]);
+}
 }
