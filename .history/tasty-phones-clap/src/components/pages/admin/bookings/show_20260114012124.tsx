@@ -602,7 +602,7 @@ export default function BookingShow() {
         try {
           // Thử gọi API payments/vnpay/checkout trước
           const vnpayResponse = await axios.post(
-            `${API_URL}/api/bookings/${id}/checkout/pay`,
+            `${API_URL}/api/payments/vnpay/checkout`,
             {
               booking_id: parseInt(id),
               amount: checkoutSummary.final,

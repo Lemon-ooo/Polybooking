@@ -265,7 +265,7 @@ class PaymentController extends Controller
                     ->toArray();
 
                 if (!empty($roomIds)) {
-                    \App\Models\Room::whereIn('room_id', $roomIds)
+                    \App\Models\Room::whereIn('id', $roomIds)
                         ->update(['room_status' => \App\Models\Room::STATUS_AVAILABLE]);
                 }
 

@@ -421,7 +421,6 @@ export default function BookingShow() {
   };
 
   // Xác nhận checkout - chỉ xác nhận thôi
-  // Xác nhận checkout - chỉ xác nhận thôi
   const handleConfirmCheckout = async () => {
     if (!id) return;
 
@@ -449,7 +448,19 @@ export default function BookingShow() {
         setCheckoutSummaryModalVisible(false);
 
         // Nếu đã hoàn tất checkout (số tiền = 0)
-        if (checkoutSummary && checkoutSummary.final === 0) {
+        if (response.data.data?.status === "completed") {
+          message.success("Checkout đã hoàn tất! Khách đã thanh toán đủ.");
+
+          // Refresh booking details
+          await fetchBookingDetails();
+
+          // Show success notification
+          notification.success({
+            message: "Checkout hoàn tất",
+            description: `Booking #${displayBookingId} đã được checkout thành công.`,
+            placement: "topRight",
+          });
+        } else if (checkoutSummary && checkoutSummary.final === 0) {
           // Nếu số tiền thanh toán = 0, gọi pay luôn với cash
           await handleCompleteCheckoutWithoutPayment();
         } else {
@@ -487,16 +498,7 @@ export default function BookingShow() {
 
       console.log("💰 Completing checkout without payment for booking:", id);
 
-      // Trước tiên, cần xác nhận checkout
-      await axios.post(
-        `${API_URL}/api/bookings/${id}/checkout/confirm`,
-        {},
-        {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        }
-      );
-
-      // Sau đó gọi API checkout với phương thức cash
+      // Gọi API checkout với phương thức cash
       const response = await axios.post(
         `${API_URL}/api/bookings/${id}/checkout/pay`,
         {
@@ -514,9 +516,6 @@ export default function BookingShow() {
 
       if (response.data.success) {
         message.success("Checkout thành công!");
-
-        // Đóng modal summary
-        setCheckoutSummaryModalVisible(false);
 
         // Refresh booking details
         await fetchBookingDetails();
@@ -555,71 +554,30 @@ export default function BookingShow() {
         amount: checkoutSummary?.final,
       });
 
-      if (paymentMethod === "cash") {
-        // Tiền mặt: gọi API pay với method cash
-        const response = await axios.post(
-          `${API_URL}/api/bookings/${id}/checkout/pay`,
-          {
-            method: "cash",
-          },
-          {
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-          }
-        );
-
-        console.log("💳 Cash checkout response:", response.data);
-
-        if (response.data.success) {
-          // Đóng modal
-          setCheckoutModalVisible(false);
-
-          message.success("Checkout thành công với thanh toán tiền mặt!");
-
-          // Refresh booking details
-          await fetchBookingDetails();
-
-          // Show success notification
-          notification.success({
-            message: "Checkout thành công",
-            description: `Booking #${displayBookingId} đã được checkout. Phòng đã được mở lại.`,
-            placement: "topRight",
-          });
-        } else {
-          message.error(response.data.message || "Checkout thất bại");
+      const response = await axios.post(
+        `${API_URL}/api/bookings/${id}/checkout/pay`,
+        {
+          method: paymentMethod,
+        },
+        {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
         }
-      } else if (paymentMethod === "vnpay") {
-        // VNPay: cần gọi API riêng để tạo URL thanh toán
-        if (!checkoutSummary || checkoutSummary.final <= 0) {
-          message.error("Số tiền thanh toán không hợp lệ");
-          return;
-        }
+      );
 
-        console.log("💰 Creating VNPay payment for checkout:", {
-          bookingId: id,
-          amount: checkoutSummary.final,
-        });
+      console.log("💳 Checkout payment response:", response.data);
 
-        try {
-          // Thử gọi API payments/vnpay/checkout trước
-          const vnpayResponse = await axios.post(
-            `${API_URL}/api/bookings/${id}/checkout/pay`,
-            {
-              booking_id: parseInt(id),
-              amount: checkoutSummary.final,
-            },
-            {
-              headers: token ? { Authorization: `Bearer ${token}` } : {},
-            }
-          );
+      if (response.data.success) {
+        // Đóng modal
+        setCheckoutModalVisible(false);
 
-          console.log("💳 VNPay checkout response:", vnpayResponse.data);
+        if (paymentMethod === "vnpay") {
+          // Kiểm tra các cấu trúc response khác nhau để lấy URL
+          const paymentUrl =
+            response.data.payment_url || // Cấu trúc trực tiếp
+            response.data.data?.payment_url || // Cấu trúc nested data
+            response.data.url; // Cấu trúc khác
 
-          if (vnpayResponse.data.success && vnpayResponse.data.payment_url) {
-            // Đóng modal checkout
-            setCheckoutModalVisible(false);
-
-            const paymentUrl = vnpayResponse.data.payment_url;
-
+          if (paymentUrl) {
             message.info("Đang chuyển hướng đến trang thanh toán VNPay...");
 
             // Mở trang thanh toán VNPay trong tab mới
@@ -639,37 +597,37 @@ export default function BookingShow() {
               // Tạo một div hiển thị link clickable
               const linkDiv = document.createElement("div");
               linkDiv.style.cssText = `
-          position: fixed;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          background: white;
-          padding: 20px;
-          border-radius: 8px;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-          z-index: 9999;
-          text-align: center;
-          max-width: 500px;
-        `;
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 9999;
+                text-align: center;
+                max-width: 500px;
+              `;
 
               linkDiv.innerHTML = `
-          <h3 style="margin-bottom: 15px;">Liên kết thanh toán VNPay</h3>
-          <p style="margin-bottom: 10px; color: #666;">Trình duyệt đã chặn tự động mở trang thanh toán.</p>
-          <p style="margin-bottom: 20px;">Vui lòng nhấp vào link bên dưới để tiếp tục:</p>
-          <a href="${paymentUrl}" target="_blank" rel="noopener noreferrer" 
-             style="display: inline-block; padding: 10px 20px; 
-                    background: #1890ff; color: white; 
-                    border-radius: 4px; text-decoration: none;
-                    font-weight: bold; margin-bottom: 15px;">
-            Mở trang thanh toán VNPay
-          </a>
-          <button onclick="this.parentElement.remove()" 
-                  style="display: block; margin: 0 auto; padding: 5px 15px;
-                         background: #f5f5f5; border: 1px solid #d9d9d9;
-                         border-radius: 4px; cursor: pointer;">
-            Đóng
-          </button>
-        `;
+                <h3 style="margin-bottom: 15px;">Liên kết thanh toán VNPay</h3>
+                <p style="margin-bottom: 10px; color: #666;">Trình duyệt đã chặn tự động mở trang thanh toán.</p>
+                <p style="margin-bottom: 20px;">Vui lòng nhấp vào link bên dưới để tiếp tục:</p>
+                <a href="${paymentUrl}" target="_blank" rel="noopener noreferrer" 
+                   style="display: inline-block; padding: 10px 20px; 
+                          background: #1890ff; color: white; 
+                          border-radius: 4px; text-decoration: none;
+                          font-weight: bold; margin-bottom: 15px;">
+                  Mở trang thanh toán VNPay
+                </a>
+                <button onclick="this.parentElement.remove()" 
+                        style="display: block; margin: 0 auto; padding: 5px 15px;
+                               background: #f5f5f5; border: 1px solid #d9d9d9;
+                               border-radius: 4px; cursor: pointer;">
+                  Đóng
+                </button>
+              `;
 
               document.body.appendChild(linkDiv);
             } else {
@@ -689,54 +647,31 @@ export default function BookingShow() {
             // Theo dõi thanh toán - bắt đầu tracking
             startPaymentTracking();
           } else {
+            // Nếu không có URL, kiểm tra nếu response có data chứa URL
+            console.error(
+              "Không tìm thấy URL thanh toán trong response:",
+              response.data
+            );
             message.error(
-              vnpayResponse.data.error?.message ||
-                "Không thể tạo link thanh toán VNPay"
+              "Không thể lấy link thanh toán VNPay. Vui lòng thử lại."
             );
           }
-        } catch (vnpayError: any) {
-          console.error("❌ VNPay API error:", vnpayError);
+        } else if (paymentMethod === "cash") {
+          // Nếu là tiền mặt, thông báo thành công
+          message.success("Checkout thành công với thanh toán tiền mặt!");
 
-          // Nếu API payments/vnpay/checkout không hoạt động, thử endpoint booking/checkout/pay
-          if (vnpayError.response?.status === 422) {
-            // Thử endpoint booking checkout với method vnpay
-            const bookingResponse = await axios.post(
-              `${API_URL}/api/bookings/${id}/checkout/pay`,
-              {
-                method: "vnpay",
-              },
-              {
-                headers: token ? { Authorization: `Bearer ${token}` } : {},
-              }
-            );
+          // Refresh booking details
+          await fetchBookingDetails();
 
-            console.log(
-              "💳 Booking checkout VNPay response:",
-              bookingResponse.data
-            );
-
-            if (
-              bookingResponse.data.success &&
-              bookingResponse.data.payment_url
-            ) {
-              // Đóng modal checkout
-              setCheckoutModalVisible(false);
-
-              const paymentUrl = bookingResponse.data.payment_url;
-              window.open(paymentUrl, "_blank", "noopener,noreferrer");
-              startPaymentTracking();
-            } else {
-              message.error(
-                bookingResponse.data.message || "Không thể tạo link thanh toán"
-              );
-            }
-          } else {
-            message.error(
-              vnpayError.response?.data?.message ||
-                "Lỗi khi tạo thanh toán VNPay"
-            );
-          }
+          // Show success notification
+          notification.success({
+            message: "Checkout thành công",
+            description: `Booking #${displayBookingId} đã được checkout. Phòng đã được mở lại.`,
+            placement: "topRight",
+          });
         }
+      } else {
+        message.error(response.data.message || "Checkout thất bại");
       }
     } catch (error: any) {
       console.error("❌ Error processing checkout payment:", error);
@@ -768,7 +703,10 @@ export default function BookingShow() {
         await fetchBookingDetails();
 
         // Kiểm tra trạng thái booking sau khi thanh toán
-        if (booking?.status === "check_out") {
+        if (
+          booking?.status === "check_out" ||
+          booking?.status === "completed"
+        ) {
           clearInterval(interval);
           console.log("✅ Thanh toán hoàn tất - Booking đã checkout");
 
@@ -783,6 +721,26 @@ export default function BookingShow() {
             placement: "topRight",
             duration: 5,
           });
+        } else if (booking?.payments && booking.payments.length > 0) {
+          // Kiểm tra xem có payment VNPay thành công mới không
+          const recentPayment = booking.payments[booking.payments.length - 1];
+          if (
+            recentPayment.status === "success" &&
+            recentPayment.payment_method === "vnpay"
+          ) {
+            clearInterval(interval);
+            console.log("✅ Phát hiện payment VNPay thành công mới");
+
+            message.success({
+              content: "Thanh toán VNPay thành công! Đang hoàn tất checkout...",
+              duration: 5,
+            });
+
+            // Refresh lại booking để cập nhật trạng thái checkout
+            setTimeout(() => {
+              fetchBookingDetails();
+            }, 2000);
+          }
         }
 
         // Nếu đã kiểm tra quá nhiều lần mà không thấy thay đổi
@@ -793,7 +751,7 @@ export default function BookingShow() {
           notification.info({
             message: "Theo dõi thanh toán",
             description:
-              "Hệ thống sẽ tự động cập nhật khi có kết quả thanh toán. Bạn có thể refresh trang để kiểm tra trạng thái mới nhất.",
+              "Hệ thống sẽ tự động cập nhật khi có kết quả thanh toán.",
             placement: "topRight",
             duration: 5,
           });
@@ -3953,14 +3911,10 @@ export default function BookingShow() {
                   <p>1. Bạn sẽ được chuyển đến trang thanh toán VNPay</p>
                   <p>2. Sau khi thanh toán thành công, hệ thống sẽ tự động:</p>
                   <ul style={{ marginLeft: "20px", marginBottom: 0 }}>
-                    <li>Tạo payment cho dịch vụ, hư hỏng, phạt (nếu có)</li>
                     <li>Cập nhật trạng thái thanh toán</li>
-                    <li>Hoàn tất checkout và mở lại phòng</li>
+                    <li>Hoàn tất checkout</li>
+                    <li>Mở lại phòng</li>
                   </ul>
-                  <p style={{ marginTop: "8px", color: "#fa8c16" }}>
-                    <strong>Lưu ý:</strong> Tiền phòng đã thanh toán từ trước sẽ
-                    không tính lại.
-                  </p>
                 </div>
               }
               type="info"
