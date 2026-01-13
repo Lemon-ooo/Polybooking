@@ -1856,6 +1856,29 @@ textarea::placeholder {
   border-color: #a0522d !important; /* Border nâu đỏ */
   color: #a0522d !important; /* Text nâu đỏ */
 }
+.summary-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* ⭐ không bị tụt dòng */
+}
+
+.total-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.voucher-applied {
+  font-size: 8px;
+  color: #52c41a;
+  line-height: 1.2;
+}
+
+.total-amount {
+  font-size: 20px;
+  font-weight: 600;
+  color: #8b0000;
+}
 
 /* Nút Book trong phần Step 3 */
 .book-btn {

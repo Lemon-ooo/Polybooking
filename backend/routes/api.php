@@ -265,7 +265,6 @@ Route::middleware('auth:sanctum')->get(
     '/me/loyalty',
     [LoyaltyController::class, 'me']
 );
-
     Route::get('/loyalty/users', [AdminLoyaltyController::class, 'index']);
     Route::get('/loyalty/users/{user_id}', [AdminLoyaltyController::class, 'show']);
     Route::post('/loyalty/users/{user_id}/points', [AdminLoyaltyController::class, 'adjustPoints']);
