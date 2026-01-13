@@ -129,7 +129,6 @@ public function damageInvoices()
     {
         return $this->belongsTo(Voucher::class);
     }
-
     public function review()
 {
     return $this->hasOne(Review::class, 'booking_id', 'id');
