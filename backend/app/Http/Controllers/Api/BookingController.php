@@ -254,13 +254,6 @@ class BookingController extends Controller
             ]);
         }
 
-        /* ================== KHÓA VOUCHER RIÊNG ================== */
-        if ($voucher && $voucher->users()->exists()) {
-            $request->user()->vouchers()
-                ->updateExistingPivot($voucher->id, [
-                    'is_used' => true
-                ]);
-        }
 
         DB::commit();
 

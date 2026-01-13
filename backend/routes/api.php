@@ -29,6 +29,7 @@ use App\Http\Controllers\Api\AdminCheckoutController;
 use App\Http\Controllers\Api\AdminDamageTypeController;
 // AdminPenaltyController removed — penalty endpoints moved into AdminCheckoutController
 use App\Http\Controllers\Api\RoomTypeImageController;
+use App\Http\Controllers\Api\RevenueController;
 
 Route::get('/bookings/my', [BookingController::class, 'myBookings'])->middleware('auth:sanctum');
 
@@ -269,3 +270,10 @@ Route::middleware('auth:sanctum')->get(
     Route::get('/loyalty/users/{user_id}', [AdminLoyaltyController::class, 'show']);
     Route::post('/loyalty/users/{user_id}/points', [AdminLoyaltyController::class, 'adjustPoints']);
     Route::post('/loyalty/users/{user_id}/reset', [AdminLoyaltyController::class, 'reset']);
+
+
+    Route::prefix('revenue')->group(function () {
+    Route::get('/summary', [RevenueController::class, 'summary']);
+    Route::get('/range', [RevenueController::class, 'range']);
+    Route::get('/top-room-types', [RevenueController::class, 'topRoomTypes']);
+});

@@ -120,11 +120,12 @@ class PaymentController extends Controller
         if ($request->vnp_ResponseCode !== '00') {
 
             Payment::create([
-                'booking_id' => $booking->id,
-                'method'     => 'vnpay',
-                'amount'     => $request->vnp_Amount / 100,
-                'status'     => 'failed',
-                'raw_data'   => json_encode($request->all())
+                'booking_id'  => $booking->id,
+                'method'      => 'vnpay',
+                'amount'      => $request->vnp_Amount / 100,
+                'status'      => 'failed',
+                'payment_type' => $type === 'BOOKING' ? 'room_prepaid' : 'checkout',
+                'raw_data'    => json_encode($request->all())
             ]);
 
             return $this->error('PAYMENT_FAILED', 'Thanh toán không thành công');
@@ -142,44 +143,147 @@ class PaymentController extends Controller
                 'raw_data'   => json_encode($request->all())
             ]);
 
-            /* ===== BOOKING PAYMENT ===== */
-            if ($type === 'BOOKING') {
+            /* ---------- 4. PAYMENT SUCCESS ---------- */
+DB::transaction(function () use ($type, $booking, $request) {
 
-                // 1. Đổi trạng thái booking
-                $booking->update(['status' => 'paid']);
+    $amount = $request->vnp_Amount / 100;
 
-                if ($booking->voucher_code && $booking->user) {
+    /**
+     * ===============================
+     * BOOKING PAYMENT (PREPAID)
+     * ===============================
+     */
+    if ($type === 'BOOKING') {
 
-                    $voucher = Voucher::where('code', $booking->voucher_code)->first();
+        // 1. Tạo payment tiền phòng
+        Payment::create([
+            'booking_id'   => $booking->id,
+            'method'       => 'vnpay',
+            'amount'       => $amount,
+            'status'       => 'success',
+            'payment_type' => 'room_prepaid', // ✅ DOANH THU PHÒNG
+            'paid_at'      => now(),
+            'raw_data'     => json_encode($request->all())
+        ]);
 
-                    if ($voucher) {
-                        // chỉ update nếu voucher này là voucher riêng của user
-                        $booking->user->vouchers()
-                            ->wherePivot('voucher_id', $voucher->id)
-                            ->wherePivot('is_used', false)
-                            ->update(['is_used' => true]);
-                    }
-                }
+        // 2. Đổi trạng thái booking
+        $booking->update(['status' => 'paid']);
 
-                // 2. 🔥 TÍCH ĐIỂM THÀNH VIÊN
-                app(LoyaltyPointService::class)
-                    ->rewardForBooking(
-                        $booking->user,
-                        $booking->total_price
-                    );
+        // 3. Đánh dấu voucher đã dùng
+        if ($booking->voucher_code && $booking->user) {
+            $voucher = Voucher::where('code', $booking->voucher_code)->first();
 
-                // ===============================
-                // 3. 🔥 GÁN VOUCHER THEO HẠNG
-                // ===============================
-                $this->assignVoucherAfterPaid($booking);
-
-                // 4. Load data gửi mail
-                $booking->load(['user', 'items.roomType']);
-
-                // 5. Gửi mail xác nhận
-                Mail::to($booking->user->email)
-                    ->send(new BookingPaidMail($booking));
+            if ($voucher) {
+                $booking->user->vouchers()
+                    ->wherePivot('voucher_id', $voucher->id)
+                    ->wherePivot('is_used', false)
+                    ->update(['is_used' => true]);
             }
+        }
+
+        // 4. Tích điểm thành viên
+        app(LoyaltyPointService::class)
+            ->rewardForBooking(
+                $booking->user,
+                $booking->total_price
+            );
+
+        // 5. Gán voucher theo hạng
+        $this->assignVoucherAfterPaid($booking);
+
+        // 6. Gửi mail
+        $booking->load(['user', 'items.roomType']);
+        Mail::to($booking->user->email)
+            ->send(new BookingPaidMail($booking));
+    }
+
+    /**
+     * ===============================
+     * CHECKOUT PAYMENT
+     * ===============================
+     */
+    if ($type === 'CHECKOUT') {
+
+        // bắt buộc đã confirm checkout
+        if (!Cache::get("checkout_confirmed_{$booking->id}")) {
+            throw new \Exception('Checkout chưa được xác nhận');
+        }
+
+        /**
+         * 1. DỊCH VỤ (DOANH THU)
+         */
+        $serviceTotal = ServiceInvoice::where('booking_id', $booking->id)
+            ->where('status', 'unpaid')
+            ->sum('total_amount');
+
+        if ($serviceTotal > 0) {
+            Payment::create([
+                'booking_id'   => $booking->id,
+                'method'       => 'vnpay',
+                'amount'       => $serviceTotal,
+                'status'       => 'success',
+                'payment_type' => 'service', // ✅ DOANH THU
+                'paid_at'      => now(),
+                'raw_data'     => json_encode($request->all())
+            ]);
+
+            ServiceInvoice::where('booking_id', $booking->id)
+                ->update(['status' => 'paid']);
+        }
+
+        /**
+         * 2. BỒI THƯỜNG (KHÔNG TÍNH DOANH THU)
+         */
+        $damageTotal = DamageInvoice::where('booking_id', $booking->id)
+            ->where('status', 'unpaid')
+            ->sum('amount');
+
+        if ($damageTotal > 0) {
+            Payment::create([
+                'booking_id'   => $booking->id,
+                'method'       => 'vnpay',
+                'amount'       => $damageTotal,
+                'status'       => 'success',
+                'payment_type' => 'damage',
+                'paid_at'      => now(),
+                'raw_data'     => json_encode($request->all())
+            ]);
+
+            DamageInvoice::where('booking_id', $booking->id)
+                ->update(['status' => 'paid']);
+        }
+
+        /**
+         * 3. PHẠT (KHÔNG TÍNH DOANH THU)
+         */
+        $penaltyTotal = Penalty::where('booking_id', $booking->id)
+            ->where('status', 'unpaid')
+            ->sum('amount');
+
+        if ($penaltyTotal > 0) {
+            Payment::create([
+                'booking_id'   => $booking->id,
+                'method'       => 'vnpay',
+                'amount'       => $penaltyTotal,
+                'status'       => 'success',
+                'payment_type' => 'penalty',
+                'paid_at'      => now(),
+                'raw_data'     => json_encode($request->all())
+            ]);
+
+            Penalty::where('booking_id', $booking->id)
+                ->update(['status' => 'paid']);
+        }
+
+        // 4. Đóng booking & phòng
+        $booking->update(['status' => Booking::STATUS_CHECK_OUT]);
+
+        AssignedRoom::where('booking_id', $booking->id)
+            ->update(['status' => AssignedRoom::STATUS_CHECKED_OUT]);
+
+        Cache::forget("checkout_confirmed_{$booking->id}");
+    }
+});
 
             /* ===== CHECKOUT PAYMENT ===== */
             if ($type === 'CHECKOUT') {
