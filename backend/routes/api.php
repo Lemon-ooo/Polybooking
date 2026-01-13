@@ -23,8 +23,9 @@ use App\Http\Controllers\Api\AdminBookingController;
 use App\Http\Controllers\Api\AdminCheckinController;
 use App\Http\Controllers\Api\AdminServiceController;
 use App\Http\Controllers\Api\AdminCheckoutController;
-use App\Http\Controllers\Api\AdminDamageController;
-use App\Http\Controllers\Api\AdminPenaltyController;
+// AdminDamageController removed — damage endpoints moved into AdminCheckoutController
+use App\Http\Controllers\Api\AdminDamageTypeController;
+// AdminPenaltyController removed — penalty endpoints moved into AdminCheckoutController
 use App\Http\Controllers\Api\RoomTypeImageController;
 
 Route::get('/bookings/my', [BookingController::class, 'myBookings'])->middleware('auth:sanctum');
@@ -127,16 +128,16 @@ Route::post(
 /* =========================================================
 | ADMIN – PENALTY (HƯ HỎNG / PHẠT)
 ========================================================= */
-// 1️⃣ Damages (full CRUD, supports image upload)
-Route::get('bookings/{id}/damages', [AdminDamageController::class, 'index'])->middleware('auth:sanctum');
-Route::post('bookings/{id}/damages', [AdminDamageController::class, 'store'])->middleware('auth:sanctum');
-Route::put('damages/{id}', [AdminDamageController::class, 'update'])->middleware('auth:sanctum');
-Route::delete('damages/{id}', [AdminDamageController::class, 'destroy'])->middleware('auth:sanctum');
+// Damage endpoints moved to checkout flow (see bookings/{id}/checkout/...)
 
-// 2️⃣ Penalties
-Route::get('bookings/{id}/penalties', [AdminPenaltyController::class, 'index'])->middleware('auth:sanctum');
-Route::post('bookings/{id}/penalties', [AdminPenaltyController::class, 'store'])->middleware('auth:sanctum');
-Route::delete('penalties/{id}', [AdminPenaltyController::class, 'destroy'])->middleware('auth:sanctum');
+// Damage types CRUD (catalog used when creating invoices)
+Route::get('damage-types', [AdminDamageTypeController::class, 'index'])->middleware('auth:sanctum');
+Route::post('damage-types', [AdminDamageTypeController::class, 'store'])->middleware('auth:sanctum');
+Route::get('damage-types/{id}', [AdminDamageTypeController::class, 'show'])->middleware('auth:sanctum');
+Route::put('damage-types/{id}', [AdminDamageTypeController::class, 'update'])->middleware('auth:sanctum');
+Route::delete('damage-types/{id}', [AdminDamageTypeController::class, 'destroy'])->middleware('auth:sanctum');
+
+// Penalty endpoints moved to checkout flow (see bookings/{id}/checkout/...)
 
 // 3️⃣ Xác nhận checkout (bắt buộc)
 Route::post(
