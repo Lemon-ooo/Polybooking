@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Room;
 use App\Models\RoomType;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class RoomController extends Controller
 {
@@ -37,7 +38,12 @@ class RoomController extends Controller
         $validated = $request->validate([
             'room_number'  => 'required|integer|max:999|unique:rooms,room_number',
             'room_type_id' => 'required|exists:room_types,room_type_id',
-            'room_status'  => 'required|string|in:available',
+            'room_status'  => ['required', 'string', Rule::in([
+                Room::STATUS_AVAILABLE,
+                Room::STATUS_BOOKED,
+                Room::STATUS_IN_USE,
+                Room::STATUS_MAINTENANCE,
+            ])],
             'description'  => 'nullable|string',
         ]);
 
@@ -74,7 +80,12 @@ class RoomController extends Controller
         $validated = $request->validate([
             'room_number'  => 'required|integer|max:999|unique:rooms,room_number,' . $room->room_id . ',room_id',
             'room_type_id' => 'required|exists:room_types,room_type_id',
-            'room_status'  => 'required|string|in:available,booked,maintenance,unavailable',
+            'room_status'  => ['required', 'string', Rule::in([
+                Room::STATUS_AVAILABLE,
+                Room::STATUS_BOOKED,
+                Room::STATUS_IN_USE,
+                Room::STATUS_MAINTENANCE,
+            ])],
             'description'  => 'nullable|string',
         ]);
 
@@ -91,14 +102,26 @@ class RoomController extends Controller
      * Xóa phòng.
      */
     public function destroy($id)
-    {
-        $room = Room::findOrFail($id);
-        $room->delete();
+{
+    $room = Room::findOrFail($id);
 
+    // chỉ cho phép xóa phòng khi đang available
+    if ($room->room_status !== Room::STATUS_AVAILABLE) {
         return response()->json([
-            "success" => true,
-            "data"    => null,
-            "message" => "Room deleted successfully",
-        ]);
+            "success" => false,
+            "error" => [
+                "code"    => "ROOM_NOT_AVAILABLE",
+                "message" => "Chỉ được xóa phòng ở trạng thái available"
+            ]
+        ], 400);
     }
+
+    $room->delete();
+
+    return response()->json([
+        "success" => true,
+        "data"    => null,
+        "message" => "Room deleted successfully",
+    ]);
+}
 }

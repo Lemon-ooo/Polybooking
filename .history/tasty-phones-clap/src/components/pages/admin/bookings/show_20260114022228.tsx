@@ -80,15 +80,7 @@ interface CheckinFormData {
   guests: GuestInfo[];
   room_id?: number | null;
 }
-interface CheckedInGuest {
-  id?: number; // Tạm thời có thể undefined nếu chưa có API
-  booking_id?: number;
-  name: string;
-  age: number;
-  verified?: boolean;
-  created_at?: string;
-  updated_at?: string;
-}
+
 interface BookingItem {
   booking_item_id: number;
   room_type_id: number;
