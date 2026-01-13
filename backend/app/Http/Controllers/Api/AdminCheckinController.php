@@ -32,12 +32,8 @@ class AdminCheckinController extends Controller
         /* ================= VALIDATION ================= */
         try {
             $validated = $request->validate([
-<<<<<<< HEAD
-                'room_id' => 'required|exists:rooms,room_id',
-=======
                 'room_id' => 'sometimes|nullable|exists:rooms,room_id',
 
->>>>>>> clone
                 'guests' => 'required|array|min:1',
                 'guests.*.name' => 'required|string|max:255',
                 'guests.*.age'  => 'required|integer|min:0',
@@ -119,13 +115,8 @@ class AdminCheckinController extends Controller
             $assigned->update(['status' => AssignedRoom::STATUS_CHECKED_IN, 'checked_in_at' => now()]);
 
             /* ================= UPDATE ROOM + BOOKING ================= */
-<<<<<<< HEAD
-            $room->update(['room_status' => 'occupied']);
-            $booking->update(['status' => Booking::STATUS_CHECK_IN]);
-=======
             $room->update(['room_status' => Room::STATUS_IN_USE]);
             $booking->update(['status' => Booking::STATUS_IN_USE]);
->>>>>>> clone
 
             DB::commit();
 

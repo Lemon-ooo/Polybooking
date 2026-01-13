@@ -141,7 +141,6 @@ class PaymentController extends Controller
 
             /* ===== BOOKING PAYMENT ===== */
             if ($type === 'BOOKING') {
-<<<<<<< HEAD
 
                 $booking->update(['status' => 'paid']);
 
@@ -151,9 +150,6 @@ class PaymentController extends Controller
                 // gửi mail
                 Mail::to($booking->user->email)
                     ->send(new BookingPaidMail($booking));
-=======
-                $booking->update(['status' => Booking::STATUS_PAID]);
->>>>>>> clone
             }
 
             /* ===== CHECKOUT PAYMENT ===== */

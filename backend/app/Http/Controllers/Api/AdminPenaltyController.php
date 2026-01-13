@@ -4,120 +4,54 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
-// Models
 use App\Models\Booking;
-use App\Models\DamageType;
-use App\Models\PenaltyCharge;
+use App\Models\Penalty;
 
 class AdminPenaltyController extends Controller
 {
-    /* =========================================================
-     * POST /api/admin/bookings/{id}/penalties
-     * Ghi nhận hư hỏng / phạt
-     * ========================================================= */
-    public function addPenalty(Request $request, $id)
+    // List penalties for a booking
+    public function index($bookingId)
     {
-        $user = $request->user();
-        if (!$user || !$user->is_admin) {
-            return $this->forbidden();
-        }
+        $booking = Booking::findOrFail($bookingId);
 
-        try {
-            $validated = $request->validate([
-                'penalties' => 'required|array|min:1',
-                'penalties.*.damage_type_id' => 'required|exists:damage_types,id',
-                'penalties.*.amount' => 'nullable|numeric|min:0',
-                'penalties.*.note'   => 'nullable|string|max:255'
-            ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return $this->validationError($e->errors());
-        }
+        $items = Penalty::where('booking_id', $bookingId)->get();
 
-        $booking = Booking::find($id);
-        if (!$booking) {
-            return $this->error('BOOKING_NOT_FOUND', 'Không tìm thấy booking', 404);
-        }
-
-        if ($booking->status !== Booking::STATUS_IN_USE) {
-            return $this->error(
-                'INVALID_BOOKING_STATUS',
-                'Chỉ ghi nhận phạt khi khách đang lưu trú'
-            );
-        }
-
-        DB::beginTransaction();
-        try {
-            $lines = [];
-
-            foreach ($validated['penalties'] as $item) {
-                $damage = DamageType::find($item['damage_type_id']);
-                if (!$damage) {
-                    throw new \Exception('DAMAGE_TYPE_NOT_FOUND');
-                }
-
-                $amount = $item['amount'] ?? $damage->default_amount;
-
-                PenaltyCharge::create([
-                    'booking_id'     => $booking->id,
-                    'damage_type_id' => $damage->id,
-                    'amount'         => $amount,
-                    'note'           => $item['note'] ?? null
-                ]);
-
-                $lines[] = [
-                    'damage' => $damage->name,
-                    'amount' => $amount
-                ];
-            }
-
-            DB::commit();
-
-            return $this->success([
-                'booking_id' => $booking->id,
-                'penalties'  => $lines
-            ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return $this->error('PENALTY_ADD_FAILED', 'Không thể ghi nhận phạt');
-        }
+        return response()->json(['success' => true, 'data' => $items]);
     }
 
-    /* ================= HELPERS ================= */
-
-    private function success($data, $status = 200)
+    // Create penalty
+    public function store(Request $request, $bookingId)
     {
-        return response()->json([
-            'success' => true,
-            'data'    => $data,
-            'meta'    => ['timestamp' => now()->toISOString()]
-        ], $status);
+        $booking = Booking::findOrFail($bookingId);
+
+        if (!in_array($booking->status, [Booking::STATUS_CHECK_IN, Booking::STATUS_IN_USE])) {
+            return response()->json(['success' => false, 'message' => 'Booking không hợp lệ'], 400);
+        }
+
+        $data = $request->validate([
+            'days_late' => 'required|integer|min:1',
+            'amount'    => 'required|integer|min:0'
+        ]);
+
+        $penalty = Penalty::create([
+            'booking_id' => $booking->id,
+            'days_late'  => $data['days_late'],
+            'amount'     => $data['amount']
+        ]);
+
+        if ($booking->status === Booking::STATUS_CHECK_IN) {
+            $booking->update(['status' => Booking::STATUS_IN_USE]);
+        }
+
+        return response()->json(['success' => true, 'data' => $penalty]);
     }
 
-    private function error($code, $message, $status = 400)
+    // Optionally delete a penalty
+    public function destroy($id)
     {
-        return response()->json([
-            'success' => false,
-            'error'   => ['code' => $code, 'message' => $message]
-        ], $status);
-    }
-
-    private function forbidden()
-    {
-        return $this->error('FORBIDDEN', 'Không có quyền truy cập', 403);
-    }
-
-    private function validationError($details)
-    {
-        return response()->json([
-            'success' => false,
-            'error' => [
-                'code'    => 'VALIDATION_ERROR',
-                'message' => 'Dữ liệu không hợp lệ',
-                'details' => $details
-            ]
-        ], 422);
+        $penalty = Penalty::findOrFail($id);
+        $penalty->delete();
+        return response()->json(['success' => true]);
     }
 }
