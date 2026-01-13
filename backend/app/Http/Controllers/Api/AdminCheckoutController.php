@@ -117,32 +117,45 @@ class AdminCheckoutController extends Controller
      *  Add Damage (upload image immediately)
      * POST /api/admin/bookings/{id}/checkout/damages
      * ========================================================= */
-    public function addDamages(Request $request, $id)
-    {
-        $booking = Booking::findOrFail($id);
+public function addDamages(Request $request, $id)
+{
+    $booking = Booking::findOrFail($id);
 
-        $data = $request->validate([
-            'damage_type_id' => 'required|exists:damage_types,id',
-            'amount' => 'required|numeric|min:0',
-            'notes' => 'nullable|string',
-            'image' => 'required|image|max:5120'
-        ]);
+    $data = $request->validate([
+        'damage_type_id' => 'required|exists:damage_types,id',
+        'description' => 'nullable|string',
+        'image' => 'nullable|file|image|max:2048', // hình file
+    ]);
 
-        // store image immediately to public storage
-        $path = $request->file('image')->store('damages', 'public');
+    $type = DamageType::find($data['damage_type_id']);
 
-        $damage = DamageInvoice::create([
-            'booking_id' => $booking->id,
-            'damage_type_id' => $data['damage_type_id'],
-            'amount' => $data['amount'],
-            'image_path' => $path,
-        ]);
-
+    if (!$type) {
         return response()->json([
-            'success' => true,
-            'data' => $damage
-        ], 201);
+            'success' => false,
+            'message' => 'Damage type không tồn tại'
+        ], 400);
     }
+
+    // Upload file nếu có
+    $imagePath = null;
+    if ($request->hasFile('image')) {
+        $imagePath = $request->file('image')->store('damages', 'public');
+    }
+
+    $damage = DamageInvoice::create([
+        'booking_id'      => $booking->id,
+        'damage_type_id'  => $type->id,
+        'amount'          => $type->price,
+        'image_path'      => $imagePath, // lưu path
+        'description'     => $data['description'] ?? null,
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'data' => $damage
+    ], 201);
+}
+
 
 
     /* =========================================================
