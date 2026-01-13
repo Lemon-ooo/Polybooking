@@ -25,8 +25,6 @@ import {
   Select,
   Upload,
   notification,
-  Radio,
-  List,
 } from "antd";
 import {
   HomeOutlined,
@@ -55,10 +53,6 @@ import {
   ApartmentOutlined,
   PlusOutlined,
   DeleteOutlined,
-  CashRegisterOutlined,
-  BankOutlined,
-  CalculatorOutlined,
-  ShoppingCartOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
@@ -221,15 +215,6 @@ interface DamageFormData {
   image?: string;
 }
 
-interface CheckoutSummary {
-  room: number;
-  service: number;
-  damage: number;
-  penalty: number;
-  prepaid: number;
-  final: number;
-}
-
 // ============================================
 // STATUS CONFIG
 // ============================================
@@ -318,17 +303,6 @@ export default function BookingShow() {
     []
   );
 
-  // State cho checkout
-  const [checkoutSummary, setCheckoutSummary] =
-    useState<CheckoutSummary | null>(null);
-  const [checkoutSummaryModalVisible, setCheckoutSummaryModalVisible] =
-    useState(false);
-  const [checkoutSummaryLoading, setCheckoutSummaryLoading] = useState(false);
-  const [confirmCheckoutLoading, setConfirmCheckoutLoading] = useState(false);
-  const [checkoutModalVisible, setCheckoutModalVisible] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<string>("cash");
-  const [checkoutLoading, setCheckoutLoading] = useState(false);
-
   // ============================================
   // FORMATTING FUNCTIONS
   // ============================================
@@ -386,131 +360,186 @@ export default function BookingShow() {
     return isCheckedIn || hasCheckedInRooms;
   };
 
-  // ============================================
-  // CHECKOUT FUNCTIONS
-  // ============================================
+  // Fetch rooms available for checkin
+  const fetchAvailableCheckinRooms = async () => {
+    if (!booking) return;
 
-  // Fetch checkout summary
-  const fetchCheckoutSummary = async () => {
-    if (!id) return;
-
-    setCheckoutSummaryLoading(true);
     try {
       const authStr = localStorage.getItem("auth");
       const token = authStr ? JSON.parse(authStr).token : null;
 
-      const response = await axios.get(
-        `${API_URL}/api/admin/bookings/${id}/checkout/summary`,
-        {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        }
-      );
+      // Lấy room_id từ assigned rooms (nếu có)
+      const assignedRoomId = assignedRooms[0]?.room_id;
 
-      if (response.data.success) {
-        setCheckoutSummary(response.data.data);
-        setCheckoutSummaryModalVisible(true);
+      if (assignedRoomId) {
+        // Nếu đã có assigned room, chỉ hiển thị phòng đó
+        const response = await axios.get(
+          `${API_URL}/api/rooms/${assignedRoomId}`,
+          {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          }
+        );
+
+        if (response.data.success) {
+          setAvailableCheckinRooms([response.data.data]);
+          setCheckinForm((prev) => ({ ...prev, room_id: assignedRoomId }));
+        }
       } else {
-        message.error(response.data.message || "Không thể lấy tổng thanh toán");
+        // Nếu chưa có assigned room, lấy danh sách phòng trống
+        const roomTypeId = booking.items[0]?.room_type_id;
+        const response = await axios.get(
+          `${API_URL}/api/rooms/available?room_type_id=${roomTypeId}&check_in=${booking.check_in}&check_out=${booking.check_out}`,
+          {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          }
+        );
+
+        if (response.data.success) {
+          setAvailableCheckinRooms(response.data.data || []);
+        }
       }
-    } catch (error: any) {
-      console.error("Error fetching checkout summary:", error);
-      message.error(
-        error.response?.data?.message || "Lỗi khi lấy tổng thanh toán"
-      );
-    } finally {
-      setCheckoutSummaryLoading(false);
+    } catch (error) {
+      console.error("Error fetching checkin rooms:", error);
+      setAvailableCheckinRooms([]);
     }
   };
 
-  // Confirm checkout
-  const handleConfirmCheckout = async () => {
-    if (!id) return;
+  // Open checkin modal
+  const showCheckinModal = async () => {
+    if (!booking) return;
 
-    setConfirmCheckoutLoading(true);
-    try {
-      const authStr = localStorage.getItem("auth");
-      const token = authStr ? JSON.parse(authStr).token : null;
+    // Reset form
+    setCheckinForm({
+      guests: [{ name: "", age: 18 }],
+      room_id: assignedRooms[0]?.room_id || null,
+    });
 
-      const response = await axios.post(
-        `${API_URL}/api/admin/bookings/${id}/checkout/confirm`,
-        {},
-        {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        }
-      );
+    // Fetch available rooms
+    await fetchAvailableCheckinRooms();
 
-      if (response.data.success) {
-        message.success("Đã xác nhận checkout!");
-        // Show checkout modal
-        setCheckoutModalVisible(true);
-      } else {
-        message.error(response.data.message || "Không thể xác nhận checkout");
-      }
-    } catch (error: any) {
-      console.error("Error confirming checkout:", error);
-      message.error(
-        error.response?.data?.message || "Lỗi khi xác nhận checkout"
-      );
-    } finally {
-      setConfirmCheckoutLoading(false);
-    }
+    setCheckinModalVisible(true);
   };
 
-  // Process checkout payment
-  const handleCheckoutPayment = async () => {
-    if (!id || !paymentMethod) return;
+  // Handle checkin form changes
+  const handleCheckinFormChange = (
+    index: number,
+    field: keyof GuestInfo,
+    value: any
+  ) => {
+    const newGuests = [...checkinForm.guests];
+    newGuests[index] = { ...newGuests[index], [field]: value };
+    setCheckinForm({ ...checkinForm, guests: newGuests });
+  };
 
-    setCheckoutLoading(true);
+  // Add guest to checkin form
+  const handleAddGuest = () => {
+    setCheckinForm({
+      ...checkinForm,
+      guests: [...checkinForm.guests, { name: "", age: 18 }],
+    });
+  };
+
+  // Remove guest from checkin form
+  const handleRemoveGuest = (index: number) => {
+    if (checkinForm.guests.length <= 1) {
+      message.warning("Phải có ít nhất 1 khách");
+      return;
+    }
+
+    const newGuests = [...checkinForm.guests];
+    newGuests.splice(index, 1);
+    setCheckinForm({ ...checkinForm, guests: newGuests });
+  };
+
+  // Submit checkin
+  const handleCheckin = async () => {
+    if (!booking || !id) return;
+
+    // Validate
+    const invalidGuests = checkinForm.guests.some(
+      (guest) => !guest.name.trim() || guest.age < 0 || guest.age > 120
+    );
+
+    if (invalidGuests) {
+      message.error("Vui lòng nhập thông tin khách hợp lệ");
+      return;
+    }
+
+    setCheckinLoading(true);
     try {
       const authStr = localStorage.getItem("auth");
       const token = authStr ? JSON.parse(authStr).token : null;
 
+      const payload = {
+        guests: checkinForm.guests,
+        // Chỉ gửi room_id nếu chưa có assigned room
+        ...(assignedRooms.length === 0 && checkinForm.room_id
+          ? { room_id: checkinForm.room_id }
+          : {}),
+      };
+
+      console.log("📤 Checkin payload:", payload);
+
       const response = await axios.post(
-        `${API_URL}/api/admin/bookings/${id}/checkout/pay`,
+        `${API_URL}/api/bookings/${id}/checkin`,
+        payload,
         {
-          method: paymentMethod,
-        },
-        {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
       );
 
-      console.log("Checkout payment response:", response.data);
+      console.log("✅ Checkin response:", response.data);
 
       if (response.data.success) {
-        message.success("Checkout thành công!");
-        setCheckoutModalVisible(false);
+        message.success("Checkin thành công!");
+        setCheckinModalVisible(false);
 
-        // If VNPay, redirect to payment URL
-        if (paymentMethod === "vnpay" && response.data.data?.payment_url) {
-          window.open(response.data.data.payment_url, "_blank");
-        }
+        // Reset form
+        setCheckinForm({
+          guests: [{ name: "", age: 18 }],
+          room_id: null,
+        });
 
         // Refresh booking details
         await fetchBookingDetails();
 
         // Show success notification
         notification.success({
-          message: "Checkout thành công",
-          description: `Booking #${displayBookingId} đã được checkout. Phòng đã được mở lại.`,
+          message: "Checkin thành công",
+          description: `Đã checkin ${response.data.data.guests} khách vào phòng ${response.data.data.room_id}`,
           placement: "topRight",
         });
       } else {
-        message.error(response.data.message || "Checkout thất bại");
+        message.error(
+          response.data.error?.message || "Có lỗi xảy ra khi checkin"
+        );
       }
     } catch (error: any) {
-      console.error("Error processing checkout:", error);
+      console.error("❌ Error checkin:", error);
 
-      if (error.response?.data?.message) {
-        message.error(error.response.data.message);
-      } else if (error.response?.status === 400) {
-        message.error("Chưa xác nhận checkout. Vui lòng xác nhận trước.");
+      if (error.response?.data?.error?.message) {
+        message.error(error.response.data.error.message);
+      } else if (error.response?.status === 403) {
+        message.error("Bạn không có quyền thực hiện checkin");
+      } else if (error.response?.status === 422) {
+        message.error(
+          "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại thông tin khách."
+        );
       } else {
-        message.error("Không thể xử lý checkout. Vui lòng thử lại.");
+        message.error("Không thể checkin. Vui lòng thử lại.");
       }
     } finally {
-      setCheckoutLoading(false);
+      setCheckinLoading(false);
     }
+  };
+
+  // Handle checkout (placeholder)
+  const handleCheckout = async () => {
+    message.info("Tính năng checkout sẽ được phát triển sau");
+    // Logic checkout sẽ được thêm sau
   };
 
   // ============================================
@@ -632,7 +661,7 @@ export default function BookingShow() {
   };
 
   // ============================================
-  // CÁC HÀM KHÁC
+  // ASSIGNED ROOMS FUNCTIONS
   // ============================================
 
   // Fetch assigned rooms
@@ -719,7 +748,7 @@ export default function BookingShow() {
 
       // Thử endpoint chính
       const endpoints = [
-        `${API_URL}/api/admin/rooms/available?room_type_id=${roomTypeId}&check_in=${booking.check_in}&check_out=${booking.check_out}`,
+        `${API_URL}/api/rooms/available?room_type_id=${roomTypeId}&check_in=${booking.check_in}&check_out=${booking.check_out}`,
         `${API_URL}/api/rooms/available?room_type_id=${roomTypeId}&check_in=${booking.check_in}&check_out=${booking.check_out}`,
         `${API_URL}/api/rooms?room_type_id=${roomTypeId}&status=available`,
       ];
@@ -866,6 +895,10 @@ export default function BookingShow() {
     // Fetch available rooms cùng loại với booking
     await fetchAvailableRooms();
   };
+
+  // ============================================
+  // CÁC HÀM KHÁC
+  // ============================================
 
   // Check invoice status
   const checkInvoiceStatus = async (
@@ -1124,7 +1157,7 @@ export default function BookingShow() {
       };
 
       const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/penalties`,
+        `${API_URL}/api/bookings/${id}/checkout/penalties`,
         payload,
         {
           headers: {
@@ -1154,6 +1187,81 @@ export default function BookingShow() {
       }
     } finally {
       setPenaltyLoading(false);
+    }
+  };
+
+  // Handle confirm checkout
+  const handleConfirmCheckout = async () => {
+    if (!booking || !id) return;
+
+    try {
+      const authStr = localStorage.getItem("auth");
+      const token = authStr ? JSON.parse(authStr).token : null;
+
+      const response = await axios.post(
+        `${API_URL}/api/bookings/${id}/checkout/confirm`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.data.success) {
+        message.success("Đã xác nhận checkout!");
+        fetchBookingDetails();
+      } else {
+        message.error(response.data.message || "Có lỗi xảy ra");
+      }
+    } catch (error: any) {
+      console.error("Error confirming checkout:", error);
+      message.error(
+        error.response?.data?.message || "Lỗi khi xác nhận checkout"
+      );
+    }
+  };
+
+  // Handle get checkout summary
+  const handleGetCheckoutSummary = async () => {
+    if (!booking || !id) return;
+
+    try {
+      const authStr = localStorage.getItem("auth");
+      const token = authStr ? JSON.parse(authStr).token : null;
+
+      const response = await axios.get(
+        `${API_URL}/api/bookings/${id}/checkout/summary`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        const summary = response.data.data;
+        Modal.info({
+          title: "Tổng thanh toán checkout",
+          content: (
+            <div>
+              <p>Tiền phòng: {formatCurrency(summary.room)}</p>
+              <p>Dịch vụ: {formatCurrency(summary.service)}</p>
+              <p>Hư hỏng: {formatCurrency(summary.damage)}</p>
+              <p>Phạt: {formatCurrency(summary.penalty)}</p>
+              <p>Đã trả trước: {formatCurrency(summary.prepaid)}</p>
+              <Divider />
+              <p style={{ fontWeight: "bold", fontSize: "16px" }}>
+                Tổng thanh toán: {formatCurrency(summary.final)}
+              </p>
+            </div>
+          ),
+        });
+      }
+    } catch (error) {
+      console.error("Error getting checkout summary:", error);
+      message.error("Lỗi khi lấy tổng thanh toán");
     }
   };
 
@@ -2849,7 +2957,7 @@ export default function BookingShow() {
                   type="primary"
                   block
                   size="large"
-                  onClick={() => setCheckinModalVisible(true)}
+                  onClick={showCheckinModal}
                   icon={<CheckCircleOutlined />}
                   style={{
                     height: "48px",
@@ -2864,42 +2972,22 @@ export default function BookingShow() {
 
               {/* Checkout Button - chỉ hiển thị khi đã checkin */}
               {canCheckout && (
-                <>
-                  <Button
-                    type="primary"
-                    danger
-                    block
-                    size="large"
-                    onClick={fetchCheckoutSummary}
-                    icon={<ShoppingCartOutlined />}
-                    style={{
-                      height: "48px",
-                      fontSize: "16px",
-                      background: "#fa8c16",
-                      borderColor: "#fa8c16",
-                    }}
-                    loading={checkoutSummaryLoading}
-                  >
-                    Xem Tổng Thanh Toán
-                  </Button>
-
-                  <Button
-                    type="primary"
-                    block
-                    size="large"
-                    onClick={handleConfirmCheckout}
-                    icon={<CheckCircleOutlined />}
-                    style={{
-                      height: "48px",
-                      fontSize: "16px",
-                      background: "#52c41a",
-                      borderColor: "#52c41a",
-                    }}
-                    loading={confirmCheckoutLoading}
-                  >
-                    Xác nhận Checkout
-                  </Button>
-                </>
+                <Button
+                  type="primary"
+                  danger
+                  block
+                  size="large"
+                  onClick={handleCheckout}
+                  icon={<CheckCircleOutlined />}
+                  style={{
+                    height: "48px",
+                    fontSize: "16px",
+                    background: "#fa8c16",
+                    borderColor: "#fa8c16",
+                  }}
+                >
+                  Check-out
+                </Button>
               )}
 
               {/* Hiển thị trạng thái checkin nếu đã checkin */}
@@ -2986,6 +3074,33 @@ export default function BookingShow() {
                     }}
                   >
                     Thêm Phạt Trễ
+                  </Button>
+
+                  <Button
+                    type="default"
+                    block
+                    size="large"
+                    onClick={handleGetCheckoutSummary}
+                    icon={<DollarOutlined />}
+                    style={{ height: "48px", fontSize: "16px" }}
+                  >
+                    Xem Tổng Thanh Toán
+                  </Button>
+
+                  <Button
+                    type="primary"
+                    block
+                    size="large"
+                    onClick={handleConfirmCheckout}
+                    icon={<CheckCircleOutlined />}
+                    style={{
+                      height: "48px",
+                      fontSize: "16px",
+                      background: "#52c41a",
+                      borderColor: "#52c41a",
+                    }}
+                  >
+                    Xác nhận Checkout
                   </Button>
                 </>
               )}
@@ -3093,267 +3208,6 @@ export default function BookingShow() {
           </Card>
         </Col>
       </Row>
-
-      {/* CHECKOUT SUMMARY MODAL */}
-      <Modal
-        title={
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <CalculatorOutlined style={{ color: "#1890ff" }} />
-            <span>Tổng thanh toán Checkout</span>
-            <Tag color="blue" style={{ marginLeft: "auto" }}>
-              Booking #{displayBookingId}
-            </Tag>
-          </div>
-        }
-        open={checkoutSummaryModalVisible}
-        onCancel={() => setCheckoutSummaryModalVisible(false)}
-        footer={[
-          <Button
-            key="close"
-            onClick={() => setCheckoutSummaryModalVisible(false)}
-          >
-            Đóng
-          </Button>,
-          <Button
-            key="confirm"
-            type="primary"
-            onClick={() => {
-              setCheckoutSummaryModalVisible(false);
-              handleConfirmCheckout();
-            }}
-          >
-            Tiếp tục Checkout
-          </Button>,
-        ]}
-        width={600}
-      >
-        {checkoutSummary && (
-          <div style={{ padding: "16px 0" }}>
-            <Alert
-              message="Chi tiết thanh toán checkout"
-              description="Tổng hợp tất cả các khoản phí cần thanh toán khi checkout"
-              type="info"
-              showIcon
-              style={{ marginBottom: 24 }}
-            />
-
-            <List
-              size="large"
-              dataSource={[
-                {
-                  label: "Tiền phòng",
-                  value: checkoutSummary.room,
-                  color: "#1890ff",
-                },
-                {
-                  label: "Dịch vụ",
-                  value: checkoutSummary.service,
-                  color: "#722ed1",
-                },
-                {
-                  label: "Hư hỏng",
-                  value: checkoutSummary.damage,
-                  color: "#fa8c16",
-                },
-                {
-                  label: "Phạt trễ",
-                  value: checkoutSummary.penalty,
-                  color: "#fa541c",
-                },
-                {
-                  label: "Đã trả trước",
-                  value: -checkoutSummary.prepaid,
-                  color: "#52c41a",
-                },
-              ]}
-              renderItem={(item) => (
-                <List.Item>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      width: "100%",
-                    }}
-                  >
-                    <div>{item.label}:</div>
-                    <div style={{ color: item.color, fontWeight: "600" }}>
-                      {item.value >= 0 ? "+" : ""}
-                      {formatCurrency(item.value)}
-                    </div>
-                  </div>
-                </List.Item>
-              )}
-            />
-
-            <Divider />
-
-            <div
-              style={{
-                background: "#f6ffed",
-                padding: "16px",
-                borderRadius: "8px",
-                border: "1px solid #b7eb8f",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <div style={{ fontSize: "18px", fontWeight: "600" }}>
-                  Tổng thanh toán:
-                </div>
-                <div
-                  style={{
-                    fontSize: "24px",
-                    fontWeight: "700",
-                    color: "#1890ff",
-                  }}
-                >
-                  {formatCurrency(checkoutSummary.final)}
-                </div>
-              </div>
-              <div style={{ marginTop: 8, fontSize: "14px", color: "#666" }}>
-                {checkoutSummary.final <= 0
-                  ? "Khách đã thanh toán đủ. Không cần thanh toán thêm."
-                  : `Khách cần thanh toán thêm ${formatCurrency(
-                      checkoutSummary.final
-                    )}`}
-              </div>
-            </div>
-
-            <Alert
-              message="Lưu ý"
-              description="Sau khi xác nhận checkout, hệ thống sẽ tính toán và xử lý thanh toán cuối cùng."
-              type="warning"
-              showIcon
-              style={{ marginTop: 16 }}
-            />
-          </div>
-        )}
-      </Modal>
-
-      {/* CHECKOUT PAYMENT MODAL */}
-      <Modal
-        title={
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <ShoppingCartOutlined style={{ color: "#1890ff" }} />
-            <span>Thanh toán Checkout</span>
-            <Tag color="blue" style={{ marginLeft: "auto" }}>
-              Booking #{displayBookingId}
-            </Tag>
-          </div>
-        }
-        open={checkoutModalVisible}
-        onCancel={() => !checkoutLoading && setCheckoutModalVisible(false)}
-        onOk={handleCheckoutPayment}
-        okText="Thanh toán"
-        cancelText="Hủy"
-        width={500}
-        okButtonProps={{
-          type: "primary",
-          loading: checkoutLoading,
-        }}
-        cancelButtonProps={{ disabled: checkoutLoading }}
-        closable={!checkoutLoading}
-        maskClosable={!checkoutLoading}
-      >
-        <div style={{ padding: "16px 0" }}>
-          <Alert
-            message="Chọn phương thức thanh toán"
-            description="Vui lòng chọn phương thức thanh toán cho khoản checkout"
-            type="info"
-            showIcon
-            style={{ marginBottom: 24 }}
-          />
-
-          {checkoutSummary && (
-            <div
-              style={{
-                background: "#f6ffed",
-                padding: "12px",
-                borderRadius: "6px",
-                border: "1px solid #b7eb8f",
-                marginBottom: 16,
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <div style={{ fontWeight: "600" }}>Tổng thanh toán:</div>
-                <div
-                  style={{
-                    fontSize: "18px",
-                    fontWeight: "700",
-                    color: "#1890ff",
-                  }}
-                >
-                  {formatCurrency(checkoutSummary.final)}
-                </div>
-              </div>
-            </div>
-          )}
-
-          <Form layout="vertical">
-            <Form.Item label="Phương thức thanh toán" required>
-              <Radio.Group
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-                style={{ width: "100%" }}
-              >
-                <Space direction="vertical" style={{ width: "100%" }}>
-                  <Radio value="cash" style={{ width: "100%" }}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                      }}
-                    >
-                      <CashRegisterOutlined style={{ color: "#52c41a" }} />
-                      <div>
-                        <div style={{ fontWeight: "600" }}>Tiền mặt</div>
-                        <div style={{ fontSize: "12px", color: "#666" }}>
-                          Thanh toán trực tiếp tại quầy
-                        </div>
-                      </div>
-                    </div>
-                  </Radio>
-                  <Radio value="vnpay" style={{ width: "100%" }}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                      }}
-                    >
-                      <BankOutlined style={{ color: "#1890ff" }} />
-                      <div>
-                        <div style={{ fontWeight: "600" }}>VNPay</div>
-                        <div style={{ fontSize: "12px", color: "#666" }}>
-                          Thanh toán qua ngân hàng/cổng VNPay
-                        </div>
-                      </div>
-                    </div>
-                  </Radio>
-                </Space>
-              </Radio.Group>
-            </Form.Item>
-          </Form>
-
-          <Alert
-            message="Thông tin thanh toán"
-            description={
-              paymentMethod === "cash"
-                ? "Sau khi xác nhận, hệ thống sẽ hoàn tất checkout và mở phòng."
-                : "Bạn sẽ được chuyển đến trang thanh toán VNPay để hoàn tất giao dịch."
-            }
-            type="info"
-            showIcon
-            style={{ marginTop: 16 }}
-          />
-        </div>
-      </Modal>
 
       {/* CHECKIN MODAL */}
       <Modal
