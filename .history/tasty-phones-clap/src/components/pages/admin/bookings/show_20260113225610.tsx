@@ -2927,11 +2927,7 @@ export default function BookingShow() {
                     Phạt trễ check-out
                   </Divider>
                   <Table
-                    dataSource={
-                      Array.isArray(booking?.penaltyCharges)
-                        ? booking.penaltyCharges
-                        : []
-                    }
+                    dataSource={booking.penaltyCharges}
                     rowKey="penalty_charge_id"
                     pagination={false}
                     size="small"

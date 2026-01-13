@@ -2862,11 +2862,7 @@ export default function BookingShow() {
                     Hư hỏng
                   </Divider>
                   <Table
-                    dataSource={
-                      Array.isArray(booking?.damageInvoices)
-                        ? booking.damageInvoices
-                        : []
-                    }
+                    dataSource={booking.damageInvoices}
                     rowKey="damage_invoice_id"
                     pagination={false}
                     size="small"
@@ -2927,11 +2923,7 @@ export default function BookingShow() {
                     Phạt trễ check-out
                   </Divider>
                   <Table
-                    dataSource={
-                      Array.isArray(booking?.penaltyCharges)
-                        ? booking.penaltyCharges
-                        : []
-                    }
+                    dataSource={booking.penaltyCharges}
                     rowKey="penalty_charge_id"
                     pagination={false}
                     size="small"
