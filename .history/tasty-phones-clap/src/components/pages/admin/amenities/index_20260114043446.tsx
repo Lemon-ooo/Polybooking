@@ -39,7 +39,6 @@ const Amenities: React.FC = () => {
   const [form] = Form.useForm();
   const [editing, setEditing] = useState<Amenity | null>(null);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
-  const [saveLoading, setSaveLoading] = useState(false);
   const navigate = useNavigate();
 
   const BASE_URL = "http://localhost:8000/storage";
@@ -67,7 +66,7 @@ const Amenities: React.FC = () => {
     setEditing(record);
     form.setFieldsValue({
       amenity_name: record.amenity_name,
-      description: record.description || "",
+      description: record.description,
     });
 
     // Hiển thị ảnh hiện tại
@@ -101,46 +100,33 @@ const Amenities: React.FC = () => {
       return;
     }
 
-    setSaveLoading(true);
-
     try {
-      const formData = new FormData();
-
-      // ⭐ SỬA QUAN TRỌNG: Thêm dữ liệu vào FormData
-      formData.append("amenity_name", values.amenity_name.trim());
-
-      if (values.description?.trim()) {
-        formData.append("description", values.description.trim());
-      } else {
-        formData.append("description", "");
-      }
-
-      // Xử lý file ảnh
-      const file = fileList[0];
-      if (file?.originFileObj) {
-        formData.append("amenity_image", file.originFileObj);
-      }
-      // Nếu đang sửa và không có file mới, KHÔNG append amenity_image
-      // Backend sẽ tự động giữ ảnh cũ
-
-      // ⭐ THÊM: Debug log để kiểm tra FormData
-      console.log("FormData contents:");
-      for (let [key, value] of (formData as any).entries()) {
-        console.log(key, value);
-      }
-
       if (editing) {
-        // ⭐ QUAN TRỌNG: Dùng POST với _method=PUT cho Laravel
-        const res = await axiosInstance.post(
+        // ⭐ SỬA: Dùng PUT thay vì POST với _method
+        const formData = new FormData();
+        formData.append("amenity_name", values.amenity_name.trim());
+
+        if (values.description?.trim()) {
+          formData.append("description", values.description.trim());
+        }
+
+        // Chỉ thêm file nếu có file mới được chọn
+        const file = fileList[0];
+        if (file?.originFileObj) {
+          formData.append("amenity_image", file.originFileObj as Blob);
+        } else if (file && !file.originFileObj && file.url) {
+          // Nếu giữ ảnh cũ, gửi đường dẫn ảnh cũ
+          const imagePath = file.url.replace(`${BASE_URL}/`, "");
+          formData.append("current_image", imagePath);
+        }
+
+        // Gọi API update đúng phương thức
+        const res = await axiosInstance.put(
           `/amenities/${editing.amenity_id}`,
           formData,
           {
             headers: {
               "Content-Type": "multipart/form-data",
-              Accept: "application/json",
-            },
-            params: {
-              _method: "PUT",
             },
           }
         );
@@ -157,10 +143,20 @@ const Amenities: React.FC = () => {
         );
       } else {
         // ⭐ THÊM MỚI
+        const formData = new FormData();
+        formData.append("amenity_name", values.amenity_name.trim());
+
+        if (values.description?.trim()) {
+          formData.append("description", values.description.trim());
+        }
+
+        if (fileList[0]?.originFileObj) {
+          formData.append("amenity_image", fileList[0].originFileObj as Blob);
+        }
+
         const res = await axiosInstance.post("/amenities", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
-            Accept: "application/json",
           },
         });
 
@@ -175,20 +171,7 @@ const Amenities: React.FC = () => {
       form.resetFields();
     } catch (err: any) {
       console.error("Save error:", err);
-
-      // Hiển thị lỗi chi tiết từ server
-      if (err.response?.data?.errors) {
-        const errors = err.response.data.errors;
-        Object.keys(errors).forEach((field) => {
-          message.error(errors[field][0]);
-        });
-      } else if (err.response?.data?.message) {
-        message.error(err.response.data.message);
-      } else {
-        message.error("Lưu thất bại!");
-      }
-    } finally {
-      setSaveLoading(false);
+      message.error(err.response?.data?.message || "Lưu thất bại!");
     }
   };
 
@@ -216,12 +199,6 @@ const Amenities: React.FC = () => {
   // Custom upload (ngăn tự động upload)
   const beforeUpload = () => {
     return false; // Ngăn không cho upload tự động
-  };
-
-  // Xóa ảnh
-  const handleRemove = (file: UploadFile) => {
-    setFileList([]);
-    return true;
   };
 
   return (
@@ -259,7 +236,6 @@ const Amenities: React.FC = () => {
                 height={60}
                 style={{ objectFit: "cover", borderRadius: 8 }}
                 fallback="/no-image.png"
-                preview={false}
               />
             ),
           },
@@ -272,7 +248,6 @@ const Amenities: React.FC = () => {
             title: "Mô tả",
             dataIndex: "description",
             ellipsis: true,
-            render: (text) => text || "-",
           },
           {
             title: "Ngày tạo",
@@ -333,27 +308,31 @@ const Amenities: React.FC = () => {
         cancelText="Hủy"
         width={600}
         destroyOnClose
-        confirmLoading={saveLoading}
       >
-        <Form form={form} layout="vertical" onFinish={handleSave}>
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSave}
+          initialValues={{
+            amenity_name: "",
+            description: "",
+          }}
+        >
           <Form.Item
             label="Tên tiện ích"
             name="amenity_name"
-            rules={[
-              { required: true, message: "Vui lòng nhập tên tiện ích!" },
-              { min: 2, message: "Tên tiện ích phải có ít nhất 2 ký tự!" },
-            ]}
+            rules={[{ required: true, message: "Vui lòng nhập tên tiện ích!" }]}
           >
             <Input placeholder="VD: Wifi miễn phí" />
           </Form.Item>
 
           <Form.Item
             label="Ảnh tiện ích"
-            required={!editing}
+            required={!editing} // Chỉ bắt buộc với thêm mới
             help={
               editing
                 ? "Chọn ảnh mới nếu muốn thay đổi, không chọn sẽ giữ ảnh cũ"
-                : "Vui lòng chọn ảnh"
+                : ""
             }
           >
             <Upload
@@ -362,13 +341,8 @@ const Amenities: React.FC = () => {
               beforeUpload={beforeUpload}
               fileList={fileList}
               onChange={handleUploadChange}
-              onRemove={handleRemove}
               accept="image/*"
-              showUploadList={{
-                showPreviewIcon: true,
-                showRemoveIcon: true,
-                showDownloadIcon: false,
-              }}
+              showUploadList={{ showPreviewIcon: true, showRemoveIcon: true }}
             >
               {fileList.length === 0 && (
                 <div>

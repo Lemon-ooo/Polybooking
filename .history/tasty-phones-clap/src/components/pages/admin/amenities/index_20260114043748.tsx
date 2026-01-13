@@ -67,7 +67,7 @@ const Amenities: React.FC = () => {
     setEditing(record);
     form.setFieldsValue({
       amenity_name: record.amenity_name,
-      description: record.description || "",
+      description: record.description,
     });
 
     // Hiển thị ảnh hiện tại
@@ -106,44 +106,47 @@ const Amenities: React.FC = () => {
     try {
       const formData = new FormData();
 
-      // ⭐ SỬA QUAN TRỌNG: Thêm dữ liệu vào FormData
+      // Thêm dữ liệu vào FormData
       formData.append("amenity_name", values.amenity_name.trim());
 
       if (values.description?.trim()) {
         formData.append("description", values.description.trim());
-      } else {
-        formData.append("description", "");
       }
 
       // Xử lý file ảnh
       const file = fileList[0];
       if (file?.originFileObj) {
         formData.append("amenity_image", file.originFileObj);
-      }
-      // Nếu đang sửa và không có file mới, KHÔNG append amenity_image
-      // Backend sẽ tự động giữ ảnh cũ
-
-      // ⭐ THÊM: Debug log để kiểm tra FormData
-      console.log("FormData contents:");
-      for (let [key, value] of (formData as any).entries()) {
-        console.log(key, value);
+      } else if (editing && file && !file.originFileObj && file.url) {
+        // Nếu đang sửa và không có file mới, giữ ảnh cũ
+        // Không cần append gì cả, backend sẽ giữ ảnh cũ
       }
 
       if (editing) {
-        // ⭐ QUAN TRỌNG: Dùng POST với _method=PUT cho Laravel
-        const res = await axiosInstance.post(
+        // ⭐ CÁCH 1: Dùng PUT trực tiếp
+        const res = await axiosInstance.put(
           `/amenities/${editing.amenity_id}`,
           formData,
           {
             headers: {
               "Content-Type": "multipart/form-data",
-              Accept: "application/json",
-            },
-            params: {
-              _method: "PUT",
             },
           }
         );
+
+        // ⭐ HOẶC CÁCH 2: Dùng POST với _method=PUT (cho Laravel)
+        // const res = await axiosInstance.post(
+        //   `/amenities/${editing.amenity_id}`,
+        //   formData,
+        //   {
+        //     headers: {
+        //       'Content-Type': 'multipart/form-data',
+        //     },
+        //     params: {
+        //       '_method': 'PUT'
+        //     }
+        //   }
+        // );
 
         message.success("Cập nhật thành công!");
 
@@ -160,7 +163,6 @@ const Amenities: React.FC = () => {
         const res = await axiosInstance.post("/amenities", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
-            Accept: "application/json",
           },
         });
 
@@ -182,10 +184,8 @@ const Amenities: React.FC = () => {
         Object.keys(errors).forEach((field) => {
           message.error(errors[field][0]);
         });
-      } else if (err.response?.data?.message) {
-        message.error(err.response.data.message);
       } else {
-        message.error("Lưu thất bại!");
+        message.error(err.response?.data?.message || "Lưu thất bại!");
       }
     } finally {
       setSaveLoading(false);
@@ -216,12 +216,6 @@ const Amenities: React.FC = () => {
   // Custom upload (ngăn tự động upload)
   const beforeUpload = () => {
     return false; // Ngăn không cho upload tự động
-  };
-
-  // Xóa ảnh
-  const handleRemove = (file: UploadFile) => {
-    setFileList([]);
-    return true;
   };
 
   return (
@@ -259,7 +253,6 @@ const Amenities: React.FC = () => {
                 height={60}
                 style={{ objectFit: "cover", borderRadius: 8 }}
                 fallback="/no-image.png"
-                preview={false}
               />
             ),
           },
@@ -272,7 +265,6 @@ const Amenities: React.FC = () => {
             title: "Mô tả",
             dataIndex: "description",
             ellipsis: true,
-            render: (text) => text || "-",
           },
           {
             title: "Ngày tạo",
@@ -353,7 +345,7 @@ const Amenities: React.FC = () => {
             help={
               editing
                 ? "Chọn ảnh mới nếu muốn thay đổi, không chọn sẽ giữ ảnh cũ"
-                : "Vui lòng chọn ảnh"
+                : ""
             }
           >
             <Upload
@@ -362,7 +354,6 @@ const Amenities: React.FC = () => {
               beforeUpload={beforeUpload}
               fileList={fileList}
               onChange={handleUploadChange}
-              onRemove={handleRemove}
               accept="image/*"
               showUploadList={{
                 showPreviewIcon: true,

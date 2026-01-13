@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { List, useTable, DateField } from "@refinedev/antd";
 import { useUpdate } from "@refinedev/core";
 import {
@@ -32,6 +32,7 @@ interface User {
   email: string;
   role: "admin" | "customer";
   created_at: string;
+  updated_at?: string;
 }
 
 const getRoleColor = (role: string) => (role === "admin" ? "red" : "blue");
@@ -40,17 +41,17 @@ const getRoleLabel = (role: string) =>
   role === "admin" ? "Quản trị viên" : "Khách hàng";
 
 export const UserList: React.FC = () => {
-  const [form] = Form.useForm();
-
-  /** ================= STATE ================= */
-  const [searchName, setSearchName] = useState("");
-  const [roleFilter, setRoleFilter] = useState<string | null>(null);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedRole, setSelectedRole] = useState<string>("");
 
-  /** ================= DATA ================= */
+  /** ✅ STATE FILTER CLIENT */
+  const [searchName, setSearchName] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string | null>(null);
+
+  const [form] = Form.useForm();
+
+  /** 🔹 GIỮ useTable – CHỈ DÙNG LẤY DATA */
   const { tableProps, tableQueryResult } = useTable<User>({
     resource: "users",
     pagination: {
@@ -66,7 +67,9 @@ export const UserList: React.FC = () => {
 
   const { mutate: updateUser, isLoading: isUpdating } = useUpdate<User>();
 
-  /** ================= FILTER CLIENT ================= */
+  /** ===============================
+   *  CLIENT-SIDE FILTER LOGIC
+   *  =============================== */
   const filteredData = useMemo(() => {
     let list = tableProps.dataSource || [];
 
@@ -83,14 +86,23 @@ export const UserList: React.FC = () => {
     return list;
   }, [tableProps.dataSource, searchName, roleFilter]);
 
-  /** ================= RESET ================= */
+  /** ===============================
+   *  SEARCH & RESET
+   *  =============================== */
+  const handleSearch = (values: any) => {
+    setSearchName(values.user_name || "");
+    setRoleFilter(values.role || null);
+  };
+
   const handleReset = () => {
     form.resetFields();
     setSearchName("");
     setRoleFilter(null);
   };
 
-  /** ================= ROLE UPDATE ================= */
+  /** ===============================
+   *  ROLE UPDATE
+   *  =============================== */
   const openRoleModal = (user: User) => {
     setSelectedUser(user);
     setSelectedRole(user.role);
@@ -98,7 +110,7 @@ export const UserList: React.FC = () => {
   };
 
   const handleRoleUpdate = () => {
-    if (!selectedUser) return;
+    if (!selectedUser || !selectedRole) return;
 
     updateUser(
       {
@@ -120,7 +132,9 @@ export const UserList: React.FC = () => {
     );
   };
 
-  /** ================= LOADING / ERROR ================= */
+  /** ===============================
+   *  LOADING / ERROR
+   *  =============================== */
   if (isLoading && !tableProps.dataSource) {
     return (
       <div style={{ textAlign: "center", padding: 100 }}>
@@ -139,32 +153,24 @@ export const UserList: React.FC = () => {
 
   return (
     <List>
-      {/* ================= SEARCH & FILTER ================= */}
+      {/* ================= SEARCH CARD ================= */}
       <Card
-        size="small"
         style={{ marginBottom: 16 }}
         title={
           <Space>
-            <FilterOutlined />
-            Tìm kiếm & lọc (Auto)
+            <FilterOutlined /> Tìm kiếm & lọc
           </Space>
         }
+        size="small"
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onValuesChange={(_, values) => {
-            setSearchName(values.user_name || "");
-            setRoleFilter(values.role || null);
-          }}
-        >
+        <Form form={form} onFinish={handleSearch} layout="vertical">
           <Row gutter={16}>
             <Col xs={24} md={10}>
               <Form.Item label="Tên tài khoản" name="user_name">
                 <Input
-                  allowClear
-                  prefix={<SearchOutlined />}
                   placeholder="Nhập tên..."
+                  prefix={<SearchOutlined />}
+                  allowClear
                 />
               </Form.Item>
             </Col>
@@ -175,14 +181,8 @@ export const UserList: React.FC = () => {
                   allowClear
                   placeholder="Chọn quyền"
                   options={[
-                    {
-                      value: "admin",
-                      label: "Quản trị viên",
-                    },
-                    {
-                      value: "customer",
-                      label: "Khách hàng",
-                    },
+                    { value: "admin", label: "Quản trị viên" },
+                    { value: "customer", label: "Khách hàng" },
                   ]}
                 />
               </Form.Item>
@@ -190,7 +190,16 @@ export const UserList: React.FC = () => {
 
             <Col xs={24} md={4}>
               <Form.Item label=" ">
-                <Button onClick={handleReset}>Reset</Button>
+                <Space>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    icon={<SearchOutlined />}
+                  >
+                    Tìm
+                  </Button>
+                  <Button onClick={handleReset}>Reset</Button>
+                </Space>
               </Form.Item>
             </Col>
           </Row>
@@ -227,8 +236,7 @@ export const UserList: React.FC = () => {
           title="Tên tài khoản"
           render={(name: string) => (
             <Space>
-              <UserOutlined />
-              {name || "Chưa đặt tên"}
+              <UserOutlined /> {name || "Chưa đặt tên"}
             </Space>
           )}
         />
@@ -279,14 +287,8 @@ export const UserList: React.FC = () => {
             value={selectedRole}
             onChange={setSelectedRole}
             options={[
-              {
-                value: "admin",
-                label: "Quản trị viên",
-              },
-              {
-                value: "customer",
-                label: "Khách hàng",
-              },
+              { value: "admin", label: "Quản trị viên" },
+              { value: "customer", label: "Khách hàng" },
             ]}
           />
         </Space>
