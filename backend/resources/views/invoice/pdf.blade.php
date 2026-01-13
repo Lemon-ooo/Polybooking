@@ -95,7 +95,6 @@
 {{-- ================= SERVICES ================= --}}
 @if(count($invoice['services']) > 0)
 <div class="section-title">Services</div>
-
 <table>
     <tr>
         <th>Service</th>
@@ -103,51 +102,54 @@
         <th class="text-right">Price</th>
         <th class="text-right">Total</th>
     </tr>
-
     @foreach($invoice['services'] as $service)
-    <tr>
-        <td>{{ $service['name'] }}</td>
-        <td class="text-right">{{ $service['qty'] }}</td>
-        <td class="text-right">{{ number_format($service['price']) }}</td>
-        <td class="text-right">{{ number_format($service['total']) }}</td>
-    </tr>
+        <tr>
+            <td>{{ $service['name'] }}</td>
+            <td class="text-right">{{ $service['qty'] }}</td>
+            <td class="text-right">{{ number_format($service['price']) }}</td>
+            <td class="text-right">{{ number_format($service['total']) }}</td>
+        </tr>
     @endforeach
 </table>
 @endif
 
-
 {{-- ================= DAMAGES ================= --}}
 @if(count($invoice['damages']) > 0)
-    <div class="section-title">Damages</div>
-    <table>
+<div class="section-title">Damages</div>
+<table>
+    <tr>
+        <th>Damage</th>
+        <th class="text-right">Amount</th>
+    </tr>
+    @foreach($invoice['damages'] as $damage)
         <tr>
-            <th>Damage</th>
-            <th class="text-right">Amount</th>
+            <td>{{ $damage['name'] }}</td>
+            <td class="text-right">{{ number_format($damage['price']) }}</td>
         </tr>
-        @foreach($invoice['damages'] as $damage)
-            <tr>
-<td>{{ $damage['name'] }}</td>
-                <td class="text-right">{{ number_format($damage['price']) }}</td>
-            </tr>
-        @endforeach
-    </table>
+    @endforeach
+</table>
 @endif
 
-{{-- ================= PENALTIES ================= --}}
+{{-- ================= PENALTIES (FIXED) ================= --}}
 @if(count($invoice['penalties']) > 0)
-    <div class="section-title">Penalties</div>
-    <table>
+<div class="section-title">Penalties</div>
+<table>
+    <tr>
+        <th>Description</th>
+        <th class="text-right">Amount</th>
+    </tr>
+    @foreach($invoice['penalties'] as $penalty)
         <tr>
-            <th>Description</th>
-            <th class="text-right">Amount</th>
+            <td>
+                Late checkout
+                @if(isset($penalty['days_late']))
+                    ({{ $penalty['days_late'] }} day(s))
+                @endif
+            </td>
+            <td class="text-right">{{ number_format($penalty['amount']) }}</td>
         </tr>
-        @foreach($invoice['penalties'] as $penalty)
-            <tr>
-                <td>Late checkout ({{ $penalty['days_late'] }} day(s))</td>
-                <td class="text-right">{{ number_format($penalty['amount']) }}</td>
-            </tr>
-        @endforeach
-    </table>
+    @endforeach
+</table>
 @endif
 
 {{-- ================= SUMMARY ================= --}}
@@ -185,21 +187,21 @@
 
 {{-- ================= PAYMENTS ================= --}}
 @if(count($invoice['payments']) > 0)
-    <div class="section-title">Payment history</div>
-    <table>
+<div class="section-title">Payment history</div>
+<table>
+    <tr>
+        <th>Method</th>
+        <th class="text-right">Amount</th>
+        <th class="text-right">Paid at</th>
+    </tr>
+    @foreach($invoice['payments'] as $payment)
         <tr>
-            <th>Method</th>
-            <th class="text-right">Amount</th>
-            <th class="text-right">Paid at</th>
+            <td>{{ strtoupper($payment['method']) }}</td>
+            <td class="text-right">{{ number_format($payment['amount']) }}</td>
+            <td class="text-right">{{ $payment['paid_at'] }}</td>
         </tr>
-        @foreach($invoice['payments'] as $payment)
-            <tr>
-                <td>{{ strtoupper($payment['method']) }}</td>
-                <td class="text-right">{{ number_format($payment['amount']) }}</td>
-                <td class="text-right">{{ $payment['paid_at'] }}</td>
-            </tr>
-        @endforeach
-    </table>
+    @endforeach
+</table>
 @endif
 
 </body>
