@@ -355,30 +355,35 @@ export default function BookingShow() {
   const checkCheckinConditions = () => {
     if (!booking) return false;
 
-    // Booking đã thanh toán
+    // Booking phải ở trạng thái "paid" (đã thanh toán)
     const isPaid = booking.status === "paid";
 
-    // Có ít nhất 1 phòng được gán
+    // Booking phải có assigned rooms
     const hasAssignedRooms = assignedRooms.length > 0;
 
-    // Chưa có phòng nào được check-in
-    const hasCheckedInRoom = assignedRooms.some(
-      (room) => room.status === "checked_in"
+    // Chưa checkin (trạng thái assigned rooms phải là 'assigned' chứ không phải 'checked_in')
+    const notCheckedIn = assignedRooms.every(
+      (room) => room.status === "assigned"
     );
 
-    return isPaid && hasAssignedRooms && !hasCheckedInRoom;
+    return isPaid && hasAssignedRooms && notCheckedIn;
   };
 
   // Kiểm tra điều kiện checkout
   const checkCheckoutConditions = () => {
     if (!booking) return false;
 
-    // Có ít nhất 1 phòng đã check-in
+    // Booking đang ở trạng thái 'in_use', 'check_in', 'checked_in'
+    const isCheckedIn = ["in_use", "check_in", "checked_in"].includes(
+      booking.status
+    );
+
+    // Hoặc assigned rooms có status 'checked_in'
     const hasCheckedInRooms = assignedRooms.some(
       (room) => room.status === "checked_in"
     );
 
-    return hasCheckedInRooms;
+    return isCheckedIn || hasCheckedInRooms;
   };
 
   // ============================================
@@ -431,7 +436,7 @@ export default function BookingShow() {
       console.log("🔐 Confirming checkout for booking:", id);
 
       const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/checkout/confirm`,
+        `${API_URL}/api/admin/bookings/${id}/checkout/confirm`,
         {},
         {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -499,7 +504,7 @@ export default function BookingShow() {
 
       // Gọi API checkout với phương thức cash
       const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/checkout/pay`,
+        `${API_URL}/api/admin/bookings/${id}/checkout/pay`,
         {
           method: "cash",
         },
@@ -554,7 +559,7 @@ export default function BookingShow() {
       });
 
       const response = await axios.post(
-        `${API_URL}/api/bookings/${id}/checkout/pay`,
+        `${API_URL}/api/admin/bookings/${id}/checkout/pay`,
         {
           method: paymentMethod,
         },
@@ -803,7 +808,11 @@ export default function BookingShow() {
       console.log("📤 Checkin payload:", payload);
 
       // Thử các endpoint khác nhau
-      const endpoints = [`${API_URL}/api/bookings/${id}/checkin`];
+      const endpoints = [
+        `${API_URL}/api/admin/bookings/${id}/checkin`,
+        `${API_URL}/api/bookings/${id}/checkin`,
+        `${API_URL}/api/bookings/${id}/check-in`,
+      ];
 
       let response = null;
       let error = null;

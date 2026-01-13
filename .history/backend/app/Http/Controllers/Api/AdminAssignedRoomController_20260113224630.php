@@ -36,7 +36,7 @@ class AdminAssignedRoomController extends Controller
             // Format response
             $formattedRooms = $assignedRooms->map(function($assignedRoom) {
                 return [
-                    'assigned_room_id' => $assignedRoom->assigned_room_id,
+                    'id' => $assignedRoom->id,
                     'booking_id' => $assignedRoom->booking_id,
                     'room_id' => $assignedRoom->room_id,
                     'room_number' => $assignedRoom->room->room_number ?? 'N/A',
@@ -86,7 +86,7 @@ class AdminAssignedRoomController extends Controller
             // Format response
             $formattedRooms = $assignedRooms->map(function($assignedRoom) {
                 return [
-                    'assigned_room_id' => $assignedRoom->assigned_room_id,
+                    'id' => $assignedRoom->id,
                     'booking_id' => $assignedRoom->booking_id,
                     'room_id' => $assignedRoom->room_id,
                     'room_number' => $assignedRoom->room->room_number ?? 'N/A',
@@ -110,127 +110,80 @@ class AdminAssignedRoomController extends Controller
      * POST /api/bookings/{id}/assign-room
      * Assign a room to a paid booking (admin)
      */
-public function assign(Request $request, $bookingId)
-{
-    $user = $request->user();
-    if (!$user || $user->role !== 'admin') {
-        return $this->error(
-            'FORBIDDEN',
-            'Bạn không có quyền thực hiện thao tác này',
-            403
-        );
-    }
-
-    try {
-        $validated = $request->validate([
-            'room_id' => 'required|exists:rooms,room_id',
-        ]);
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        return $this->validationError($e->errors());
-    }
-
-    $booking = Booking::with('items')->find($bookingId);
-    if (!$booking) {
-        return $this->error(
-            'BOOKING_NOT_FOUND',
-            'Không tìm thấy booking',
-            404
-        );
-    }
-
-    // Chỉ cho gán phòng khi booking đã thanh toán
-    if ($booking->status !== Booking::STATUS_PAID) {
-        return $this->error(
-            'INVALID_BOOKING_STATUS',
-            'Booking chưa ở trạng thái đã thanh toán'
-        );
-    }
-
-    // Tổng số phòng khách đã đặt
-    $totalBookedRooms = $booking->items->sum('quantity');
-
-    // Tổng số phòng đã được gán
-    $totalAssignedRooms = AssignedRoom::where('booking_id', $booking->id)->count();
-
-    // Nếu đã gán đủ thì chặn
-    if ($totalAssignedRooms >= $totalBookedRooms) {
-        return $this->error(
-            'ROOM_ASSIGN_COMPLETED',
-            'Booking này đã được gán đủ phòng'
-        );
-    }
-
-    DB::beginTransaction();
-    try {
-        // Lock phòng để tránh gán trùng
-        $room = Room::lockForUpdate()
-            ->where('room_id', $validated['room_id'])
-            ->first();
-
-        if (!$room) {
-            throw new \Exception('ROOM_NOT_FOUND');
+    public function assign(Request $request, $bookingId)
+    {
+        $user = $request->user();
+        if (!$user || $user->role !== 'admin') {
+            return $this->error('FORBIDDEN', 'Bạn không có quyền thực hiện thao tác này', 403);
         }
 
-        if ($room->room_status !== Room::STATUS_AVAILABLE) {
-            throw new \Exception('ROOM_NOT_AVAILABLE');
+        try {
+            $validated = $request->validate([
+                'room_id' => 'required|exists:rooms,room_id',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->validationError($e->errors());
         }
 
-        // Không cho gán trùng cùng 1 phòng cho 1 booking
-        $exists = AssignedRoom::where('booking_id', $booking->id)
-            ->where('room_id', $room->room_id)
-            ->exists();
-
-        if ($exists) {
-            throw new \Exception('ROOM_ALREADY_ASSIGNED');
+        $booking = Booking::with('items')->find($bookingId);
+        if (!$booking) {
+            return $this->error('BOOKING_NOT_FOUND', 'Không tìm thấy booking', 404);
         }
 
-        // Tạo bản ghi assigned_rooms
-        $assignedRoom = AssignedRoom::create([
-            'booking_id'   => $booking->id,
-            'room_id'      => $room->room_id,
-            'room_type_id' => $room->room_type_id,
-            'check_in'     => $booking->check_in,
-            'check_out'    => $booking->check_out,
-            'status'       => AssignedRoom::STATUS_ASSIGNED,
-        ]);
+        if ($booking->status !== Booking::STATUS_PAID) {
+            return $this->error('INVALID_BOOKING_STATUS', 'Booking chưa ở trạng thái đã thanh toán');
+        }
 
-        // Cập nhật trạng thái phòng
-        $room->update([
-            'room_status' => Room::STATUS_BOOKED
-        ]);
+        $requiredRooms = $booking->items->sum('quantity');
+        if ($requiredRooms < 1) {
+            return $this->error('ROOM_COUNT_MISMATCH', 'Booking này không phải đặt 1 phòng');
+        }
 
-        DB::commit();
+        DB::beginTransaction();
+        try {
+            $room = Room::lockForUpdate()
+                ->where('room_id', $validated['room_id'])
+                ->first();
 
-        return $this->success([
-            'assigned_room' => [
-                'assigned_room_id' => $assignedRoom->assigned_room_id,
-                'booking_id' => $assignedRoom->booking_id,
-                'room_id' => $room->room_id,
-                'room_number' => $room->room_number,
+            if (!$room || $room->room_status !== \App\Models\Room::STATUS_AVAILABLE) {
+                throw new \Exception('ROOM_NOT_AVAILABLE');
+            }
+
+            $assignedRoom = AssignedRoom::create([
+                'booking_id'   => $booking->id,
+                'room_id'      => $room->room_id,
                 'room_type_id' => $room->room_type_id,
-                'room_type_name' => $room->roomType->room_type_name ?? null,
-                'check_in' => $assignedRoom->check_in,
-                'check_out' => $assignedRoom->check_out,
-                'status' => $assignedRoom->status,
-            ],
-            'progress' => [
-                'total_booked' => $totalBookedRooms,
-                'total_assigned' => $totalAssignedRooms + 1,
-                'remaining' => $totalBookedRooms - ($totalAssignedRooms + 1),
-            ]
-        ]);
+                'check_in'     => $booking->check_in,
+                'check_out'    => $booking->check_out,
+                'status'       => \App\Models\AssignedRoom::STATUS_ASSIGNED,
+            ]);
 
-    } catch (\Exception $e) {
-        DB::rollBack();
+            // Mark room as booked/reserved
+            $room->update(['room_status' => Room::STATUS_BOOKED]);
 
-        return $this->error(
-            'ASSIGN_FAILED',
-            $e->getMessage()
-        );
+            DB::commit();
+
+            // Return full assigned room info
+            return $this->success([
+                'assigned_room' => [
+                    'id' => $assignedRoom->id,
+                    'booking_id' => $assignedRoom->booking_id,
+                    'room_id' => $assignedRoom->room_id,
+                    'room_number' => $room->room_number,
+                    'room_type_id' => $assignedRoom->room_type_id,
+                    'room_type_name' => $room->roomType->room_type_name ?? 'N/A',
+                    'check_in' => $assignedRoom->check_in,
+                    'check_out' => $assignedRoom->check_out,
+                    'status' => $assignedRoom->status,
+                    'created_at' => $assignedRoom->created_at,
+                    'updated_at' => $assignedRoom->updated_at,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->error('ASSIGN_FAILED', $e->getMessage());
+        }
     }
-}
-
-
 
     private function success($data, $status = 200)
     {
