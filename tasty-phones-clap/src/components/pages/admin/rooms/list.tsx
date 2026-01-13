@@ -17,7 +17,6 @@ import {
   Room,
   getRoomStatusColor,
   getRoomStatusLabel,
-  formatPrice,
 } from "../../../../interfaces/rooms";
 import { DeleteOutlined, EditOutlined, EyeOutlined } from "@ant-design/icons";
 
@@ -83,6 +82,7 @@ export const RoomList: React.FC = () => {
         scroll={{ x: 1000 }}
       >
         <Table.Column dataIndex="room_number" title="Số phòng" sorter />
+
         <Table.Column
           dataIndex={["room_type", "room_type_name"]}
           title="Loại phòng"
@@ -103,11 +103,13 @@ export const RoomList: React.FC = () => {
           )}
           filters={[
             { text: "Trống", value: "available" },
-            { text: "Đang sử dụng", value: "occupied" },
+            { text: "Đã đặt", value: "booked" },
+            { text: "Đang sử dụng", value: "in_use" },
             { text: "Bảo trì", value: "maintenance" },
           ]}
           onFilter={(value, record: Room) => record.room_status === value}
         />
+
         <Table.Column
           dataIndex="description"
           title="Mô tả"
@@ -118,13 +120,14 @@ export const RoomList: React.FC = () => {
             </Tooltip>
           )}
         />
+
         <Table.Column
           dataIndex="created_at"
           title="Ngày tạo"
           render={(value: string) => <DateField value={value} />}
           sorter
         />
-        {/* Cột Hành động */}
+
         <Table.Column
           title="Hành động"
           render={(_, record: Room) => (
@@ -149,7 +152,7 @@ export const RoomList: React.FC = () => {
 
               <Tooltip title="Xóa">
                 <Popconfirm
-                  title="Bạn có chắc muốn xóa  phòng này không?"
+                  title="Bạn có chắc muốn xóa phòng này không?"
                   onConfirm={() => handleDelete(record.room_id)}
                   okText="Xóa"
                   cancelText="Hủy"

@@ -22,10 +22,12 @@ class Room extends Model
     protected $keyType = 'int';
 
     protected $fillable = [
-        'room_type_id',
-        'room_number',
-        'room_status'
-    ];
+    'room_type_id',
+    'room_number',
+    'room_status',
+    'description',
+];
+
 
     /* =====================================================
      * RELATIONSHIPS

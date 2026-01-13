@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Create, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, InputNumber, Select, Button, message } from "antd";
+import { Create, useForm } from "@refinedev/antd";
+import { Form, Input, InputNumber, Select, message, Button } from "antd";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeftOutlined } from "@ant-design/icons";
@@ -33,8 +33,10 @@ export const RoomCreate: React.FC = () => {
   const onFinish = async (values: any) => {
     try {
       const payload = {
-        ...values,
-        room_number: String(values.room_number),
+        room_number: values.room_number,
+        room_type_id: values.room_type_id,
+        room_status: values.room_status,
+        description: values.description ?? "",
       };
 
       await axios.post("http://localhost:8000/api/rooms", payload);
@@ -53,19 +55,7 @@ export const RoomCreate: React.FC = () => {
   };
 
   return (
-     <Create
-      title="Thêm phòng mới"
-      saveButtonProps={{ ...saveButtonProps, children: "Thêm dịch vụ" }}
-      // Đây chính là chìa khóa: override nút quay lại mặc định
-      goBack={
-        <Button
-          type="text"
-          icon={<ArrowLeftOutlined />}
-          onClick={() => navigate("/admin/rooms")}
-          style={{ fontSize: 16 }}
-        />
-      }
-    >
+    <Create title="Thêm phòng mới" saveButtonProps={saveButtonProps}>
       <Form {...formProps} layout="vertical" onFinish={onFinish}>
         <Form.Item
           label="Số phòng"
@@ -77,15 +67,11 @@ export const RoomCreate: React.FC = () => {
             min={1}
             placeholder="Nhập số phòng..."
             onKeyPress={(event) => {
-              if (!/[0-9]/.test(event.key)) {
-                event.preventDefault();
-              }
+              if (!/[0-9]/.test(event.key)) event.preventDefault();
             }}
             onPaste={(event) => {
               const pasteData = event.clipboardData.getData("text");
-              if (!/^\d+$/.test(pasteData)) {
-                event.preventDefault();
-              }
+              if (!/^\d+$/.test(pasteData)) event.preventDefault();
             }}
           />
         </Form.Item>
@@ -113,9 +99,10 @@ export const RoomCreate: React.FC = () => {
           rules={[{ required: true, message: "Vui lòng chọn trạng thái..." }]}
         >
           <Select placeholder="Chọn trạng thái phòng...">
-            <Select.Option value="available">Available</Select.Option>
-            <Select.Option value="occupied">Occupied</Select.Option>
-            <Select.Option value="maintenance">Maintenance</Select.Option>
+            <Select.Option value="available">Trống</Select.Option>
+            <Select.Option value="booked">Đã đặt</Select.Option>
+            <Select.Option value="in_use">Đang sử dụng</Select.Option>
+            <Select.Option value="maintenance">Bảo trì</Select.Option>
           </Select>
         </Form.Item>
 
